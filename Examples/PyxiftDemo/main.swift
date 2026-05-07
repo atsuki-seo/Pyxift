@@ -6,24 +6,37 @@ import Foundation
 //   0: M2 描画プリミティブ（line/rect/circ/tri/blt/bltm/text）
 //   1: M3 入力可視化（仮想ボタン・キー・マウス）
 //   2: M4 アセット（内蔵フォント全グリフ + loadImage で読み込んだ PNG）
+//   3: M5 ボール跳ね返し（v0.1.0 リリース動作確認用）
 
 enum Scene: Int {
     case drawing = 0
     case input = 1
     case assets = 2
+    case bouncing = 3
 
     var next: Scene {
         switch self {
-        case .drawing: return .input
-        case .input:   return .assets
-        case .assets:  return .drawing
+        case .drawing:  return .input
+        case .input:    return .assets
+        case .assets:   return .bouncing
+        case .bouncing: return .drawing
         }
     }
 }
 
+// 1 個のボール状態。位置・速度・色をフレームごとに更新。
+struct Ball {
+    var x: Double
+    var y: Double
+    var vx: Double
+    var vy: Double
+    var radius: Int
+    var color: Color
+}
+
 struct Demo: App {
     var initialized = false
-    var scene: Scene = .input
+    var scene: Scene = .bouncing
 
     // pressed / released フラッシュ用：イベントが発火したフレーム番号を記録。
     var lastButtonPressedFrame: [Button: Int] = [:]
@@ -31,13 +44,19 @@ struct Demo: App {
     var lastMouseWheelFrame: Int = -100
     var lastMouseWheel: Int = 0
 
+    var balls: [Ball] = []
+
     mutating func update() {
         if !initialized {
             buildAssets()
+            spawnBalls()
             initialized = true
         }
         if Pyx.keyPressed(.tab) {
             scene = scene.next
+        }
+        if scene == .bouncing {
+            updateBalls()
         }
         // フラッシュ表示用に「直近で pressed/released した時刻」を記録
         for b in Button.all {
@@ -62,9 +81,63 @@ struct Demo: App {
         Pyx.text(x: Pyx.width - 80, y: Pyx.height - 8, "TAB:SWITCH", color: .gray)
 
         switch scene {
-        case .drawing: drawDrawingScene()
-        case .input:   drawInputScene()
-        case .assets:  drawAssetsScene()
+        case .drawing:  drawDrawingScene()
+        case .input:    drawInputScene()
+        case .assets:   drawAssetsScene()
+        case .bouncing: drawBouncingScene()
+        }
+    }
+
+    // MARK: - Scene 3: ボール跳ね返し（v0.1.0 リリース動作確認）
+    private mutating func spawnBalls() {
+        let palette: [Color] = [.red, .yellow, .lime, .cyan, .pink, .orange, .lightBlue, .white]
+        // 疑似乱数（線形合同法）。Foundation や Int.random を避けて再現性を確保。
+        var seed: UInt32 = 0x9E37_79B9
+        func next() -> Double {
+            seed = seed &* 1_664_525 &+ 1_013_904_223
+            return Double(seed) / Double(UInt32.max)
+        }
+        balls.removeAll()
+        for i in 0..<8 {
+            let r = 3 + Int(next() * 3)
+            let x = Double(r) + next() * Double(Pyx.width  - 2 * r)
+            let y = Double(r) + next() * Double(Pyx.height - 2 * r)
+            let vx = (next() * 2 - 1) * 1.8 + 0.4
+            let vy = (next() * 2 - 1) * 1.4 + 0.3
+            balls.append(Ball(x: x, y: y, vx: vx, vy: vy, radius: r, color: palette[i % palette.count]))
+        }
+    }
+
+    private mutating func updateBalls() {
+        let w = Double(Pyx.width)
+        let h = Double(Pyx.height)
+        for i in balls.indices {
+            balls[i].x += balls[i].vx
+            balls[i].y += balls[i].vy
+            let r = Double(balls[i].radius)
+            if balls[i].x < r {
+                balls[i].x = r
+                balls[i].vx = -balls[i].vx
+            } else if balls[i].x > w - 1 - r {
+                balls[i].x = w - 1 - r
+                balls[i].vx = -balls[i].vx
+            }
+            if balls[i].y < r {
+                balls[i].y = r
+                balls[i].vy = -balls[i].vy
+            } else if balls[i].y > h - 1 - r {
+                balls[i].y = h - 1 - r
+                balls[i].vy = -balls[i].vy
+            }
+        }
+    }
+
+    private func drawBouncingScene() {
+        Pyx.text(x: 4, y: 4, "M5 BOUNCING BALLS", color: .yellow)
+        Pyx.text(x: 4, y: 12, "FRAME=\(Pyx.frameCount)", color: .gray)
+        Pyx.rectb(x: 0, y: 0, w: Pyx.width, h: Pyx.height, color: .darkBlue)
+        for b in balls {
+            Pyx.circ(x: Int(b.x), y: Int(b.y), r: b.radius, color: b.color)
         }
     }
 
