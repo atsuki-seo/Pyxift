@@ -150,4 +150,50 @@ uint8_t pyxift_engine_pget(const PyxiftEngine *engine, int32_t x, int32_t y) {
     return engine != nullptr ? engine->canvas().pget(x, y) : 0;
 }
 
+void pyxift_engine_line(PyxiftEngine *engine,
+                        int32_t x1, int32_t y1, int32_t x2, int32_t y2,
+                        uint8_t color) {
+    if (engine != nullptr) engine->canvas().line(x1, y1, x2, y2, color);
+}
+
+void pyxift_engine_rect(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t w, int32_t h,
+                        uint8_t color) {
+    if (engine != nullptr) engine->canvas().rect(x, y, w, h, color);
+}
+
+void pyxift_engine_rectb(PyxiftEngine *engine,
+                         int32_t x, int32_t y, int32_t w, int32_t h,
+                         uint8_t color) {
+    if (engine != nullptr) engine->canvas().rectb(x, y, w, h, color);
+}
+
+void pyxift_engine_circ(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t r,
+                        uint8_t color) {
+    if (engine != nullptr) engine->canvas().circ(x, y, r, color);
+}
+
+void pyxift_engine_circb(PyxiftEngine *engine,
+                         int32_t x, int32_t y, int32_t r,
+                         uint8_t color) {
+    if (engine != nullptr) engine->canvas().circb(x, y, r, color);
+}
+
+void pyxift_engine_tri(PyxiftEngine *engine,
+                       int32_t x1, int32_t y1,
+                       int32_t x2, int32_t y2,
+                       int32_t x3, int32_t y3,
+                       uint8_t color) {
+    if (engine != nullptr) engine->canvas().tri(x1, y1, x2, y2, x3, y3, color);
+}
+
+void pyxift_engine_trib(PyxiftEngine *engine,
+                        int32_t x1, int32_t y1,
+                        int32_t x2, int32_t y2,
+                        int32_t x3, int32_t y3,
+                        uint8_t color) {
+    if (engine != nullptr) engine->canvas().trib(x1, y1, x2, y2, x3, y3, color);
+}
+
 } // extern "C"

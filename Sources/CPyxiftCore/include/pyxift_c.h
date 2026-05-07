@@ -37,6 +37,32 @@ void pyxift_engine_cls(PyxiftEngine *engine, uint8_t color);
 void pyxift_engine_pset(PyxiftEngine *engine, int32_t x, int32_t y, uint8_t color);
 uint8_t pyxift_engine_pget(const PyxiftEngine *engine, int32_t x, int32_t y);
 
+void pyxift_engine_line(PyxiftEngine *engine,
+                        int32_t x1, int32_t y1, int32_t x2, int32_t y2,
+                        uint8_t color);
+void pyxift_engine_rect(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t w, int32_t h,
+                        uint8_t color);
+void pyxift_engine_rectb(PyxiftEngine *engine,
+                         int32_t x, int32_t y, int32_t w, int32_t h,
+                         uint8_t color);
+void pyxift_engine_circ(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t r,
+                        uint8_t color);
+void pyxift_engine_circb(PyxiftEngine *engine,
+                         int32_t x, int32_t y, int32_t r,
+                         uint8_t color);
+void pyxift_engine_tri(PyxiftEngine *engine,
+                       int32_t x1, int32_t y1,
+                       int32_t x2, int32_t y2,
+                       int32_t x3, int32_t y3,
+                       uint8_t color);
+void pyxift_engine_trib(PyxiftEngine *engine,
+                        int32_t x1, int32_t y1,
+                        int32_t x2, int32_t y2,
+                        int32_t x3, int32_t y3,
+                        uint8_t color);
+
 #ifdef __cplusplus
 }
 #endif
