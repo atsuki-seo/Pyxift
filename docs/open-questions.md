@@ -122,7 +122,7 @@ SDL3 `SDLK_*` を Swift 慣用に翻訳する規則を以下で固定:
 - 記号キー: `SDLK_PLUS` → `case plus`、`SDLK_MINUS` → `case minus`、`SDLK_LEFTBRACKET` → `case leftBracket`
 - 修飾キー: `SDLK_LSHIFT` → `case leftShift`、`SDLK_RCTRL` → `case rightControl`
 
-`Key(rawValue: UInt32)` で SDL3 キーコード直アクセス可能（`Key: RawRepresentable`）。網羅は実装時に SDL3 ヘッダの `SDL_keycode.h` から自動生成スクリプトで吐く方針（手書きしない）。
+`Key(rawValue: UInt32)` で SDL3 キーコード直アクセス可能（`Key: RawRepresentable`）。網羅方針は `implementation-plan.md` M3 を参照。
 
 ## 11. Swift 標準にない `noise` (Perlin) の扱い — 保留継続
 

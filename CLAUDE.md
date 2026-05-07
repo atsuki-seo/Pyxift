@@ -5,11 +5,7 @@
 
 ## プロジェクト概要
 
-- **何**: Pyxel風レトロ2Dゲームエンジン（Swift製・C++コア・SDL3バックエンド）
-- **対象OS**: Linux と macOS のみ
-- **言語**: Swift 6（strict concurrency）/ C++17（コア層）/ Cヘッダ境界（opaque pointer）
-- **配布**: Swift Package Manager 単体。CMake は使わない
-- **ライセンス**: MIT
+Pyxel風レトロ2Dゲームエンジン（Swift製・C++コア・SDL3バックエンド）。詳細な設計判断（対象OS・言語・配布形式・ライセンス）は `docs/decisions.md` を参照。
 
 ## マイルストーン区切り規約
 
@@ -77,12 +73,7 @@ C++ 実装は2層に分ける:
 
 ## v0.1.0 タグ前のチェックリスト
 
-`docs/implementation-plan.md` M5 セクションの4項目すべてが ☑️ になっていること:
-
-- [ ] サンプル「ボール跳ね返し」が Linux と macOS の両方で30秒連続動作
-- [ ] README の Getting Started 手順を空ディレクトリから再実行して通る
-- [ ] CI の build job が両 OS で緑
-- [ ] 本家流用箇所の出典コメントと LICENSE ファイル設置を grep で確認
+完了基準は `docs/implementation-plan.md` の M5「v0.1.0 タグ前のチェックリスト」を一次台帳として参照。すべての項目が `[x]` になっていることを確認してからタグを打つ。
 
 ## 作業前に必ず読むファイル
 

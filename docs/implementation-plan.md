@@ -7,7 +7,7 @@
 
 - **垂直スライス先行**: SPM↔C++↔SDL3 の連結という最大の不確実性を M1 で潰してから、各機能を肉付けする
 - **リリース間隔は緩い**: v0.1.0 タグ後すぐ v0.2.0 に着手してよい。明示的な安定化期間は設けない（hotfix が必要になったら都度ブランチを切る）
-- **ピクセル完全一致は目指さない**: 描画は教科書アルゴリズムで実装、本家サンプル移植時に 1〜2px 違ってよい（`decisions.md` 既出）
+- **ピクセル完全一致は目指さない**: `decisions.md` の「描画アルゴリズムの再現精度」節を参照
 
 ## 言語・ツールチェーン
 
@@ -190,9 +190,7 @@ Examples/
 
 ## 開発運用
 
-- **ブランチ運用**: 1人開発・速度優先のため、main 直接コミット。PR は使わない
-- **マイルストーン区切り**: 完了時に `git commit --allow-empty -m "M<番号>: ..."` でプレフィックス付き empty コミットを打つ。後から `git log --grep '^M[0-9]'` で節目を抽出可能
-- **タグ**: v0.1.0 / v0.2.0 / v0.3.0 のリリース版のみ。中間マイルストーンにはタグを打たない
+- **ブランチ運用 / マイルストーン区切り規約 / タグ運用**: `CLAUDE.md` の該当節を参照（一次台帳）。`git log --grep '^M[0-9]'` で節目を抽出可能
 - **CI 導入タイミング**: M1 完了直後に GitHub Actions（macos-latest + ubuntu-latest、`swift build` のみ）。`swift test` は M2 以降テストが書かれてから追加。public リポなので両 OS とも runner は無料
 - **Examples**: 同一 SPM パッケージ内に `executableTarget` として `Examples/PyxiftDemo` を含める。別リポにはしない
 - **SDL3 取得手順**: M1〜M4 期間中は開発者環境に sdl3 が pkg-config で見える前提で進める。Linux/mac それぞれの取得手順を README に書くのは M5 でまとめる
@@ -205,9 +203,5 @@ Examples/
 
 ## ライセンス・出典コメント運用
 
-- `FONT_DATA` / `DEFAULT_COLORS` / `DEFAULT_TONE_*` 流用箇所のヘッダコメントに必ず出典明記:
-  ```
-  // Source: kitao/pyxel crates/pyxel-core/src/settings.rs
-  // License: MIT (Copyright (c) 2018-2026 Takashi Kitao)
-  ```
+- 出典コメント必須対象と雛形は `CLAUDE.md` の「本家流用コード — 出典コメント必須」節を参照
 - `LICENSE` ファイル設置は M1 で実施（v0.1.0 タグ前に必ず）
