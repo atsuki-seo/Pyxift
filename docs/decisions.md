@@ -55,21 +55,7 @@
 
 - 非対応。`swift run` で都度ビルド＆起動
 
-## v0.1.0 スコープ
-
-- ウィンドウ生成・固定タイムステップループ
-- 描画プリミティブ全部
-- キーボード・マウス・ゲームパッド入力
-- 内蔵ビットマップフォント
-- 16色固定パレット・最大 256×256（数値は `pyxel-reference.md` 参照）
-- `App` プロトコル ＋ `Pyx.run()` の Swift API
-- SDL3 SystemLibrary 経由の SPM パッケージ
-- `Pyx.loadImage("hero.png")` で素のPNGを読む簡易API
-- システム情報 `Pyx.width` / `Pyx.height` / `Pyx.frameCount` / `Pyx.quit()` / `Pyx.title(_:)` / `Pyx.mouseWheel` / `Pyx.mouseCursor(visible:)` / `Pyx.pget(x:y:)`
-
-v0.2 以降に: 音声・`.pyxift` バンドル形式
-
-## Pyxel本家との突き合わせ（2026-05-07 追記）
+## Pyxel本家との突き合わせ
 
 本家リポジトリの場所・主要ファイル・スコープ外ディレクトリは `CLAUDE.md` の「Pyxel 本家リポジトリの参照」節を参照（一次台帳）。突き合わせ対象は `crates/pyxel-core/`（エンジン本体）と `python/pyxel/__init__.pyi`（公開API表面）の2点に限定。
 
@@ -99,31 +85,13 @@ v0.2 以降に: 音声・`.pyxift` バンドル形式
 - 1 フレーム内で押→離→押が起きた場合、`Pressed` / `Released` は両方 true、`button` は最終状態（false→true→false なら最終 false）。
 - これは Pyxel本家と同じエッジ蓄積方式。30FPS 固定下でのチャタリング対策として最終状態優先で割り切る。
 
-### 公開API表面：v0.1 に追加するもの（Pyxel本家にあって api-sketch 未記載）
+### 公開API表面の Pyxel本家との対応
 
-ゲームを書く最低限として、以下を v0.1 に**追加**する:
+Pyxel本家にあって Pyxift では関数名が異なるもの:
 
-- `Pyx.frameCount: Int`（読み取り専用、本家 `frame_count`）
-- `Pyx.width: Int` / `Pyx.height: Int`（実行中の画面サイズ取得）
-- `Pyx.pget(x: Int, y: Int) -> Color`（衝突判定用、本家 `pget`）
-- `Pyx.quit()`（ゲームループの正常終了、本家 `quit`）
-- `Pyx.title(_ s: String)`（動的タイトル変更、本家 `title`）
-- `Pyx.mouseWheel: Int`（本家 `mouse_wheel`、フレームごとに更新）
-- `Pyx.mouseCursor(visible: Bool)`（本家 `mouse(visible:)` 相当、関数名衝突回避のためリネーム）
+- `Pyx.mouseCursor(visible: Bool)` ← 本家 `mouse(visible:)`（関数名衝突回避のためリネーム）
 
-### 公開API表面：v0.1 で意図的に切るもの
-
-「ゲームを書く最低限」を超えるため v0.1.x 以降に回す:
-
-- 描画追加: `elli`/`ellib`（楕円）、`fill`（塗りつぶし）、`dither`、`blt3d`/`bltm3d`（回転反転blt）
-- システム追加: `fullscreen` / `resize` / `screen_mode` / `integer_scale` / `screenshot` / `screencast` / `perf_monitor` / `icon` / `flip`（手動フリップ・`App` プロトコルと別系統）/ `load_pal`/`save_pal` / `user_data_dir`
-- 入力追加: `btnv`（アナログ軸生値）、`input_keys` / `input_text`（テキスト入力）、`dropped_files`、`set_btn` 系（リプレイ用）
-
-v0.1 完全スコープ外（v0.2 以降または永久不採用）:
-
-- 音声系一切（`play`/`playm`/`stop`/`play_pos`/`gen_bgm`/`channels`/`tones`/`sounds`/`musics`）→ v0.2
-- リソース系（`load`/`save`/`reset`）→ `.pyxift` と一緒に v0.2
-- editor 連携 → 永久不採用
+editor 連携機能は永久不採用。
 
 ### 数学・乱数 API：Pyxel仕様より Swift 慣用を優先
 

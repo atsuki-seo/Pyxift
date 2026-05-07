@@ -2,39 +2,6 @@
 
 Pyxel風のレトロ2Dゲームエンジン（Swift製・C++コア・SDL3バックエンド）。Linux と macOS が対象。
 
-> 🛠️ **開発中**: v0.1.0 リリース直前（M5 仕上げ完了）。設計判断と未解決事項は `docs/` 参照。
-
-## ねらい
-
-- **Pyxel互換の制約感**: 16色固定パレット・最大256×256・4チャンネル音声など、Pyxelの数値仕様に揃える
-- **Swiftらしい書き味**: 名前空間 `Pyx` 配下の静的関数 ＋ 列挙体・ラベル付き引数で型安全化、`App` プロトコルでライフサイクル
-- **SPM単体で完結**: Swift Package Manager のパッケージとして配布。CMake は使わない
-- **数十関数で完結**: API表面を絞り、覚えるべき関数を意図的に少なく保つ
-
-## イメージ
-
-```swift
-import Pyxift
-
-struct MyGame: App {
-    var x = 80, y = 60
-
-    mutating func update() {
-        if Pyx.button(.left)  { x -= 1 }
-        if Pyx.button(.right) { x += 1 }
-    }
-
-    func draw() {
-        Pyx.cls(color: .black)
-        Pyx.pset(x: x, y: y, color: .white)
-        Pyx.text(x: 4, y: 4, "hello", color: .white)
-    }
-}
-
-@main
-struct Main { static func main() { Pyx.run(MyGame(), width: 160, height: 120) } }
-```
-
 ## Getting Started
 
 事前に SDL3 をインストールしてから `swift build` する。
@@ -67,14 +34,6 @@ sudo ldconfig
 swift run PyxiftDemo
 ```
 
-## ステータス
-
-| バージョン | 内容 |
-| --- | --- |
-| v0.1.0（M5 完了） | 描画・入力・固定タイムステップループ・内蔵フォント・PNGロード |
-| v0.2.0（未着手） | 音声合成（4ch・矩形/三角/パルス/ノイズ） |
-| v0.3.0（未着手） | アセットバンドル `.pyxift` 形式 |
-
 ## ライセンス
 
 MIT License。詳細は [LICENSE](LICENSE) 参照。
@@ -83,8 +42,6 @@ Pyxel（MIT License, Copyright (c) 2018-2026 Takashi Kitao）の数値仕様・�
 
 ## ドキュメント
 
-- [docs/decisions.md](docs/decisions.md) — 設計判断のサマリ
-- [docs/implementation-plan.md](docs/implementation-plan.md) — 実装ロードマップ（M1〜M13 マイルストーン）
-- [docs/open-questions.md](docs/open-questions.md) — 未解決事項とその解決状況
-- [docs/api-sketch.md](docs/api-sketch.md) — Swift API のラフスケッチ
+- [docs/decisions.md](docs/decisions.md) — 設計判断
+- [docs/status.md](docs/status.md) — 未達タスク・未解決事項・ロードマップ
 - [docs/pyxel-reference.md](docs/pyxel-reference.md) — Pyxel本家から流用する数値・データの一覧
