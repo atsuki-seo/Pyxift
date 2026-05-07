@@ -1,18 +1,22 @@
 import Pyxift
+import Foundation
 
 // PyxiftDemo
 // Tab キーでシーン切り替え：
 //   0: M2 描画プリミティブ（line/rect/circ/tri/blt/bltm/text）
 //   1: M3 入力可視化（仮想ボタン・キー・マウス）
+//   2: M4 アセット（内蔵フォント全グリフ + loadImage で読み込んだ PNG）
 
 enum Scene: Int {
     case drawing = 0
     case input = 1
+    case assets = 2
 
     var next: Scene {
         switch self {
         case .drawing: return .input
-        case .input: return .drawing
+        case .input:   return .assets
+        case .assets:  return .drawing
         }
     }
 }
@@ -60,7 +64,38 @@ struct Demo: App {
         switch scene {
         case .drawing: drawDrawingScene()
         case .input:   drawInputScene()
+        case .assets:  drawAssetsScene()
         }
+    }
+
+    // MARK: - Scene 2: M4 アセット（内蔵フォント + loadImage）
+    private func drawAssetsScene() {
+        Pyx.text(x: 4, y: 4, "M4 ASSETS", color: .yellow)
+
+        // 内蔵フォントの全グリフを 16 列で並べる（本家 NUM_FONT_COLS と同じ）。
+        Pyx.text(x: 4, y: 16, "BUILTIN FONT", color: .gray)
+        let originX = 4, originY = 26
+        let cellW = 5, cellH = 7
+        for code in 0x20...0x7e {
+            let i = code - 0x20
+            let cx = originX + (i % 16) * cellW
+            let cy = originY + (i / 16) * cellH
+            let s = String(UnicodeScalar(code)!)
+            Pyx.text(x: cx, y: cy, s, color: .white)
+        }
+
+        // bank 1 にロードした PNG を等倍と 2倍相当（隣に並べて）で表示。
+        // 透明色を black（パレット 0）に指定して周囲を抜いて重ね描き。
+        Pyx.text(x: 4, y: 78, "LOADED PNG (BANK 1)", color: .gray)
+        Pyx.blt(x: 4, y: 88, image: 1, u: 0, v: 0, w: 32, h: 32, transparent: nil)
+        // pal を切り替えて 2 個目を別カラーで表示
+        Pyx.pal(from: .red, to: .lime)
+        Pyx.blt(x: 40, y: 88, image: 1, u: 0, v: 0, w: 32, h: 32, transparent: .black)
+        Pyx.pal()
+
+        Pyx.text(x: 80, y: 90,  "FONT+PNG", color: .yellow)
+        Pyx.text(x: 80, y: 100, "M4 OK!",   color: .lime)
+        Pyx.text(x: 80, y: 110, "FRAME=\(Pyx.frameCount)", color: .lightBlue)
     }
 
     // MARK: - Scene 0: 描画プリミティブ
@@ -253,6 +288,12 @@ struct Demo: App {
                 Pyx.imagePset(bank: 0, x: 2 * 8 + tx, y: 2 * 8 + ty, color: .black)
             }
         }
+        // M4: assets/sample.png を画像バンク 1 にロード。
+        // SPM resources で copy された assets/ ディレクトリから取得。
+        if let url = Bundle.module.url(forResource: "sample", withExtension: "png", subdirectory: "assets") {
+            Pyx.loadImage(url.path, into: 1)
+        }
+
         Pyx.tilemapSetImageBank(tilemap: 0, bank: 0)
         let layout: [[(Int, Int)]] = [
             [(0, 2), (1, 2), (2, 2)],
