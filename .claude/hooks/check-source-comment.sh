@@ -16,6 +16,13 @@ parse_hook_input
 
 [ -z "$FILE_PATH" ] && exit 0
 
+# 対象は C++ / Swift のソース・ヘッダのみ。Markdown 等の文書ファイルでは
+# シンボル名を文中で言及するだけでも検知されてしまうので除外する。
+case "$FILE_PATH" in
+  *.cpp|*.hpp|*.cc|*.cxx|*.h|*.swift) ;;
+  *) exit 0 ;;
+esac
+
 # 編集後のファイル内容を組み立てる（ツールごとに違う）
 extract_full_content_after_edit
 
