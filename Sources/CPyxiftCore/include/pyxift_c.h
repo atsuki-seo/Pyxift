@@ -63,6 +63,16 @@ void pyxift_engine_trib(PyxiftEngine *engine,
                         int32_t x3, int32_t y3,
                         uint8_t color);
 
+void pyxift_engine_clip(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t w, int32_t h);
+void pyxift_engine_clip_reset(PyxiftEngine *engine);
+
+void pyxift_engine_camera(PyxiftEngine *engine, int32_t x, int32_t y);
+void pyxift_engine_camera_reset(PyxiftEngine *engine);
+
+void pyxift_engine_pal(PyxiftEngine *engine, uint8_t from, uint8_t to);
+void pyxift_engine_pal_reset(PyxiftEngine *engine);
+
 #ifdef __cplusplus
 }
 #endif

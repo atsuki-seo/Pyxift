@@ -196,4 +196,29 @@ void pyxift_engine_trib(PyxiftEngine *engine,
     if (engine != nullptr) engine->canvas().trib(x1, y1, x2, y2, x3, y3, color);
 }
 
+void pyxift_engine_clip(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t w, int32_t h) {
+    if (engine != nullptr) engine->canvas().set_clip(x, y, w, h);
+}
+
+void pyxift_engine_clip_reset(PyxiftEngine *engine) {
+    if (engine != nullptr) engine->canvas().reset_clip();
+}
+
+void pyxift_engine_camera(PyxiftEngine *engine, int32_t x, int32_t y) {
+    if (engine != nullptr) engine->canvas().set_camera(x, y);
+}
+
+void pyxift_engine_camera_reset(PyxiftEngine *engine) {
+    if (engine != nullptr) engine->canvas().reset_camera();
+}
+
+void pyxift_engine_pal(PyxiftEngine *engine, uint8_t from, uint8_t to) {
+    if (engine != nullptr) engine->canvas().set_pal(from, to);
+}
+
+void pyxift_engine_pal_reset(PyxiftEngine *engine) {
+    if (engine != nullptr) engine->canvas().reset_pal();
+}
+
 } // extern "C"
