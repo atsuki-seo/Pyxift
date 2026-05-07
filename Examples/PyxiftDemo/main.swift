@@ -43,6 +43,41 @@ struct Demo: App {
         // M2c: text（4×6 ダミーグリフ）
         Pyx.text(x: 100, y: 95, "PYXIFT", color: .white)
         Pyx.text(x: 100, y: 105, "M2C OK", color: .yellow)
+
+        // ---- M3 入力可視化（右側ブロック） ----
+        // 仮想ボタンの押下状態を 7 つの矩形で表示
+        let btns: [(Button, String)] = [
+            (.left, "L"), (.right, "R"), (.up, "U"), (.down, "D"),
+            (.a, "A"), (.b, "B"), (.start, "S"),
+        ]
+        for (i, item) in btns.enumerated() {
+            let x = 4 + i * 10
+            let y = 110
+            let pressed = Pyx.button(item.0)
+            Pyx.rect(x: x, y: y, w: 8, h: 8, color: pressed ? .red : .gray)
+            Pyx.text(x: x + 2, y: y + 1, item.1, color: .white)
+        }
+
+        // マウス位置をクロスヘアで描画
+        let m = Pyx.mouse()
+        Pyx.line(x1: m.x - 3, y1: m.y, x2: m.x + 3, y2: m.y, color: .yellow)
+        Pyx.line(x1: m.x, y1: m.y - 3, x2: m.x, y2: m.y + 3, color: .yellow)
+
+        // マウスボタン押下中はカーソル位置に色付き丸
+        if Pyx.mouseButton(.left) {
+            Pyx.circ(x: m.x, y: m.y, r: 2, color: .red)
+        }
+        if Pyx.mouseButton(.right) {
+            Pyx.circb(x: m.x, y: m.y, r: 4, color: .lime)
+        }
+
+        // 押下中のキーをデバッグ表示（主要キー数個に絞る）
+        let watch: [Key] = [.space, .escape, .return, .a, .z, .x]
+        var ks = ""
+        for k in watch where Pyx.key(k) {
+            ks += "\(k) "
+        }
+        Pyx.text(x: 4, y: 102, ks.isEmpty ? "(no key)" : ks, color: .lightBlue)
     }
 
     private func buildAssets() {
