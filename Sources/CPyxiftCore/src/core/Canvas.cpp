@@ -1,5 +1,9 @@
 #include "Canvas.hpp"
 
+#include "Font.hpp"
+#include "Image.hpp"
+#include "Tilemap.hpp"
+
 #include <algorithm>
 #include <cstdlib>
 
@@ -229,8 +233,124 @@ void Canvas::trib(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, in
 }
 
 void Canvas::tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color) {
-    // M2a: 塗りは未実装。線のみで暫定（M2c で scanline 塗りに置換）。
-    trib(x1, y1, x2, y2, x3, y3, color);
+    // 教科書 scanline 三角形塗り。意味論レベルで合っていればよい（decisions.md ピクセル完全一致は諦め）。
+    // y1<=y2<=y3 にソートし、上三角（y1..y2）と下三角（y2..y3）を別々に塗る。
+    x1 -= camera_x_; y1 -= camera_y_;
+    x2 -= camera_x_; y2 -= camera_y_;
+    x3 -= camera_x_; y3 -= camera_y_;
+    if (y1 > y2) { std::swap(x1, x2); std::swap(y1, y2); }
+    if (y1 > y3) { std::swap(x1, x3); std::swap(y1, y3); }
+    if (y2 > y3) { std::swap(x2, x3); std::swap(y2, y3); }
+
+    auto edge_x = [](int32_t ya, int32_t xa, int32_t yb, int32_t xb, int32_t y) -> int32_t {
+        if (yb == ya) return xa;  // 水平辺は端点 x をそのまま使う
+        // 整数だけで線形補間。dx*(y-ya)/(yb-ya) を切り捨て。
+        const int64_t num = static_cast<int64_t>(xb - xa) * (y - ya);
+        const int64_t den = static_cast<int64_t>(yb - ya);
+        return xa + static_cast<int32_t>(num / den);
+    };
+
+    // 上半分 y1..y2: 辺 (1-3) と (1-2)
+    if (y2 > y1) {
+        for (int32_t y = y1; y <= y2; ++y) {
+            const int32_t xa = edge_x(y1, x1, y3, x3, y);
+            const int32_t xb = edge_x(y1, x1, y2, x2, y);
+            hline(xa, xb, y, color);
+        }
+    }
+    // 下半分 y2..y3: 辺 (1-3) と (2-3)
+    if (y3 > y2) {
+        for (int32_t y = y2; y <= y3; ++y) {
+            const int32_t xa = edge_x(y1, x1, y3, x3, y);
+            const int32_t xb = edge_x(y2, x2, y3, x3, y);
+            hline(xa, xb, y, color);
+        }
+    }
+    // 退化（3点同一y）は端点のスパンを引く
+    if (y1 == y2 && y2 == y3) {
+        const int32_t lo = std::min({x1, x2, x3});
+        const int32_t hi = std::max({x1, x2, x3});
+        hline(lo, hi, y1, color);
+    }
+}
+
+void Canvas::blt(int32_t x, int32_t y, const Image &image,
+                 int32_t u, int32_t v, int32_t w, int32_t h,
+                 int32_t transparent) {
+    if (w <= 0 || h <= 0) return;
+    const int32_t dst_x = x - camera_x_;
+    const int32_t dst_y = y - camera_y_;
+
+    // ソース矩形を画像の範囲に切り詰める。負の u/v はみ出し分は dst 側のオフセットになる。
+    int32_t src_x = u;
+    int32_t src_y = v;
+    int32_t src_w = w;
+    int32_t src_h = h;
+    int32_t shift_x = 0;
+    int32_t shift_y = 0;
+    if (src_x < 0) { shift_x = -src_x; src_w -= shift_x; src_x = 0; }
+    if (src_y < 0) { shift_y = -src_y; src_h -= shift_y; src_y = 0; }
+    if (src_x + src_w > image.width())  src_w = image.width()  - src_x;
+    if (src_y + src_h > image.height()) src_h = image.height() - src_y;
+    if (src_w <= 0 || src_h <= 0) return;
+
+    const uint8_t *src_pixels = image.pixels();
+    const int32_t src_stride = image.width();
+
+    for (int32_t row = 0; row < src_h; ++row) {
+        const int32_t dy = dst_y + shift_y + row;
+        if (dy < clip_y1_ || dy > clip_y2_) continue;
+        const uint8_t *src_row = src_pixels + static_cast<size_t>(src_y + row) * src_stride + src_x;
+        uint8_t *dst_row = pixels_.data() + static_cast<size_t>(dy) * width_;
+        for (int32_t col = 0; col < src_w; ++col) {
+            const int32_t dx = dst_x + shift_x + col;
+            if (dx < clip_x1_ || dx > clip_x2_) continue;
+            const uint8_t s = src_row[col];
+            // 透明判定はパレット差し替え前のソース色（decisions.md 7番）。
+            if (transparent >= 0 && s == static_cast<uint8_t>(transparent)) continue;
+            dst_row[dx] = palette_[s & 0x0f];
+        }
+    }
+}
+
+void Canvas::bltm(int32_t x, int32_t y, const Tilemap &tilemap, const Image &image,
+                  int32_t tu, int32_t tv, int32_t tw, int32_t th,
+                  int32_t transparent) {
+    // u/v/w/h はタイル単位（本家準拠）。各セルは画像バンク内 (cell.x*8, cell.y*8) の 8×8 を参照。
+    if (tw <= 0 || th <= 0) return;
+    const int32_t ts = Tilemap::kTileSize;
+    for (int32_t cy = 0; cy < th; ++cy) {
+        for (int32_t cx = 0; cx < tw; ++cx) {
+            uint8_t tx_idx, ty_idx;
+            tilemap.get_cell(tu + cx, tv + cy, tx_idx, ty_idx);
+            blt(x + cx * ts, y + cy * ts, image,
+                static_cast<int32_t>(tx_idx) * ts, static_cast<int32_t>(ty_idx) * ts,
+                ts, ts, transparent);
+        }
+    }
+}
+
+void Canvas::text(int32_t x, int32_t y, const char *s, uint8_t color) {
+    if (s == nullptr) return;
+    // 改行で次行に降りる。clip / camera / pal は put() を経由するので自動で効く。
+    int32_t cx = x;
+    int32_t cy = y;
+    for (const char *p = s; *p != '\0'; ++p) {
+        const char ch = *p;
+        if (ch == '\n') {
+            cx = x;
+            cy += kFontLineHeight;
+            continue;
+        }
+        for (int32_t row = 0; row < kFontGlyphHeight; ++row) {
+            for (int32_t col = 0; col < kFontGlyphWidth; ++col) {
+                if (font_pixel(ch, col, row)) {
+                    pset(cx + col, cy + row, color);
+                }
+            }
+        }
+        cx += kFontAdvance;
+    }
 }
 
 } // namespace pyxift

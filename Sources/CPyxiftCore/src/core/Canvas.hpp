@@ -7,6 +7,9 @@
 
 namespace pyxift {
 
+class Image;
+class Tilemap;
+
 // 16色インデックスのフレームバッファ。SDL3 非依存（コア層）。
 class Canvas {
 public:
@@ -27,6 +30,15 @@ public:
     void circb(int32_t x, int32_t y, int32_t r, uint8_t color);
     void tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color);
     void trib(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color);
+
+    // M2c: 転送系。透明色 -1 は「透明色なし」を意味する（範囲は 0..15）。
+    void blt(int32_t x, int32_t y, const Image &image,
+             int32_t u, int32_t v, int32_t w, int32_t h,
+             int32_t transparent);
+    void bltm(int32_t x, int32_t y, const Tilemap &tilemap, const Image &image,
+              int32_t tu, int32_t tv, int32_t tw, int32_t th,
+              int32_t transparent);
+    void text(int32_t x, int32_t y, const char *s, uint8_t color);
 
     // M2b: 状態系
     void set_clip(int32_t x, int32_t y, int32_t w, int32_t h);
