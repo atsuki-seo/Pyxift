@@ -26,6 +26,9 @@ let package = Package(
             publicHeadersPath: "include",
             cxxSettings: [
                 .headerSearchPath("src"),
+            ],
+            linkerSettings: [
+                .linkedLibrary("m", .when(platforms: [.linux])),
             ]
         ),
         .target(
@@ -40,6 +43,9 @@ let package = Package(
             name: "PyxiftDemo",
             dependencies: ["Pyxift"],
             path: "Examples/PyxiftDemo",
+            resources: [
+                .copy("assets"),
+            ],
             swiftSettings: [
                 .swiftLanguageMode(.v6),
             ]

@@ -315,6 +315,26 @@ extension Pyx {
     }
 }
 
+// MARK: - アセット読み込み (M4)
+
+extension Pyx {
+    /// PNG ファイルを画像バンクに読み込む。
+    /// 既定 16 色パレットへの最近傍マッピングで bank の左上原点に書き込む。
+    /// 失敗時は `fatalError`（throws を使わない設計判断: decisions.md）。
+    @MainActor
+    public static func loadImage(_ path: String, into bank: Int = 0) {
+        guard let engine = Runtime.engine else {
+            fatalError("Pyx.loadImage called before Pyx.run")
+        }
+        let ok = path.withCString { c in
+            pyxift_engine_load_image(engine, Int32(bank), c)
+        }
+        if !ok {
+            fatalError("Pyx.loadImage failed: \(path) (bank: \(bank))")
+        }
+    }
+}
+
 // MARK: - 画像バンク / タイルマップ書き込み（M2c の手元テスト用、M4 までの暫定 API）
 
 extension Pyx {
