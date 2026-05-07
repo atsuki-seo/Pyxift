@@ -6,7 +6,6 @@
 
 namespace pyxift {
 
-// 16色インデックスのスプライトバンク。サイズは Pyxel 既定の 256×256 固定。
 class Image {
 public:
     static constexpr int32_t kWidth = 256;
@@ -18,7 +17,6 @@ public:
     int32_t height() const { return kHeight; }
     const uint8_t *pixels() const { return pixels_.data(); }
 
-    // 範囲外は黙って無視。
     void pset(int32_t x, int32_t y, uint8_t color);
     uint8_t pget(int32_t x, int32_t y) const;
 

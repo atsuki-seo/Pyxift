@@ -227,7 +227,6 @@ void Canvas::trib(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, in
 }
 
 void Canvas::tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color) {
-    // 本家とのピクセル完全一致は要件外。意味論（指定3頂点を塗る）が合えばよい。
     x1 -= camera_x_; y1 -= camera_y_;
     x2 -= camera_x_; y2 -= camera_y_;
     x3 -= camera_x_; y3 -= camera_y_;
@@ -305,7 +304,6 @@ void Canvas::blt(int32_t x, int32_t y, const Image &image,
 void Canvas::bltm(int32_t x, int32_t y, const Tilemap &tilemap, const Image &image,
                   int32_t tu, int32_t tv, int32_t tw, int32_t th,
                   int32_t transparent) {
-    // u/v/w/h はタイル単位（本家準拠）。
     if (tw <= 0 || th <= 0) return;
     const int32_t ts = Tilemap::kTileSize;
     for (int32_t cy = 0; cy < th; ++cy) {

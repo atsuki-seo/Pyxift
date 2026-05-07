@@ -15,9 +15,9 @@ constexpr int32_t kFontAdvance = 4;
 constexpr int32_t kFontLineHeight = 6;
 constexpr int32_t kFontFirstChar = 0x20;
 constexpr int32_t kFontLastChar = 0x7f;
-constexpr int32_t kFontGlyphCount = kFontLastChar - kFontFirstChar + 1; // 96
+constexpr int32_t kFontGlyphCount = kFontLastChar - kFontFirstChar + 1;
 
-// 4×6 ビットマップ。各 u32 は上位ビット (0x0080_0000) から行優先に 24bit 詰め。
+// 各 u32 は上位ビット (0x0080_0000) から行優先で 24bit 詰め（本家 FONT_DATA の格納形式に準拠）。
 inline constexpr std::array<uint32_t, kFontGlyphCount> kFontData = {
     0x000000u, 0x444040u, 0xaa0000u, 0xaeaea0u, 0x6c6c40u, 0x824820u, 0x4a4ac0u, 0x440000u, 0x244420u,
     0x844480u, 0xa4e4a0u, 0x04e400u, 0x000480u, 0x00e000u, 0x000040u, 0x224880u, 0x6aaac0u, 0x4c4440u,
@@ -32,7 +32,6 @@ inline constexpr std::array<uint32_t, kFontGlyphCount> kFontData = {
     0x0e24e0u, 0x64c460u, 0x444440u, 0xc464c0u, 0x6c0000u, 0xeeeee0u,
 };
 
-// (col, row) のドットを描くべきか。範囲外文字や制御文字は描画しない。
 inline bool font_pixel(char ch, int32_t col, int32_t row) {
     if (col < 0 || col >= kFontGlyphWidth) return false;
     if (row < 0 || row >= kFontGlyphHeight) return false;

@@ -10,7 +10,6 @@ namespace pyxift {
 class Image;
 class Tilemap;
 
-// 16色インデックスのフレームバッファ。SDL3 非依存（コア層）。
 class Canvas {
 public:
     Canvas(int32_t width, int32_t height);
@@ -31,7 +30,7 @@ public:
     void tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color);
     void trib(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color);
 
-    // 転送系。transparent は 0..15 の色インデックス、-1 は透明色なし。
+    // transparent は 0..15 の色インデックス、-1 で透明色なし（本家 Pyxel の API 仕様）。
     void blt(int32_t x, int32_t y, const Image &image,
              int32_t u, int32_t v, int32_t w, int32_t h,
              int32_t transparent);
@@ -52,7 +51,6 @@ private:
     int32_t height_;
     std::vector<uint8_t> pixels_;
 
-    // クリップ矩形は包含端 [x1,x2] × [y1,y2]。空クリップは x2<x1 で表す。
     int32_t clip_x1_;
     int32_t clip_y1_;
     int32_t clip_x2_;
@@ -63,7 +61,6 @@ private:
 
     std::array<uint8_t, 16> palette_;
 
-    // put() は camera 適用済み座標を受け取る（呼び出し側で減算）。
     void put(int32_t x, int32_t y, uint8_t color);
     void hline(int32_t x1, int32_t x2, int32_t y, uint8_t color);
 };

@@ -20,7 +20,6 @@ namespace pyxift {
 
 namespace {
 
-// 24bit RGB を 16色パレットの最近傍 index に。ユークリッド距離の二乗で比較。
 uint8_t nearest_palette_index(uint32_t rgb) {
     const int32_t r = static_cast<int32_t>((rgb >> 16) & 0xff);
     const int32_t g = static_cast<int32_t>((rgb >> 8) & 0xff);
@@ -50,7 +49,7 @@ bool load_png_into_image(const std::string &path, Image &dest) {
     int width = 0;
     int height = 0;
     int channels = 0;
-    // RGB の 3ch 強制で読み込む（α は本家挙動に合わせて捨てる）。
+    // 本家 Pyxel が α を扱わないため、stb に 3ch 強制させて α を破棄する。
     unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 3);
     if (data == nullptr) return false;
 

@@ -1,6 +1,5 @@
 import CPyxiftCore
 
-// raw 値は C 側 enum と一致。
 public enum Button: UInt8, Sendable {
     case left = 0
     case right = 1

@@ -8,9 +8,6 @@
 
 namespace pyxift::platform {
 
-// SDL3 ウィンドウ + テクスチャ転送のラッパー。
-// 16色インデックスバッファを RGBA8 に変換してテクスチャに upload し、
-// nearest neighbor で整数倍に拡大表示する。
 class Window {
 public:
     Window(int32_t logical_width, int32_t logical_height, const std::string &title);
@@ -23,11 +20,8 @@ public:
 
     void set_title(const std::string &title);
 
-    // index_buffer: width*height バイト、各値はパレットインデックス 0..15
-    // palette: RGB値 16 個
     void present(const uint8_t *index_buffer, const uint32_t *palette);
 
-    // 入力アダプタ層が SDL_ConvertEventToRenderCoordinates に渡すために露出する。
     SDL_Renderer *renderer() { return renderer_; }
     SDL_Window *sdl_window() { return window_; }
 

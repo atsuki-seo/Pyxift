@@ -85,7 +85,8 @@ void PyxiftEngine::run(PyxiftUpdateFn update, PyxiftDrawFn draw, void *user) {
             ++catch_up;
         }
 
-        // 大きく遅延した場合は追従を諦めて next_frame を現在に揃える
+        // 一時停止やブレーク後の連続フレーム消化を防ぐため、kMaxCatchUp を超えた遅延は
+        // 補正せず next_frame を現在時刻に揃えてリスタートする。
         if (catch_up == kMaxCatchUp && clock_t_::now() >= next_frame) {
             next_frame = clock_t_::now() + frame_duration;
         }
@@ -102,8 +103,6 @@ void PyxiftEngine::run(PyxiftUpdateFn update, PyxiftDrawFn draw, void *user) {
         }
     }
 }
-
-// ---- C API ----
 
 extern "C" {
 
@@ -291,8 +290,6 @@ void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
     if (tm == nullptr) return;
     tm->set_image_bank(image_bank);
 }
-
-// ---- 入力 ----
 
 bool pyxift_engine_button(const PyxiftEngine *engine, uint8_t button, int32_t player) {
     if (engine == nullptr) return false;

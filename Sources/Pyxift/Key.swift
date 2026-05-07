@@ -1,20 +1,16 @@
-// SDL3 SDL_Keycode と 1:1 対応する物理キー識別子。
-// 生の SDL3 値を直接渡したい場合は `Key(rawValue:)` を使う。
+// rawValue は SDL3 SDL_Keycode の整数値そのもの（C 側にそのまま渡す前提）。
 public enum Key: Int32, Sendable {
-    // 制御
-    case escape = 0x0000001b       // SDLK_ESCAPE
+    case escape = 0x0000001b
     case tab = 0x00000009
     case backspace = 0x00000008
     case `return` = 0x0000000d
     case space = 0x00000020
 
-    // 矢印
     case rightArrow = 0x4000004f
     case leftArrow  = 0x40000050
     case downArrow  = 0x40000051
     case upArrow    = 0x40000052
 
-    // 編集系
     case insert   = 0x40000049
     case home     = 0x4000004a
     case pageUp   = 0x4000004b
@@ -22,7 +18,6 @@ public enum Key: Int32, Sendable {
     case end      = 0x4000004d
     case pageDown = 0x4000004e
 
-    // 文字
     case digit0 = 0x00000030
     case digit1 = 0x00000031
     case digit2 = 0x00000032
@@ -61,7 +56,6 @@ public enum Key: Int32, Sendable {
     case y = 0x00000079
     case z = 0x0000007a
 
-    // ファンクション
     case f1  = 0x4000003a
     case f2  = 0x4000003b
     case f3  = 0x4000003c
@@ -75,7 +69,6 @@ public enum Key: Int32, Sendable {
     case f11 = 0x40000044
     case f12 = 0x40000045
 
-    // 修飾キー
     case leftCtrl   = 0x400000e0
     case leftShift  = 0x400000e1
     case leftAlt    = 0x400000e2

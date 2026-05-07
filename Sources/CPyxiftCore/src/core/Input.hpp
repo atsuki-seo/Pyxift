@@ -26,19 +26,17 @@ enum class MouseButton : uint8_t {
     Count,
 };
 
-// VirtualEvent: SDL3 から切り離されたイベント表現。
-// アダプタ層が SDL_Event を翻訳して InputState::push に流す。
 struct VirtualEvent {
     enum class Type : uint8_t {
         KeyDown,
         KeyUp,
-        ButtonDown,        // 仮想ボタン押下（player フィールドが 0..3）
+        ButtonDown,
         ButtonUp,
         MouseMove,
         MouseButtonDown,
         MouseButtonUp,
         MouseWheel,
-        GamepadConnected,  // gamepad_id をプレイヤー番号にマッピング登録するシグナル
+        GamepadConnected,
         GamepadDisconnected,
     };
 
@@ -48,14 +46,12 @@ struct VirtualEvent {
     int32_t c = 0;
 };
 
-// pure C++、SDL3 非依存。VirtualEvent 列を注入してテスト可能。
 class InputState {
 public:
     static constexpr int32_t kMaxPlayers = 4;
 
     void push(const VirtualEvent &ev);
 
-    // フレーム末尾。pressed/released の bit を消し、button/key の最終状態のみ残す。
     void end_frame();
 
     bool button(Button b, int32_t player) const;
@@ -78,7 +74,7 @@ private:
     std::array<uint16_t, kMaxPlayers> btn_pressed_{};
     std::array<uint16_t, kMaxPlayers> btn_released_{};
 
-    // SDL3 keycode は疎なのでハッシュ集合で保持。
+    // SDL3 SDL_Keycode は値域が広く非連続のため、配列ではなくハッシュ集合で保持。
     std::unordered_set<int32_t> key_state_;
     std::unordered_set<int32_t> key_pressed_;
     std::unordered_set<int32_t> key_released_;

@@ -1,6 +1,3 @@
-// pure C++ コア層 (pyxift::InputState) を Swift Testing から直接叩くためのブリッジ。
-// テスト専用の opaque pointer C-API を提供する。SDL3 非依存。
-
 #include "pyxift_input_test_c.h"
 
 #include "core/Input.hpp"

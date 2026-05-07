@@ -9,9 +9,6 @@
 
 namespace pyxift::platform {
 
-// SDL_Event を VirtualEvent に翻訳して InputState に流し込むアダプタ。
-// 仮想ボタン抽象（Button.left/right/.../.start）へのキー＆ゲームパッドマッピングと、
-// SDL_JoystickID → プレイヤー番号 0..3 の正規化もここで行う。
 class EventTranslator {
 public:
     static constexpr int32_t kMaxPlayers = InputState::kMaxPlayers;
@@ -20,13 +17,12 @@ public:
 
     void set_renderer(SDL_Renderer *renderer) { renderer_ = renderer; }
 
-    // SDL_Event を翻訳。返り値は「ウィンドウ閉じる/ESC」が来たかどうか（呼び出し側の終了判定）。
+    // 戻り値: 終了要求イベント（ウィンドウクローズ / ESC）を受信したら true。
     bool translate(SDL_Event &ev, InputState &state);
 
 private:
     SDL_Renderer *renderer_ = nullptr;
 
-    // SDL_JoystickID → プレイヤー番号（0..3）。空きスロットは 0。
     struct Slot {
         bool used = false;
         SDL_JoystickID id = 0;
@@ -42,12 +38,13 @@ private:
     void emit_gamepad_button(InputState &state, int32_t player, uint8_t button, bool down);
     void emit_gamepad_axis(InputState &state, int32_t player, uint8_t axis, int16_t value);
 
-    // 軸ごとの「方向ボタン押下中か」を保持。Dead zone を超えた瞬間に ButtonDown、戻った瞬間に ButtonUp を発火。
+    // アナログ軸を ButtonDown/Up のエッジに変換するため、方向ごとの押下中フラグを保持。
+    // dead zone を跨いだ瞬間にだけイベントを発火する。
     struct AxisDir {
-        bool neg = false;  // 左/上
-        bool pos = false;  // 右/下
+        bool neg = false;
+        bool pos = false;
     };
-    std::array<std::array<AxisDir, 2>, kMaxPlayers> axis_dirs_{}; // [player][0=LX, 1=LY]
+    std::array<std::array<AxisDir, 2>, kMaxPlayers> axis_dirs_{};
 };
 
 } // namespace pyxift::platform

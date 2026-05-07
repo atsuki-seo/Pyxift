@@ -78,7 +78,6 @@ void InputState::push(const VirtualEvent &ev) {
             break;
         case T::GamepadConnected:
         case T::GamepadDisconnected:
-            // コア層は接続管理を持たない。アダプタ層が ButtonDown/Up に翻訳する。
             break;
     }
 }

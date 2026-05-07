@@ -4,7 +4,7 @@ namespace pyxift::platform {
 
 namespace {
 
-// 1 つの仮想ボタンを複数のキーで重ね打ちできるよう、テーブル定義する。
+// 1 つの仮想ボタンに複数の SDL_Keycode を割り当てるため、配列で重複可とする。
 struct KeyMap {
     SDL_Keycode key;
     Button button;
@@ -24,7 +24,6 @@ constexpr KeyMap kKeyMap[] = {
     {SDLK_RETURN, Button::Start},
 };
 
-// マッピングなしの場合は Button::Count を返す。
 Button gamepad_button_to_virtual(uint8_t b) {
     switch (b) {
         case SDL_GAMEPAD_BUTTON_DPAD_LEFT:  return Button::Left;
@@ -94,7 +93,7 @@ void EventTranslator::release_player(SDL_JoystickID id) {
 }
 
 void EventTranslator::emit_key_button(InputState &state, SDL_Keycode key, bool down) {
-    // キーボード入力は player 0 のみへ流す。
+    // 本家 Pyxel 仕様: キーボード入力は常に player 0 のみに割り当てる。
     for (const auto &m : kKeyMap) {
         if (m.key == key) {
             push_button(state, m.button, 0, down);
@@ -135,7 +134,7 @@ void EventTranslator::emit_gamepad_axis(InputState &state, int32_t player, uint8
 }
 
 bool EventTranslator::translate(SDL_Event &ev, InputState &state) {
-    // マウス系イベントの座標をロジカル解像度に正規化する。
+    // SDL3 はウィンドウ実座標を返すため、ロジカル解像度に正規化してから配信する。
     if (renderer_ != nullptr) {
         SDL_ConvertEventToRenderCoordinates(renderer_, &ev);
     }

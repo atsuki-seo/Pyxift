@@ -1,5 +1,3 @@
-// Pure C++ コア層 (pyxift::InputState) を SDL3 を経由せずにテストするための薄い C ブリッジ。
-// 公開 API ではない（Tests ターゲットからのみ参照）。
 #ifndef PYXIFT_INPUT_TEST_C_H
 #define PYXIFT_INPUT_TEST_C_H
 
@@ -16,7 +14,6 @@ PyxiftInputStateHandle *pyxift_input_state_create(void);
 void pyxift_input_state_destroy(PyxiftInputStateHandle *h);
 void pyxift_input_state_end_frame(PyxiftInputStateHandle *h);
 
-// 仮想ボタン押下/解放を直接注入（player は 0..3）。
 void pyxift_input_state_push_button(PyxiftInputStateHandle *h,
                                     uint8_t button, int32_t player, bool down);
 void pyxift_input_state_push_key(PyxiftInputStateHandle *h, int32_t keycode, bool down);
