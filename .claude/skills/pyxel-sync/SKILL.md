@@ -1,7 +1,7 @@
 ---
 name: pyxel-sync
 description: Pyxel 本家 (kitao/pyxel) との API/数値仕様の差分を検出し、Pyxift 側 SSOT (`docs/pyxel-reference.md`) との同期を支援する。ユーザーが `/pyxel-sync` と打ったとき、またはリリースタグ前チェックリスト実行時に呼ばれる。
-allowed-tools: Bash(git -C ../pyxel:*) Bash(git clone:*) Bash(grep:*) Bash(sed:*) Bash(xargs:*) Bash(date:*)
+allowed-tools: Bash(git -C ../pyxel:*) Bash(git clone:*) Bash(grep:*)
 ---
 
 # pyxel-sync
@@ -96,61 +96,9 @@ done
 chore(pyxel-sync): Tracked SHA を <new-sha> に更新
 ```
 
-### 4. 著作権年表記の自動同期（例外的に機械対応）
+### 4. 著作権年表記の自動同期
 
-#### 4a. 本家 (Takashi Kitao) の年範囲
-
-`../pyxel/LICENSE` の `Copyright (c) <range> Takashi Kitao` から年範囲を抽出し、Pyxift 内の以下の箇所と比較する:
-
-- `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
-- `.claude/hooks/check-source-comment.sh`（テンプレ文字列）
-- `CLAUDE.md`（出典コメント例）
-- `docs/pyxel-reference.md` 冒頭の出典表記
-- `ACKNOWLEDGMENTS.md`
-- `README.md`（本家リスペクト記述内の年範囲）
-- `LICENSE`（NOTICE 部の本家年範囲）
-- `Sources/` 配下（grep が `Copyright (c) <range> Takashi Kitao` で出典コメント持ちファイルのみを拾う）
-
-ズレを検出したら、機械的に書き換えて単独コミットを打つ:
-
-```
-chore(pyxel-sync): Pyxel 著作権表記を <old-range> → <new-range> に更新
-```
-
-検出例:
-
-```bash
-UPSTREAM_RANGE=$(grep -oP 'Copyright \(c\) \K[0-9]{4}-[0-9]{4}' ../pyxel/LICENSE | head -1)
-LOCAL_RANGE=$(grep -oP 'Copyright \(c\) \K[0-9]{4}-[0-9]{4}' THIRD_PARTY_LICENSES/pyxel-MIT.txt | head -1)
-if [ "$UPSTREAM_RANGE" != "$LOCAL_RANGE" ]; then
-    grep -rlE "Copyright \(c\) $LOCAL_RANGE Takashi Kitao" \
-        THIRD_PARTY_LICENSES/ ACKNOWLEDGMENTS.md CLAUDE.md README.md LICENSE \
-        docs/pyxel-reference.md .claude/ Sources/ 2>/dev/null \
-      | xargs -r sed -i "s|Copyright (c) $LOCAL_RANGE Takashi Kitao|Copyright (c) $UPSTREAM_RANGE Takashi Kitao|g"
-fi
-```
-
-#### 4b. Pyxift 自身 (atsuki.seo) の年範囲
-
-`LICENSE` の `Copyright (c) <year-or-range> atsuki.seo` を、開始年 2026 〜 現在年（`date +%Y`）の範囲表記 `2026-<current_year>` に正規化する。現在年が 2026 のままなら単年表記（`Copyright (c) 2026 atsuki.seo`）を維持する。
-
-```bash
-CURRENT_YEAR=$(date +%Y)
-if [ "$CURRENT_YEAR" = "2026" ]; then
-    DESIRED="Copyright (c) 2026 atsuki.seo"
-else
-    DESIRED="Copyright (c) 2026-$CURRENT_YEAR atsuki.seo"
-fi
-
-# 現状のいずれの形（単年 / 範囲）にもマッチさせて DESIRED に置換
-sed -i -E "s|Copyright \(c\) 2026(-[0-9]{4})? atsuki\.seo|$DESIRED|g" LICENSE
-```
-
-ズレを書き換えた場合は本家年範囲とは独立に単独コミットを打つ:
-
-```
-chore(pyxel-sync): Pyxift 著作権年を <old> → <new> に更新
-```
+著作権年表記の同期は `copyright-sync` スキルへ委譲する。Skill ツールで `copyright-sync` を引数なしで呼び出し、本家 (Takashi Kitao) と Pyxift 自身 (atsuki.seo) の年範囲をそれぞれ SSOT に揃える。詳細仕様（対象ファイル・コミット粒度・検出ロジック）は `.claude/skills/copyright-sync/SKILL.md` を参照。
 
 ## スコープ外（やらないこと）
 
