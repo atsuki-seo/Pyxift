@@ -30,11 +30,63 @@ sudo cmake --install SDL/build
 sudo ldconfig
 ```
 
-サンプル実行:
+### 同梱サンプルを試す
+
+リポジトリを clone して同梱サンプルを実行する:
 
 ```sh
+git clone https://github.com/atsuki-seo/Pyxift.git
+cd Pyxift
 swift run PyxiftDemo
 ```
+
+### SPM 依存として使う
+
+自分の Swift パッケージから Pyxift を使うには、`Package.swift` に依存を追加する:
+
+```swift
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "MyGame",
+    platforms: [.macOS(.v13)],
+    dependencies: [
+        .package(url: "https://github.com/atsuki-seo/Pyxift.git", from: "0.1.0"),
+    ],
+    targets: [
+        .executableTarget(
+            name: "MyGame",
+            dependencies: [.product(name: "Pyxift", package: "Pyxift")],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+    ]
+)
+```
+
+最小のゲームコード:
+
+```swift
+import Pyxift
+
+struct MyApp: App {
+    mutating func update() {}
+
+    func draw() {
+        Pyx.cls(color: .black)
+        Pyx.text(x: 40, y: 56, "Hello, Pyxift!", color: .white)
+    }
+}
+
+@main
+struct Main {
+    static func main() {
+        Pyx.run(MyApp(), width: 160, height: 120, title: "My Game")
+    }
+}
+```
+
+`swift run` で起動する。
 
 ## ライセンス
 
