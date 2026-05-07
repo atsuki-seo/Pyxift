@@ -31,18 +31,10 @@ Pyxel風レトロ2Dゲームエンジン（Swift製・C++コア・SDL3バック�
 本家コードは Pyxift リポジトリの**親ディレクトリ**の `../pyxel/` に置く前提（**Rust 製**）。
 `/pyxel-sync` スキルが起動時に存在確認・無ければ clone・あれば `git fetch && git reset --hard origin/main` で同期する。
 
-- エンジン本体: `../pyxel/crates/pyxel-core/`
-- 数値定数: `../pyxel/crates/pyxel-core/src/settings.rs`
-  - `DEFAULT_COLORS`（16色既定パレット）
-  - `FONT_DATA`（4×6 ビットマップフォント、ASCII 0x20〜0x7F）
-  - `DEFAULT_TONE_*`（v0.2 で使用、4波形のトーンテーブル）
-- 公開API表面: `../pyxel/python/pyxel/__init__.pyi`
-- 描画ロジック参考: `../pyxel/crates/pyxel-core/src/canvas.rs`
-
-`editor` / `screencast` / `wasm` / `web` / `scripts` は v0.1 スコープ外なので無視。
+追跡対象ファイル（本家のどのパスを Pyxift のどのファイルが参照しているか）は `docs/pyxel-reference.md` の「追跡対象テーブル」が SSOT。本家を参考にした実装を追加する際は同表へのエントリ登録が必須（`.claude/hooks/check-source-comment.sh` が出典コメントを持つファイルの表登録を機械的に検査する）。
+追跡 SHA と最終同期日は同ファイルの「上流追従ステータス」ブロックが SSOT。
 
 API 互換と数値仕様の上流追従は `/pyxel-sync` スキル（`.claude/skills/pyxel-sync/SKILL.md`）に集約。
-追跡 SHA と最終同期日は `docs/pyxel-reference.md` の「上流追従ステータス」ブロックが SSOT。
 
 ## コメント方針
 
