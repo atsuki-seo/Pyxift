@@ -54,11 +54,11 @@ Examples/
 最大の不確実性（SPM↔C++↔SDL3 連結）を潰す回。
 
 **完了条件:**
-- [ ] `swift run PyxiftDemo` で 160×120 のウィンドウが開く
-- [ ] 画面中央に1ピクセル（`Pyx.pset` で打った白）が表示される
-- [ ] 30FPS で `frameCount` がインクリメントしている（タイトルバーに数値出して目視確認）
-- [ ] ESC または ウィンドウ閉じるボタンで `Pyx.run` から正常 return する
-- [ ] CI（macOS + Ubuntu の `swift build`）が緑
+- [x] `swift run PyxiftDemo` で 160×120 のウィンドウが開く
+- [x] 画面中央に1ピクセル（`Pyx.pset` で打った白）が表示される
+- [x] 30FPS で `frameCount` がインクリメントしている（タイトルバーに数値出して目視確認）
+- [x] ESC または ウィンドウ閉じるボタンで `Pyx.run` から正常 return する
+- [x] CI（macOS + Ubuntu の `swift build`）が緑
 
 含まれるもの: SPM 骨格、`PyxiftEngine` の最小実装、固定タイムステップループ、フレームバッファ→ウィンドウ転送（SDL_Texture, nearest neighbor で整数倍拡大）、最小Swift API（`App` / `Pyx.run` / `Pyx.cls` / `Pyx.pset`）。
 
