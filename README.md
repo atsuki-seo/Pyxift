@@ -1,5 +1,7 @@
 # Pyxift
 
+**Pyxift** /pɪkswɪft/（ピクスイフト） — Pyxel + Swift。
+
 Pyxel風のレトロ2Dゲームエンジン（Swift製・C++コア・SDL3バックエンド）。Linux と macOS が対象。
 
 ## Getting Started
