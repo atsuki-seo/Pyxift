@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: swift build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SDL3 (macOS)
+        if: runner.os == 'macOS'
+        run: brew install sdl3
+
+      - name: Install SDL3 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          set -eux
+          sudo apt-get update
+          if ! sudo apt-get install -y libsdl3-dev pkg-config; then
+            sudo apt-get install -y \
+              build-essential cmake pkg-config git \
+              libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+              libwayland-dev libxkbcommon-dev libgbm-dev libdrm-dev \
+              libasound2-dev libpulse-dev
+            git clone --depth 1 --branch release-3.2.x https://github.com/libsdl-org/SDL.git /tmp/SDL
+            cmake -S /tmp/SDL -B /tmp/SDL/build -DCMAKE_BUILD_TYPE=Release
+            cmake --build /tmp/SDL/build -j
+            sudo cmake --install /tmp/SDL/build
+            sudo ldconfig
+          fi
+
+      - name: Setup Swift (Linux)
+        if: runner.os == 'Linux'
+        uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: "6.0"
+
+      - name: swift --version
+        run: swift --version
+
+      - name: swift build
+        run: swift build
