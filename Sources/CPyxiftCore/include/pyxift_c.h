@@ -99,6 +99,26 @@ void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
                                           int32_t tilemap_index,
                                           int32_t image_bank);
 
+// 入力 (M3)。
+// Button インデックスは Pyxift 側 enum と一致 (left=0, right=1, up=2, down=3, a=4, b=5, start=6)。
+// MouseButton は left=0, right=1, middle=2。
+// Key は SDL3 SDL_Keycode の int32 値をそのまま渡す。
+bool pyxift_engine_button(const PyxiftEngine *engine, uint8_t button, int32_t player);
+bool pyxift_engine_button_pressed(const PyxiftEngine *engine, uint8_t button, int32_t player);
+bool pyxift_engine_button_released(const PyxiftEngine *engine, uint8_t button, int32_t player);
+
+bool pyxift_engine_key(const PyxiftEngine *engine, int32_t keycode);
+bool pyxift_engine_key_pressed(const PyxiftEngine *engine, int32_t keycode);
+bool pyxift_engine_key_released(const PyxiftEngine *engine, int32_t keycode);
+
+void pyxift_engine_mouse(const PyxiftEngine *engine, int32_t *out_x, int32_t *out_y);
+int32_t pyxift_engine_mouse_wheel(const PyxiftEngine *engine);
+bool pyxift_engine_mouse_button(const PyxiftEngine *engine, uint8_t button);
+bool pyxift_engine_mouse_button_pressed(const PyxiftEngine *engine, uint8_t button);
+bool pyxift_engine_mouse_button_released(const PyxiftEngine *engine, uint8_t button);
+
+void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible);
+
 #ifdef __cplusplus
 }
 #endif

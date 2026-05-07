@@ -236,6 +236,85 @@ extension Pyx {
     }
 }
 
+// MARK: - 入力 (M3)
+
+extension Pyx {
+    @MainActor
+    public static func button(_ b: Button, player: Int = 0) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_button(engine, b.rawValue, Int32(player))
+    }
+
+    @MainActor
+    public static func buttonPressed(_ b: Button, player: Int = 0) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_button_pressed(engine, b.rawValue, Int32(player))
+    }
+
+    @MainActor
+    public static func buttonReleased(_ b: Button, player: Int = 0) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_button_released(engine, b.rawValue, Int32(player))
+    }
+
+    @MainActor
+    public static func key(_ k: Key) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_key(engine, k.rawValue)
+    }
+
+    @MainActor
+    public static func keyPressed(_ k: Key) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_key_pressed(engine, k.rawValue)
+    }
+
+    @MainActor
+    public static func keyReleased(_ k: Key) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_key_released(engine, k.rawValue)
+    }
+
+    @MainActor
+    public static func mouse() -> (x: Int, y: Int) {
+        guard let engine = Runtime.engine else { return (0, 0) }
+        var mx: Int32 = 0
+        var my: Int32 = 0
+        pyxift_engine_mouse(engine, &mx, &my)
+        return (Int(mx), Int(my))
+    }
+
+    @MainActor
+    public static var mouseWheel: Int {
+        guard let engine = Runtime.engine else { return 0 }
+        return Int(pyxift_engine_mouse_wheel(engine))
+    }
+
+    @MainActor
+    public static func mouseButton(_ b: MouseButton) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_mouse_button(engine, b.rawValue)
+    }
+
+    @MainActor
+    public static func mouseButtonPressed(_ b: MouseButton) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_mouse_button_pressed(engine, b.rawValue)
+    }
+
+    @MainActor
+    public static func mouseButtonReleased(_ b: MouseButton) -> Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_mouse_button_released(engine, b.rawValue)
+    }
+
+    @MainActor
+    public static func mouseCursor(visible: Bool) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_mouse_cursor(engine, visible)
+    }
+}
+
 // MARK: - 画像バンク / タイルマップ書き込み（M2c の手元テスト用、M4 までの暫定 API）
 
 extension Pyx {
