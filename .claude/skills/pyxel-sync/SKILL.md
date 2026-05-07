@@ -1,7 +1,6 @@
 ---
 name: pyxel-sync
 description: Pyxel 本家 (kitao/pyxel) との API/数値仕様の差分を検出し、Pyxift 側 SSOT (`docs/pyxel-reference.md`) との同期を支援する。ユーザーが `/pyxel-sync` と打ったとき、またはリリースタグ前チェックリスト実行時に呼ばれる。
-disable-model-invocation: true
 allowed-tools: Bash(git -C ../pyxel:*) Bash(git clone:*) Bash(grep:*) Bash(sed:*) Bash(xargs:*) Bash(date:*)
 ---
 
