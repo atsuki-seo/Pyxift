@@ -196,4 +196,66 @@ extension Pyx {
         guard let engine = Runtime.engine else { return }
         pyxift_engine_pal_reset(engine)
     }
+
+    // MARK: - 転送系 (M2c)
+
+    @MainActor
+    public static func blt(x: Int, y: Int,
+                           image: Int,
+                           u: Int, v: Int, w: Int, h: Int,
+                           transparent: Color? = nil) {
+        guard let engine = Runtime.engine else { return }
+        let t = transparent.map { Int32($0.index) } ?? Int32(-1)
+        pyxift_engine_blt(engine,
+                          Int32(x), Int32(y),
+                          Int32(image),
+                          Int32(u), Int32(v), Int32(w), Int32(h),
+                          t)
+    }
+
+    @MainActor
+    public static func bltm(x: Int, y: Int,
+                            tilemap: Int,
+                            u: Int, v: Int, w: Int, h: Int,
+                            transparent: Color? = nil) {
+        guard let engine = Runtime.engine else { return }
+        let t = transparent.map { Int32($0.index) } ?? Int32(-1)
+        pyxift_engine_bltm(engine,
+                           Int32(x), Int32(y),
+                           Int32(tilemap),
+                           Int32(u), Int32(v), Int32(w), Int32(h),
+                           t)
+    }
+
+    @MainActor
+    public static func text(x: Int, y: Int, _ s: String, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        s.withCString { c in
+            pyxift_engine_text(engine, Int32(x), Int32(y), c, color.index)
+        }
+    }
+}
+
+// MARK: - 画像バンク / タイルマップ書き込み（M2c の手元テスト用、M4 までの暫定 API）
+
+extension Pyx {
+    @MainActor
+    public static func imagePset(bank: Int, x: Int, y: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_image_pset(engine, Int32(bank), Int32(x), Int32(y), color.index)
+    }
+
+    @MainActor
+    public static func tilemapSetCell(tilemap: Int, cx: Int, cy: Int,
+                                      tileX: Int, tileY: Int) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_tilemap_set(engine, Int32(tilemap), Int32(cx), Int32(cy),
+                                  UInt8(tileX & 0xff), UInt8(tileY & 0xff))
+    }
+
+    @MainActor
+    public static func tilemapSetImageBank(tilemap: Int, bank: Int) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_tilemap_set_image_bank(engine, Int32(tilemap), Int32(bank))
+    }
 }
