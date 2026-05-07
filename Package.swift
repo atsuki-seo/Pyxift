@@ -44,6 +44,14 @@ let package = Package(
                 .swiftLanguageMode(.v6),
             ]
         ),
+        .testTarget(
+            name: "PyxiftTests",
+            dependencies: ["Pyxift", "CPyxiftCore"],
+            path: "Tests/PyxiftTests",
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+            ]
+        ),
     ],
     cxxLanguageStandard: .cxx17
 )
