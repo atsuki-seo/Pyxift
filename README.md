@@ -52,6 +52,7 @@ Pyxel（MIT License, Copyright (c) 2018-2026 Takashi Kitao）の数値仕様・�
 ## ドキュメント
 
 - [docs/decisions.md](docs/decisions.md) — 設計判断のサマリ
+- [docs/implementation-plan.md](docs/implementation-plan.md) — 実装ロードマップ（M1〜M13 マイルストーン）
 - [docs/open-questions.md](docs/open-questions.md) — 未解決事項とその解決状況
 - [docs/api-sketch.md](docs/api-sketch.md) — Swift API のラフスケッチ
 - [docs/pyxel-reference.md](docs/pyxel-reference.md) — Pyxel本家から流用する数値・データの一覧
