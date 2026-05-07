@@ -89,7 +89,7 @@ Examples/
 - [x] `button(_:)` / `buttonPressed(_:)` / `buttonReleased(_:)`: 仮想ボタン抽象（`decisions.md` 4 番のマッピング）
 - [x] `key(_:)`: SDL3 SDLK_* と 1:1 の `Key` 列挙（命名規則は `decisions.md` 10 番）。**v0.1 では主要キーのみ手書き網羅。`SDL_keycode.h` からの自動生成スクリプトは v0.1.x で導入予定**
 - [x] `mouse()` / `mouseWheel` / `mouseButton(_:)`
-- [x] ゲームパッド: SDL3 `SDL_JoystickID` をプラットフォーム層で接続順 0..3 に正規化、`Pyx.button(.a, player: 0..3)`（`decisions.md` 9 番）
+- [x] ゲームパッド: SDL3 `SDL_JoystickID` をプラットフォーム層で接続順 0..3 に正規化、`Pyx.button(.a, player: 0..3)`（`open-questions.md` 9 番）
 
 **テスト戦略**: コア層 `InputState`（pure C++、SDL3 非依存）は `VirtualEvent` 列を注入してユニットテスト。SDL3 アダプタ層は `SDL_Event` → `VirtualEvent` 変換のみを担い、テストはせず手動・実機確認に委ねる。これで CI から SDL3 初期化を完全に切り離せる。
 
@@ -108,7 +108,7 @@ Examples/
 ### M5 — 仕上げと v0.1.0 タグ
 
 - 残 API: `pget` / `quit` / `title` / `frameCount` / `width` / `height` / `mouseWheel` / `mouseCursor`
-- `Pyx.quit()` の挙動: 内部フラグを立てるだけ、現フレームの update/draw は完了してから break（`decisions.md` 8 番）
+- `Pyx.quit()` の挙動: 内部フラグを立てるだけ、現フレームの update/draw は完了してから break（`open-questions.md` 8 番）
 
 **v0.1.0 タグ前のチェックリスト:**
 - [x] サンプル「ボール跳ね返し」（`Examples/PyxiftDemo`）が Linux と macOS の両方で30秒連続動作・コマ落ちなし
