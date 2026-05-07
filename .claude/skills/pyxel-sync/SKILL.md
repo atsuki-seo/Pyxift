@@ -2,12 +2,30 @@
 name: pyxel-sync
 description: Pyxel 本家 (kitao/pyxel) との API/数値仕様の差分を検出し、Pyxift 側 SSOT (`docs/pyxel-reference.md`) との同期を支援する。ユーザーが `/pyxel-sync` と打ったとき、またはリリースタグ前チェックリスト実行時に呼ばれる。
 disable-model-invocation: true
-allowed-tools: Bash(git -C ../pyxel:*) Bash(git clone:*) Bash(grep:*) Bash(sed:*) Bash(xargs:*)
+allowed-tools: Bash(git -C ../pyxel:*) Bash(git clone:*) Bash(grep:*) Bash(sed:*) Bash(xargs:*) Bash(date:*)
 ---
 
 # pyxel-sync
 
 Pyxift は Pyxel の API 互換を目指す独立実装。このスキルは本家リポジトリ (`../pyxel/`) を追跡し、追跡対象ファイルに変更があれば検出して人間に提示する。
+
+## 追跡対象ファイル（SSOT）
+
+以下の bash 配列を本スキル内の各ブロックで展開して使う。
+
+```bash
+TRACKED_FILES=(
+    python/pyxel/__init__.pyi
+    crates/pyxel-core/src/settings.rs
+    crates/pyxel-core/src/canvas.rs
+    LICENSE
+)
+TRACKED_DIFF_FILES=(
+    python/pyxel/__init__.pyi
+    crates/pyxel-core/src/settings.rs
+    crates/pyxel-core/src/canvas.rs
+)
+```
 
 ## 起動時の挙動
 
@@ -32,11 +50,7 @@ else
     # 必要パスのみ取得（履歴メタは保持）
     git clone --filter=blob:none --no-checkout https://github.com/kitao/pyxel.git ../pyxel
     git -C ../pyxel sparse-checkout init --no-cone
-    git -C ../pyxel sparse-checkout set \
-        python/pyxel/__init__.pyi \
-        crates/pyxel-core/src/settings.rs \
-        crates/pyxel-core/src/canvas.rs \
-        LICENSE
+    git -C ../pyxel sparse-checkout set "${TRACKED_FILES[@]}"
     git -C ../pyxel checkout main
 fi
 ```
@@ -55,11 +69,7 @@ if [ "$TRACKED_SHA" = "$CURRENT_SHA" ]; then
     echo "上流に変更なし（Tracked SHA = $TRACKED_SHA）"
     # 年表記チェックは続行
 else
-    git -C ../pyxel log --oneline "$TRACKED_SHA..HEAD" -- \
-        python/pyxel/__init__.pyi \
-        crates/pyxel-core/src/settings.rs \
-        crates/pyxel-core/src/canvas.rs \
-        LICENSE
+    git -C ../pyxel log --oneline "$TRACKED_SHA..HEAD" -- "${TRACKED_FILES[@]}"
 fi
 ```
 
@@ -68,9 +78,9 @@ fi
 変更があった場合、ユーザーに各ファイルの diff を提示し、Pyxift 側に取り込むかどうか判断を仰ぐ。
 
 ```bash
-git -C ../pyxel diff "$TRACKED_SHA..HEAD" -- python/pyxel/__init__.pyi
-git -C ../pyxel diff "$TRACKED_SHA..HEAD" -- crates/pyxel-core/src/settings.rs
-git -C ../pyxel diff "$TRACKED_SHA..HEAD" -- crates/pyxel-core/src/canvas.rs
+for f in "${TRACKED_DIFF_FILES[@]}"; do
+    git -C ../pyxel diff "$TRACKED_SHA..HEAD" -- "$f"
+done
 ```
 
 判断は人間が行う:
@@ -86,6 +96,8 @@ chore(pyxel-sync): Tracked SHA を <new-sha> に更新
 
 ### 4. 著作権年表記の自動同期（例外的に機械対応）
 
+#### 4a. 本家 (Takashi Kitao) の年範囲
+
 `../pyxel/LICENSE` の `Copyright (c) <range> Takashi Kitao` から年範囲を抽出し、Pyxift 内の以下の箇所と比較する:
 
 - `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
@@ -93,6 +105,8 @@ chore(pyxel-sync): Tracked SHA を <new-sha> に更新
 - `CLAUDE.md`（出典コメント例）
 - `docs/pyxel-reference.md` 冒頭の出典表記
 - `ACKNOWLEDGMENTS.md`
+- `README.md`（本家リスペクト記述内の年範囲）
+- `LICENSE`（NOTICE 部の本家年範囲）
 - `Sources/` 配下（grep が `Copyright (c) <range> Takashi Kitao` で出典コメント持ちファイルのみを拾う）
 
 ズレを検出したら、機械的に書き換えて単独コミットを打つ:
@@ -108,10 +122,32 @@ UPSTREAM_RANGE=$(grep -oP 'Copyright \(c\) \K[0-9]{4}-[0-9]{4}' ../pyxel/LICENSE
 LOCAL_RANGE=$(grep -oP 'Copyright \(c\) \K[0-9]{4}-[0-9]{4}' THIRD_PARTY_LICENSES/pyxel-MIT.txt | head -1)
 if [ "$UPSTREAM_RANGE" != "$LOCAL_RANGE" ]; then
     grep -rlE "Copyright \(c\) $LOCAL_RANGE Takashi Kitao" \
-        THIRD_PARTY_LICENSES/ ACKNOWLEDGMENTS.md CLAUDE.md \
+        THIRD_PARTY_LICENSES/ ACKNOWLEDGMENTS.md CLAUDE.md README.md LICENSE \
         docs/pyxel-reference.md .claude/ Sources/ 2>/dev/null \
       | xargs -r sed -i "s|Copyright (c) $LOCAL_RANGE Takashi Kitao|Copyright (c) $UPSTREAM_RANGE Takashi Kitao|g"
 fi
+```
+
+#### 4b. Pyxift 自身 (atsuki.seo) の年範囲
+
+`LICENSE` の `Copyright (c) <year-or-range> atsuki.seo` を、開始年 2026 〜 現在年（`date +%Y`）の範囲表記 `2026-<current_year>` に正規化する。現在年が 2026 のままなら単年表記（`Copyright (c) 2026 atsuki.seo`）を維持する。
+
+```bash
+CURRENT_YEAR=$(date +%Y)
+if [ "$CURRENT_YEAR" = "2026" ]; then
+    DESIRED="Copyright (c) 2026 atsuki.seo"
+else
+    DESIRED="Copyright (c) 2026-$CURRENT_YEAR atsuki.seo"
+fi
+
+# 現状のいずれの形（単年 / 範囲）にもマッチさせて DESIRED に置換
+sed -i -E "s|Copyright \(c\) 2026(-[0-9]{4})? atsuki\.seo|$DESIRED|g" LICENSE
+```
+
+ズレを書き換えた場合は本家年範囲とは独立に単独コミットを打つ:
+
+```
+chore(pyxel-sync): Pyxift 著作権年を <old> → <new> に更新
 ```
 
 ## スコープ外（やらないこと）
