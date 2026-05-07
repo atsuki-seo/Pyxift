@@ -4,7 +4,6 @@
 
 ## 未達タスク（v0.1.0 タグまで）
 
-- [ ] `swift package init` 再実行検証（ホーム直下の素のフォルダで Getting Started 手順が通る）
 - [ ] v0.1.0 タグ → Swift Package Index 登録申請
 
 ## 未解決事項
