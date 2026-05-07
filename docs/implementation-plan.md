@@ -95,7 +95,7 @@ Examples/
 
 ### M4 — アセット & 内蔵フォント
 
-- 内蔵フォント: 本家 `FONT_DATA`（u32 ビットパッキング、4×6、ASCII 0x20〜0x7F）を C++ ヘッダに配列リテラルとして埋め込み。Pyxift のフォントモジュール冒頭に出典コメント
+- 内蔵フォント: 本家 `FONT_DATA` を C++ ヘッダに配列リテラルとして埋め込み（数値仕様は `pyxel-reference.md` の「内蔵フォント」節を参照）。Pyxift のフォントモジュール冒頭に出典コメント
 - `Pyx.loadImage(_:into:)`: PNG 復号で `stb_image.h` を C++ コアに同梱（単一ヘッダ・MIT）。RGB→16色パレット最近傍マッピングで画像バンクへ書き込み
   - 挙動は **Pyxel本家 `Image::from_image`（`crates/pyxel-core/src/image.rs:57`）に揃える**:
     - PNG を RGB に展開（α チャンネルは捨てる、Pyxel 同様）

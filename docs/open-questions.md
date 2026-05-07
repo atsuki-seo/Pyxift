@@ -21,7 +21,7 @@ Pyxel本家リポジトリ（MIT License, kitao/pyxel）の `crates/pyxel-core/s
 
 ## 3. 内蔵フォントの出典 — 解決
 
-Pyxel本家の `FONT_DATA` 定数（`crates/pyxel-core/src/settings.rs`）を流用する。4×6 ピクセル・ASCII 0x20〜0x7F の 96 グリフ。各グリフは `u32`（24ビット使用）でビットパッキングされている。
+Pyxel本家の `FONT_DATA` 定数（`crates/pyxel-core/src/settings.rs`）を流用する。仕様詳細（範囲・サイズ・データ形式・配列定義）は [pyxel-reference.md](pyxel-reference.md) の「内蔵フォント」節を参照（一次台帳）。
 
 MIT License で流用可能。Pyxift のフォントモジュール冒頭に出典コメントを記載する。
 
