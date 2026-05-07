@@ -110,4 +110,54 @@ extension Pyx {
         guard let engine = Runtime.engine else { return .black }
         return Color(Int(pyxift_engine_pget(engine, Int32(x), Int32(y))))
     }
+
+    @MainActor
+    public static func line(x1: Int, y1: Int, x2: Int, y2: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_line(engine, Int32(x1), Int32(y1), Int32(x2), Int32(y2), color.index)
+    }
+
+    @MainActor
+    public static func rect(x: Int, y: Int, w: Int, h: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_rect(engine, Int32(x), Int32(y), Int32(w), Int32(h), color.index)
+    }
+
+    @MainActor
+    public static func rectb(x: Int, y: Int, w: Int, h: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_rectb(engine, Int32(x), Int32(y), Int32(w), Int32(h), color.index)
+    }
+
+    @MainActor
+    public static func circ(x: Int, y: Int, r: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_circ(engine, Int32(x), Int32(y), Int32(r), color.index)
+    }
+
+    @MainActor
+    public static func circb(x: Int, y: Int, r: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_circb(engine, Int32(x), Int32(y), Int32(r), color.index)
+    }
+
+    @MainActor
+    public static func tri(x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_tri(engine,
+                          Int32(x1), Int32(y1),
+                          Int32(x2), Int32(y2),
+                          Int32(x3), Int32(y3),
+                          color.index)
+    }
+
+    @MainActor
+    public static func trib(x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_trib(engine,
+                           Int32(x1), Int32(y1),
+                           Int32(x2), Int32(y2),
+                           Int32(x3), Int32(y3),
+                           color.index)
+    }
 }
