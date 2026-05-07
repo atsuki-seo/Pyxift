@@ -160,4 +160,40 @@ extension Pyx {
                            Int32(x3), Int32(y3),
                            color.index)
     }
+
+    @MainActor
+    public static func clip(x: Int, y: Int, w: Int, h: Int) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_clip(engine, Int32(x), Int32(y), Int32(w), Int32(h))
+    }
+
+    @MainActor
+    public static func clip() {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_clip_reset(engine)
+    }
+
+    @MainActor
+    public static func camera(x: Int, y: Int) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_camera(engine, Int32(x), Int32(y))
+    }
+
+    @MainActor
+    public static func camera() {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_camera_reset(engine)
+    }
+
+    @MainActor
+    public static func pal(from: Color, to: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_pal(engine, from.index, to.index)
+    }
+
+    @MainActor
+    public static func pal() {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_pal_reset(engine)
+    }
 }
