@@ -13,14 +13,32 @@ Pyxift もMITライセンスで配布する前提で、これらは流用箇所�
 - **参照元**: 親ディレクトリの `../pyxel/`（kitao/pyxel の clone）。スキル起動時に `git fetch && git reset --hard origin/main` で上書き同期される
 - **Tracked SHA**: `84c674966f0cab0e47cf43a0d39111976b5932f5`
 - **Last synced**: 2026-05-08
-- **Tracked files**:
-  - `python/pyxel/__init__.pyi`（公開 API 表面）
-  - `crates/pyxel-core/src/settings.rs`（数値定数・FONT_DATA・DEFAULT_COLORS・DEFAULT_TONE_*）
-  - `crates/pyxel-core/src/canvas.rs`（描画ロジック参考）
-  - `LICENSE`（MIT 全文）
+- **追跡対象ファイル**: 下記「追跡対象テーブル」を参照（SSOT）
 
 差分検出時の運用は `.claude/skills/pyxel-sync/SKILL.md` を参照。
 <!-- /pyxel-upstream-sync -->
+
+## 追跡対象テーブル
+
+`/pyxel-sync` と `.claude/hooks/check-source-comment.sh` がこの表を機械パースする。表の前後にある `pyxel-tracked-files` マーカーは削除しないこと。
+
+「本家側」を主キーとし、1行 = 1本家ファイル。Pyxift 側で複数ファイルに分かれる場合は `<br>` 区切りで併記する。
+
+「状態」列の値ドメイン:
+
+- `実装済み`: Pyxift 側にコードがある（Pyxift 側列にパス必須）
+- `予約:vX.Y.Z`: 指定タグまでに実装する（タグ前 hook が `実装済み` への遷移を検査）
+- `保留`: 追跡のみ。実装判断は未定（hook 通過）
+- `見送り`: 実装しない決定済み。セル内に `docs/decisions.md` か `docs/status.md` への参照リンク必須（hook 通過）
+
+<!-- pyxel-tracked-files:start -->
+| Pyxift 側 | 本家側 | 用途 | diff 提示 | 状態 |
+| --- | --- | --- | --- | --- |
+| （未実装） | python/pyxel/__init__.pyi | 公開 API 表面 | ○ | 保留 |
+| Sources/CPyxiftCore/src/core/Palette.hpp<br>Sources/CPyxiftCore/src/core/Font.hpp | crates/pyxel-core/src/settings.rs | 数値定数（DEFAULT_COLORS / FONT_DATA / DEFAULT_TONE_*） | ○ | 実装済み |
+| （未実装） | crates/pyxel-core/src/canvas.rs | 描画ロジック参考 | ○ | 保留 |
+| THIRD_PARTY_LICENSES/pyxel-MIT.txt | LICENSE | 著作権年範囲・MIT 全文 | × | 実装済み |
+<!-- pyxel-tracked-files:end -->
 
 ## 既定16色パレット
 
