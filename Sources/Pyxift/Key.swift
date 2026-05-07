@@ -1,10 +1,5 @@
 // SDL3 SDL_Keycode と 1:1 対応する物理キー識別子。
-// 命名は Swift 慣用の lowerCamelCase（decisions.md 末尾「キーコード定数の網羅」）。
 // 生の SDL3 値を直接渡したい場合は `Key(rawValue:)` を使う。
-//
-// v0.1 では「ゲームを書く最低限」の主要キーを網羅。SDL3 の全 215 個は
-// v0.1.x で `SDL_keycode.h` からの自動生成スクリプトに置き換える予定
-// （docs/implementation-plan.md M3 参照）。
 public enum Key: Int32, Sendable {
     // 制御
     case escape = 0x0000001b       // SDLK_ESCAPE

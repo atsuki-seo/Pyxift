@@ -53,7 +53,6 @@ void PyxiftEngine::quit() {
 }
 
 void PyxiftEngine::pump_events() {
-    // 前フレームの pressed/released を消し、最終状態（button/key/mouse_button）のみ残す。
     input_.end_frame();
 
     SDL_Event ev;
@@ -293,7 +292,7 @@ void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
     tm->set_image_bank(image_bank);
 }
 
-// ---- 入力 (M3) ----
+// ---- 入力 ----
 
 bool pyxift_engine_button(const PyxiftEngine *engine, uint8_t button, int32_t player) {
     if (engine == nullptr) return false;

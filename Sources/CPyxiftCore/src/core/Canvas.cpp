@@ -22,8 +22,7 @@ Canvas::Canvas(int32_t width, int32_t height)
 
 void Canvas::set_clip(int32_t x, int32_t y, int32_t w, int32_t h) {
     if (w <= 0 || h <= 0) {
-        // 負/0 サイズはクリップ無効化扱い（何も描けない領域）にせず、本家同様に画面全体と交差させる。
-        // 本家の挙動: 矩形と画面の交差を取る。空矩形は何も描けない状態にする。
+        // 本家準拠: 空矩形は何も描けない状態（x2<x1）にする。
         clip_x1_ = 0;
         clip_y1_ = 0;
         clip_x2_ = -1;
@@ -75,7 +74,7 @@ void Canvas::put(int32_t x, int32_t y, uint8_t color) {
 }
 
 void Canvas::cls(uint8_t color) {
-    // 本家準拠: cls はパレット適用後の色で全画面を塗る。clip/camera は無視（画面全体）。
+    // 本家準拠: cls は clip/camera を無視して全画面を塗る。
     std::fill(pixels_.begin(), pixels_.end(), palette_[color & 0x0f]);
 }
 
@@ -84,7 +83,7 @@ void Canvas::pset(int32_t x, int32_t y, uint8_t color) {
 }
 
 uint8_t Canvas::pget(int32_t x, int32_t y) const {
-    // 本家準拠: pget は camera 適用、clip 範囲外は 0。フレームバッファに既に書かれた値を返す。
+    // 本家準拠: pget は camera 適用、画面外は 0。clip は無視。
     const int32_t fx = x - camera_x_;
     const int32_t fy = y - camera_y_;
     if (fx < 0 || fy < 0 || fx >= width_ || fy >= height_) return 0;
@@ -105,8 +104,6 @@ void Canvas::hline(int32_t x1, int32_t x2, int32_t y, uint8_t color) {
 }
 
 void Canvas::line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t color) {
-    // 整数 Bresenham（全8オクタント対応）。
-    // 入力座標は API 座標。camera は put() ではなくここで適用する。
     x1 -= camera_x_; y1 -= camera_y_;
     x2 -= camera_x_; y2 -= camera_y_;
     int32_t dx = std::abs(x2 - x1);
@@ -161,7 +158,6 @@ void Canvas::rectb(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t color) {
     const int32_t y2 = y + h - 1;
     hline(x, x2, y, color);
     hline(x, x2, y2, color);
-    // 縦辺（既に上下2行分は描いたのでその間だけ）。
     for (int32_t yy = y + 1; yy <= y2 - 1; ++yy) {
         put(x, yy, color);
         put(x2, yy, color);
@@ -176,7 +172,6 @@ void Canvas::circ(int32_t cx, int32_t cy, int32_t r, uint8_t color) {
         put(cx, cy, color);
         return;
     }
-    // midpoint circle、各 y についてスパンを hline で塗る。
     int32_t x = r;
     int32_t y = 0;
     int32_t err = 1 - r;
@@ -226,15 +221,13 @@ void Canvas::circb(int32_t cx, int32_t cy, int32_t r, uint8_t color) {
 }
 
 void Canvas::trib(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color) {
-    // line() が camera を内部適用するので、ここではそのまま渡す。
     line(x1, y1, x2, y2, color);
     line(x2, y2, x3, y3, color);
     line(x3, y3, x1, y1, color);
 }
 
 void Canvas::tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color) {
-    // 教科書 scanline 三角形塗り。意味論レベルで合っていればよい（decisions.md ピクセル完全一致は諦め）。
-    // y1<=y2<=y3 にソートし、上三角（y1..y2）と下三角（y2..y3）を別々に塗る。
+    // 本家とのピクセル完全一致は要件外。意味論（指定3頂点を塗る）が合えばよい。
     x1 -= camera_x_; y1 -= camera_y_;
     x2 -= camera_x_; y2 -= camera_y_;
     x3 -= camera_x_; y3 -= camera_y_;
@@ -243,14 +236,12 @@ void Canvas::tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int
     if (y2 > y3) { std::swap(x2, x3); std::swap(y2, y3); }
 
     auto edge_x = [](int32_t ya, int32_t xa, int32_t yb, int32_t xb, int32_t y) -> int32_t {
-        if (yb == ya) return xa;  // 水平辺は端点 x をそのまま使う
-        // 整数だけで線形補間。dx*(y-ya)/(yb-ya) を切り捨て。
+        if (yb == ya) return xa;
         const int64_t num = static_cast<int64_t>(xb - xa) * (y - ya);
         const int64_t den = static_cast<int64_t>(yb - ya);
         return xa + static_cast<int32_t>(num / den);
     };
 
-    // 上半分 y1..y2: 辺 (1-3) と (1-2)
     if (y2 > y1) {
         for (int32_t y = y1; y <= y2; ++y) {
             const int32_t xa = edge_x(y1, x1, y3, x3, y);
@@ -258,7 +249,6 @@ void Canvas::tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int
             hline(xa, xb, y, color);
         }
     }
-    // 下半分 y2..y3: 辺 (1-3) と (2-3)
     if (y3 > y2) {
         for (int32_t y = y2; y <= y3; ++y) {
             const int32_t xa = edge_x(y1, x1, y3, x3, y);
@@ -266,7 +256,6 @@ void Canvas::tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int
             hline(xa, xb, y, color);
         }
     }
-    // 退化（3点同一y）は端点のスパンを引く
     if (y1 == y2 && y2 == y3) {
         const int32_t lo = std::min({x1, x2, x3});
         const int32_t hi = std::max({x1, x2, x3});
@@ -281,7 +270,7 @@ void Canvas::blt(int32_t x, int32_t y, const Image &image,
     const int32_t dst_x = x - camera_x_;
     const int32_t dst_y = y - camera_y_;
 
-    // ソース矩形を画像の範囲に切り詰める。負の u/v はみ出し分は dst 側のオフセットになる。
+    // 負の u/v はソースの切り詰めではなく dst 側のオフセットとして扱う（本家準拠）。
     int32_t src_x = u;
     int32_t src_y = v;
     int32_t src_w = w;
@@ -306,7 +295,7 @@ void Canvas::blt(int32_t x, int32_t y, const Image &image,
             const int32_t dx = dst_x + shift_x + col;
             if (dx < clip_x1_ || dx > clip_x2_) continue;
             const uint8_t s = src_row[col];
-            // 透明判定はパレット差し替え前のソース色（decisions.md 7番）。
+            // 透明判定はパレット差し替え前のソース色で行う（本家準拠）。
             if (transparent >= 0 && s == static_cast<uint8_t>(transparent)) continue;
             dst_row[dx] = palette_[s & 0x0f];
         }
@@ -316,7 +305,7 @@ void Canvas::blt(int32_t x, int32_t y, const Image &image,
 void Canvas::bltm(int32_t x, int32_t y, const Tilemap &tilemap, const Image &image,
                   int32_t tu, int32_t tv, int32_t tw, int32_t th,
                   int32_t transparent) {
-    // u/v/w/h はタイル単位（本家準拠）。各セルは画像バンク内 (cell.x*8, cell.y*8) の 8×8 を参照。
+    // u/v/w/h はタイル単位（本家準拠）。
     if (tw <= 0 || th <= 0) return;
     const int32_t ts = Tilemap::kTileSize;
     for (int32_t cy = 0; cy < th; ++cy) {
@@ -332,7 +321,6 @@ void Canvas::bltm(int32_t x, int32_t y, const Tilemap &tilemap, const Image &ima
 
 void Canvas::text(int32_t x, int32_t y, const char *s, uint8_t color) {
     if (s == nullptr) return;
-    // 改行で次行に降りる。clip / camera / pal は put() を経由するので自動で効く。
     int32_t cx = x;
     int32_t cy = y;
     for (const char *p = s; *p != '\0'; ++p) {

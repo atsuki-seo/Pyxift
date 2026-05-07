@@ -1,12 +1,7 @@
 import Pyxift
 import Foundation
 
-// PyxiftDemo
-// Tab キーでシーン切り替え：
-//   0: M2 描画プリミティブ（line/rect/circ/tri/blt/bltm/text）
-//   1: M3 入力可視化（仮想ボタン・キー・マウス）
-//   2: M4 アセット（内蔵フォント全グリフ + loadImage で読み込んだ PNG）
-//   3: M5 ボール跳ね返し（v0.1.0 リリース動作確認用）
+// Tab キーでシーン切り替え：描画プリミティブ / 入力可視化 / アセット / ボール跳ね返し。
 
 enum Scene: Int {
     case drawing = 0
@@ -88,10 +83,10 @@ struct Demo: App {
         }
     }
 
-    // MARK: - Scene 3: ボール跳ね返し（v0.1.0 リリース動作確認）
+    // MARK: - Scene 3: ボール跳ね返し
     private mutating func spawnBalls() {
         let palette: [Color] = [.red, .yellow, .lime, .cyan, .pink, .orange, .lightBlue, .white]
-        // 疑似乱数（線形合同法）。Foundation や Int.random を避けて再現性を確保。
+        // 再現性のため Foundation 非依存の線形合同法を使う。
         var seed: UInt32 = 0x9E37_79B9
         func next() -> Double {
             seed = seed &* 1_664_525 &+ 1_013_904_223
@@ -141,11 +136,10 @@ struct Demo: App {
         }
     }
 
-    // MARK: - Scene 2: M4 アセット（内蔵フォント + loadImage）
+    // MARK: - Scene 2: アセット（内蔵フォント + loadImage）
     private func drawAssetsScene() {
-        Pyx.text(x: 4, y: 4, "M4 ASSETS", color: .yellow)
+        Pyx.text(x: 4, y: 4, "ASSETS", color: .yellow)
 
-        // 内蔵フォントの全グリフを 16 列で並べる（本家 NUM_FONT_COLS と同じ）。
         Pyx.text(x: 4, y: 16, "BUILTIN FONT", color: .gray)
         let originX = 4, originY = 26
         let cellW = 5, cellH = 7
@@ -361,8 +355,6 @@ struct Demo: App {
                 Pyx.imagePset(bank: 0, x: 2 * 8 + tx, y: 2 * 8 + ty, color: .black)
             }
         }
-        // M4: assets/sample.png を画像バンク 1 にロード。
-        // SPM resources で copy された assets/ ディレクトリから取得。
         if let url = Bundle.module.url(forResource: "sample", withExtension: "png", subdirectory: "assets") {
             Pyx.loadImage(url.path, into: 1)
         }

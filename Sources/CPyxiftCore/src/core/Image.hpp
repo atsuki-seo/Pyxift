@@ -18,13 +18,12 @@ public:
     int32_t height() const { return kHeight; }
     const uint8_t *pixels() const { return pixels_.data(); }
 
-    // 書き込みは v0.1 では loadImage（M4）が主役だが、M2c では C-API のテスト用に直接 pset を露出する。
-    // 範囲外は黙って無視（Canvas の put と同じ方針）。
+    // 範囲外は黙って無視。
     void pset(int32_t x, int32_t y, uint8_t color);
     uint8_t pget(int32_t x, int32_t y) const;
 
 private:
-    std::vector<uint8_t> pixels_;  // インデックスカラー 0..15
+    std::vector<uint8_t> pixels_;
 };
 
 } // namespace pyxift

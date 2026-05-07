@@ -1,5 +1,5 @@
 // Pure C++ コア層 (pyxift::Font / kFontData) をテストする薄い C ブリッジ。
-// 公開 API ではない（Tests ターゲットからのみ参照）。M4 の意味論テスト用。
+// 公開 API ではない（Tests ターゲットからのみ参照）。
 #ifndef PYXIFT_FONT_TEST_C_H
 #define PYXIFT_FONT_TEST_C_H
 

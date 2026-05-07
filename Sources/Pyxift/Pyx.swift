@@ -2,7 +2,7 @@ import CPyxiftCore
 
 public enum Pyx {}
 
-// ゲームループは @MainActor 単一実行（decisions.md: Swift 6 strict concurrency）。
+// ゲームループは @MainActor 単一実行（Swift 6 strict concurrency）。
 @MainActor
 private enum Runtime {
     static var engine: OpaquePointer?
@@ -197,7 +197,7 @@ extension Pyx {
         pyxift_engine_pal_reset(engine)
     }
 
-    // MARK: - 転送系 (M2c)
+    // MARK: - 転送系
 
     @MainActor
     public static func blt(x: Int, y: Int,
@@ -236,7 +236,7 @@ extension Pyx {
     }
 }
 
-// MARK: - 入力 (M3)
+// MARK: - 入力
 
 extension Pyx {
     @MainActor
@@ -315,12 +315,12 @@ extension Pyx {
     }
 }
 
-// MARK: - アセット読み込み (M4)
+// MARK: - アセット読み込み
 
 extension Pyx {
     /// PNG ファイルを画像バンクに読み込む。
     /// 既定 16 色パレットへの最近傍マッピングで bank の左上原点に書き込む。
-    /// 失敗時は `fatalError`（throws を使わない設計判断: decisions.md）。
+    /// 失敗時は `fatalError`（throws を使わない設計判断）。
     @MainActor
     public static func loadImage(_ path: String, into bank: Int = 0) {
         guard let engine = Runtime.engine else {
@@ -335,7 +335,7 @@ extension Pyx {
     }
 }
 
-// MARK: - 画像バンク / タイルマップ書き込み（M2c の手元テスト用、M4 までの暫定 API）
+// MARK: - 画像バンク / タイルマップ書き込み（テスト用の暫定 API）
 
 extension Pyx {
     @MainActor

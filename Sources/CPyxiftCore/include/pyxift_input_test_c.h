@@ -1,5 +1,5 @@
 // Pure C++ コア層 (pyxift::InputState) を SDL3 を経由せずにテストするための薄い C ブリッジ。
-// 公開 API ではない（Tests ターゲットからのみ参照）。M3 の意味論テスト用。
+// 公開 API ではない（Tests ターゲットからのみ参照）。
 #ifndef PYXIFT_INPUT_TEST_C_H
 #define PYXIFT_INPUT_TEST_C_H
 

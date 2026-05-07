@@ -1,5 +1,5 @@
 // pyxift::Font の constexpr 配列・font_pixel を Swift Testing から叩くテスト用ブリッジ。
-// 公開 API ではない（Tests ターゲットからのみ参照）。M4 の意味論テスト用。
+// 公開 API ではない（Tests ターゲットからのみ参照）。
 
 #include "pyxift_font_test_c.h"
 

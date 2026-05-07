@@ -86,10 +86,10 @@ void Window::present(const uint8_t *index_buffer, const uint32_t *palette) {
         const uint8_t *in_row = index_buffer + static_cast<size_t>(y) * width_;
         for (int32_t x = 0; x < width_; ++x) {
             const uint32_t rgb = palette[in_row[x] & 0x0f];
-            row[x * 4 + 0] = static_cast<uint8_t>((rgb >> 16) & 0xff); // R
-            row[x * 4 + 1] = static_cast<uint8_t>((rgb >> 8) & 0xff);  // G
-            row[x * 4 + 2] = static_cast<uint8_t>(rgb & 0xff);         // B
-            row[x * 4 + 3] = 0xff;                                     // A
+            row[x * 4 + 0] = static_cast<uint8_t>((rgb >> 16) & 0xff);
+            row[x * 4 + 1] = static_cast<uint8_t>((rgb >> 8) & 0xff);
+            row[x * 4 + 2] = static_cast<uint8_t>(rgb & 0xff);
+            row[x * 4 + 3] = 0xff;
         }
     }
     SDL_UnlockTexture(texture_);

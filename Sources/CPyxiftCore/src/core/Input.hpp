@@ -8,7 +8,6 @@
 
 namespace pyxift {
 
-// 仮想ボタン抽象（decisions.md 入力セクション）。
 enum class Button : uint8_t {
     Left = 0,
     Right,
@@ -59,17 +58,14 @@ public:
     // フレーム末尾。pressed/released の bit を消し、button/key の最終状態のみ残す。
     void end_frame();
 
-    // 仮想ボタン
     bool button(Button b, int32_t player) const;
     bool button_pressed(Button b, int32_t player) const;
     bool button_released(Button b, int32_t player) const;
 
-    // SDL3 keycode と 1:1
     bool key(int32_t keycode) const;
     bool key_pressed(int32_t keycode) const;
     bool key_released(int32_t keycode) const;
 
-    // マウス
     int32_t mouse_x() const { return mouse_x_; }
     int32_t mouse_y() const { return mouse_y_; }
     int32_t mouse_wheel() const { return mouse_wheel_; }
@@ -78,12 +74,11 @@ public:
     bool mouse_button_released(MouseButton b) const;
 
 private:
-    // 各プレイヤーの仮想ボタンビット
     std::array<uint16_t, kMaxPlayers> btn_state_{};
     std::array<uint16_t, kMaxPlayers> btn_pressed_{};
     std::array<uint16_t, kMaxPlayers> btn_released_{};
 
-    // SDL3 keycode は疎なのでハッシュ集合で保持
+    // SDL3 keycode は疎なのでハッシュ集合で保持。
     std::unordered_set<int32_t> key_state_;
     std::unordered_set<int32_t> key_pressed_;
     std::unordered_set<int32_t> key_released_;

@@ -73,7 +73,7 @@ void pyxift_engine_camera_reset(PyxiftEngine *engine);
 void pyxift_engine_pal(PyxiftEngine *engine, uint8_t from, uint8_t to);
 void pyxift_engine_pal_reset(PyxiftEngine *engine);
 
-// 転送系 (M2c)。transparent は 0..15 の色インデックス、もしくは「透明色なし」を表す -1。
+// 転送系。transparent は 0..15 の色インデックス、もしくは「透明色なし」を表す -1。
 void pyxift_engine_blt(PyxiftEngine *engine,
                        int32_t x, int32_t y,
                        int32_t image_bank,
@@ -87,12 +87,12 @@ void pyxift_engine_bltm(PyxiftEngine *engine,
 void pyxift_engine_text(PyxiftEngine *engine,
                         int32_t x, int32_t y, const char *s, uint8_t color);
 
-// 画像バンク・タイルマップ書き込み (M2c のテスト用 / M4 で loadImage が後から共用)。
+// 画像バンク・タイルマップ書き込み（テスト用 / loadImage と共用）。
 void pyxift_engine_image_pset(PyxiftEngine *engine,
                               int32_t image_bank,
                               int32_t x, int32_t y, uint8_t color);
 
-// PNG ファイルを画像バンクに読み込む (M4)。
+// PNG ファイルを画像バンクに読み込む。
 // 16色既定パレットへの最近傍マッピングを行い、bank の左上原点に書き込む。
 // 成功で true、ファイル不在 / 復号失敗 / bank 範囲外で false。
 bool pyxift_engine_load_image(PyxiftEngine *engine,
@@ -106,7 +106,6 @@ void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
                                           int32_t tilemap_index,
                                           int32_t image_bank);
 
-// 入力 (M3)。
 // Button インデックスは Pyxift 側 enum と一致 (left=0, right=1, up=2, down=3, a=4, b=5, start=6)。
 // MouseButton は left=0, right=1, middle=2。
 // Key は SDL3 SDL_Keycode の int32 値をそのまま渡す。

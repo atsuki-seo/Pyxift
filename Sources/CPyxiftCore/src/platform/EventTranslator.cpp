@@ -4,8 +4,7 @@ namespace pyxift::platform {
 
 namespace {
 
-// 仮想ボタン → キーボードマッピング（decisions.md 入力セクション）。
-// 1 つの仮想ボタンを複数のキーで重ね打ちできるよう、テーブルで対応する。
+// 1 つの仮想ボタンを複数のキーで重ね打ちできるよう、テーブル定義する。
 struct KeyMap {
     SDL_Keycode key;
     Button button;
@@ -25,7 +24,7 @@ constexpr KeyMap kKeyMap[] = {
     {SDLK_RETURN, Button::Start},
 };
 
-// SDL_Gamepad のボタンを仮想ボタンに変換。Count を返したらマッピングなし。
+// マッピングなしの場合は Button::Count を返す。
 Button gamepad_button_to_virtual(uint8_t b) {
     switch (b) {
         case SDL_GAMEPAD_BUTTON_DPAD_LEFT:  return Button::Left;
@@ -39,7 +38,7 @@ Button gamepad_button_to_virtual(uint8_t b) {
     }
 }
 
-constexpr int16_t kAxisDeadZone = 16384; // 約 0.5。雑な閾値で十分（仮想ボタン化用途）。
+constexpr int16_t kAxisDeadZone = 16384;
 
 void push_button(InputState &state, Button b, int32_t player, bool down) {
     VirtualEvent ev{};
@@ -95,7 +94,7 @@ void EventTranslator::release_player(SDL_JoystickID id) {
 }
 
 void EventTranslator::emit_key_button(InputState &state, SDL_Keycode key, bool down) {
-    // キーボード入力は player 0 にマップ。
+    // キーボード入力は player 0 のみへ流す。
     for (const auto &m : kKeyMap) {
         if (m.key == key) {
             push_button(state, m.button, 0, down);
@@ -136,7 +135,7 @@ void EventTranslator::emit_gamepad_axis(InputState &state, int32_t player, uint8
 }
 
 bool EventTranslator::translate(SDL_Event &ev, InputState &state) {
-    // 座標系をロジカル解像度に正規化（マウス系イベントが対象）。
+    // マウス系イベントの座標をロジカル解像度に正規化する。
     if (renderer_ != nullptr) {
         SDL_ConvertEventToRenderCoordinates(renderer_, &ev);
     }
