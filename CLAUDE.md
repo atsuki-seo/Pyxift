@@ -44,6 +44,10 @@ Pyxel風レトロ2Dゲームエンジン（Swift製・C++コア・SDL3バック�
 API 互換と数値仕様の上流追従は `/pyxel-sync` スキル（`.claude/skills/pyxel-sync/SKILL.md`）に集約。
 追跡 SHA と最終同期日は `docs/pyxel-reference.md` の「上流追従ステータス」ブロックが SSOT。
 
+## コメント方針
+
+ソースコードのコメント方針は `.claude/rules/comment-style.md` に従う。
+
 ## 本家流用コード — 出典コメント必須
 
 `FONT_DATA` / `DEFAULT_COLORS` / `DEFAULT_TONE_*` のいずれかを含むファイルは**冒頭に出典コメント必須**:
