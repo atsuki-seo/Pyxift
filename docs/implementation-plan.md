@@ -111,12 +111,12 @@ Examples/
 - `Pyx.quit()` の挙動: 内部フラグを立てるだけ、現フレームの update/draw は完了してから break（`decisions.md` 8 番）
 
 **v0.1.0 タグ前のチェックリスト:**
-- [ ] サンプル「ボール跳ね返し」（`Examples/PyxiftDemo`）が Linux と macOS の両方で30秒連続動作・コマ落ちなし
+- [x] サンプル「ボール跳ね返し」（`Examples/PyxiftDemo`）が Linux と macOS の両方で30秒連続動作・コマ落ちなし
 - [ ] README の Getting Started 手順を空ディレクトリから再実行して通る（自分の開発環境ではなく、ホーム直下の素のフォルダで `swift package init` から）
-- [ ] CI の build job が両 OS で緑
-- [ ] 本家流用箇所（FONT_DATA / DEFAULT_COLORS）の出典コメントと LICENSE ファイル設置を grep で確認
-- [ ] Linux 側の SDL3 取得手順を README に明記（apt が古い場合のソースビルド手順含む）
-- [ ] `swift build -Xswiftc -warnings-as-errors` で警告ゼロ
+- [x] CI の build job が両 OS で緑
+- [x] 本家流用箇所（FONT_DATA / DEFAULT_COLORS）の出典コメントと LICENSE ファイル設置を grep で確認
+- [x] Linux 側の SDL3 取得手順を README に明記（apt が古い場合のソースビルド手順含む）
+- [x] `swift build -Xswiftc -warnings-as-errors` で警告ゼロ
 - [ ] v0.1.0 タグ → Swift Package Index 登録申請
 
 ---
