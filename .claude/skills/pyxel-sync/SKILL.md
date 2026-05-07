@@ -1,6 +1,8 @@
 ---
 name: pyxel-sync
 description: Pyxel 本家 (kitao/pyxel) との API/数値仕様の差分を検出し、Pyxift 側 SSOT (`docs/pyxel-reference.md`) との同期を支援する。ユーザーが `/pyxel-sync` と打ったとき、またはリリースタグ前チェックリスト実行時に呼ばれる。
+disable-model-invocation: true
+allowed-tools: Bash(git -C ../pyxel:*) Bash(git clone:*) Bash(grep:*) Bash(sed:*) Bash(xargs:*)
 ---
 
 # pyxel-sync
@@ -91,7 +93,7 @@ chore(pyxel-sync): Tracked SHA を <new-sha> に更新
 - `CLAUDE.md`（出典コメント例）
 - `docs/pyxel-reference.md` 冒頭の出典表記
 - `ACKNOWLEDGMENTS.md`
-- `Sources/` 配下の出典コメントを持つソースファイル
+- `Sources/` 配下（grep が `Copyright (c) <range> Takashi Kitao` で出典コメント持ちファイルのみを拾う）
 
 ズレを検出したら、機械的に書き換えて単独コミットを打つ:
 
@@ -118,8 +120,8 @@ fi
   - v0.1.0 タグ後の検討事項。`docs/status.md`「将来検討事項」を参照
 - MIT ライセンス全文の同期
   - MIT はバージョンレスかつ過去の許諾は不変なので、初回コピー後は追従不要
-- `editor` / `screencast` / `wasm` / `web` / `scripts` 配下の差分
-  - v0.1 スコープ外として無視
+- 本家リポジトリの v0.1 スコープ外ディレクトリ
+  - 対象ディレクトリは `CLAUDE.md`「Pyxel 本家リポジトリの参照」節を参照
 
 ## 関連ファイル
 
