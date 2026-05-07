@@ -16,7 +16,7 @@ Pyxel風レトロ2Dゲームエンジン（Swift製・C++コア・SDL3バック�
    git commit --allow-empty -m "M1: 垂直スライス完了"
    ```
    コミットメッセージ先頭は `M<番号>: ` 固定（例: `M1:`、`M2a:`、`M13:`）
-2. v0.1.0 / v0.2.0 / v0.3.0 のリリース版のみ `git tag` を打つ。中間タグは打たない
+2. リリース版のみ `git tag` を打つ。中間タグは打たない。タグを打つ前には `docs/status.md` の「リリースタグ前チェックリスト」を完了させる（`.claude/hooks/check-release-tag.sh` が機械的に検査する）
 
 完了済みマイルストーンの確認は `git log --grep '^M[0-9]'`。
 
@@ -28,17 +28,21 @@ Pyxel風レトロ2Dゲームエンジン（Swift製・C++コア・SDL3バック�
 
 ## Pyxel 本家リポジトリの参照
 
-本家コードは `~/ドキュメント/pyxel` に clone 済み。**Rust 製**（Python ではない）。
+本家コードは Pyxift リポジトリの**親ディレクトリ**の `../pyxel/` に置く前提（**Rust 製**）。
+`/pyxel-sync` スキルが起動時に存在確認・無ければ clone・あれば `git fetch && git reset --hard origin/main` で同期する。
 
-- エンジン本体: `~/ドキュメント/pyxel/crates/pyxel-core/`
-- 数値定数: `~/ドキュメント/pyxel/crates/pyxel-core/src/settings.rs`
+- エンジン本体: `../pyxel/crates/pyxel-core/`
+- 数値定数: `../pyxel/crates/pyxel-core/src/settings.rs`
   - `DEFAULT_COLORS`（16色既定パレット）
   - `FONT_DATA`（4×6 ビットマップフォント、ASCII 0x20〜0x7F）
   - `DEFAULT_TONE_*`（v0.2 で使用、4波形のトーンテーブル）
-- 公開API表面: `~/ドキュメント/pyxel/python/pyxel/__init__.pyi`
-- 描画ロジック参考: `~/ドキュメント/pyxel/crates/pyxel-core/src/canvas.rs`
+- 公開API表面: `../pyxel/python/pyxel/__init__.pyi`
+- 描画ロジック参考: `../pyxel/crates/pyxel-core/src/canvas.rs`
 
 `editor` / `screencast` / `wasm` / `web` / `scripts` は v0.1 スコープ外なので無視。
+
+API 互換と数値仕様の上流追従は `/pyxel-sync` スキル（`.claude/skills/pyxel-sync/SKILL.md`）に集約。
+追跡 SHA と最終同期日は `docs/pyxel-reference.md` の「上流追従ステータス」ブロックが SSOT。
 
 ## 本家流用コード — 出典コメント必須
 
@@ -71,10 +75,20 @@ C++ 実装は2層に分ける:
 - C関数橋渡しは `nonisolated(unsafe)` で明示
 - ファイル単位で `swift build` を毎回走らせるのは遅いので **マイルストーン完了時に手動で** `swift build -Xswiftc -warnings-as-errors` を実行して警告ゼロを確認
 
+## Pyxel 本家との API/数値同期
+
+Pyxift は Pyxel API 互換を目指す独立実装。本家追従は `/pyxel-sync` スキルが管理する。
+
+- 起動: ユーザーが任意で `/pyxel-sync` を叩く + リリースタグ前チェックリスト実行時
+- 検出範囲: `../pyxel/` の追跡ファイル（`__init__.pyi` / `settings.rs` / `canvas.rs` / `LICENSE`）に Tracked SHA 以降の変更があるかどうか
+- API/数値差分: 報告のみ → 人間判断 → 別コミット
+- 著作権年表記の差分: スキルが自動修正 + 単独コミット
+- リスペクト表明: `ACKNOWLEDGMENTS.md`、ライセンス全文: `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
+
 ## 作業前に必ず読むファイル
 
 新しいセッションでこのリポジトリに入った Claude は、以下を順に読むこと:
 
 1. `docs/decisions.md` — 設計判断
-2. `docs/status.md` — 未達タスク・未解決事項・ロードマップ
-3. `docs/pyxel-reference.md` — 本家から流用する数値・データ
+2. `docs/status.md` — 未達タスク・未解決事項・ロードマップ・リリースタグ前チェックリスト
+3. `docs/pyxel-reference.md` — 本家から流用する数値・データ・上流追従ステータス
