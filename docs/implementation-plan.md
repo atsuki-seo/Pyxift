@@ -67,10 +67,10 @@ Examples/
 3 段階に細分化。
 
 **M2a — 単純塗り系（state 依存なし）**
-- [ ] `line`（Bresenham）
-- [ ] `rect` / `rectb`
-- [ ] `circ` / `circb`（midpoint circle）
-- [ ] `tri` / `trib`（線のみ、塗りは M2c で）
+- [x] `line`（Bresenham）
+- [x] `rect` / `rectb`
+- [x] `circ` / `circb`（midpoint circle）
+- [x] `tri` / `trib`（線のみ、塗りは M2c で）
 
 **M2b — 状態系**
 - [ ] `clip` / `camera` をエンジン状態として保持し、M2a の全関数を state 経由に通すリファクタ
