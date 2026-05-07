@@ -1,5 +1,6 @@
 #include "Engine.hpp"
 
+#include "core/ImageLoader.hpp"
 #include "core/Palette.hpp"
 
 #include <SDL3/SDL.h>
@@ -262,6 +263,15 @@ void pyxift_engine_image_pset(PyxiftEngine *engine,
     auto *img = engine->image(image_bank);
     if (img == nullptr) return;
     img->pset(x, y, color);
+}
+
+bool pyxift_engine_load_image(PyxiftEngine *engine,
+                              int32_t image_bank,
+                              const char *path) {
+    if (engine == nullptr || path == nullptr) return false;
+    auto *img = engine->image(image_bank);
+    if (img == nullptr) return false;
+    return pyxift::load_png_into_image(std::string(path), *img);
 }
 
 void pyxift_engine_tilemap_set(PyxiftEngine *engine,

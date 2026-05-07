@@ -91,6 +91,13 @@ void pyxift_engine_text(PyxiftEngine *engine,
 void pyxift_engine_image_pset(PyxiftEngine *engine,
                               int32_t image_bank,
                               int32_t x, int32_t y, uint8_t color);
+
+// PNG ファイルを画像バンクに読み込む (M4)。
+// 16色既定パレットへの最近傍マッピングを行い、bank の左上原点に書き込む。
+// 成功で true、ファイル不在 / 復号失敗 / bank 範囲外で false。
+bool pyxift_engine_load_image(PyxiftEngine *engine,
+                              int32_t image_bank,
+                              const char *path);
 void pyxift_engine_tilemap_set(PyxiftEngine *engine,
                                int32_t tilemap_index,
                                int32_t cx, int32_t cy,
