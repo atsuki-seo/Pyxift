@@ -77,9 +77,9 @@ Examples/
 - [x] `pal` 設定の保持。`blt` の透明色判定はパレット適用前のソース色で行う（`decisions.md` 7 番）
 
 **M2c — 転送系**
-- [ ] `tri`/`trib` の塗り完成（scanline fill）
-- [ ] `blt` / `bltm`（画像バンク・タイルマップへのアクセス、`pal` と透明色の合成）
-- [ ] `text`（API シグネチャと clip/camera 連携。フォントデータは M4 で流し込み、M2c 時点はダミーフォントでテスト）
+- [x] `tri`/`trib` の塗り完成（scanline fill）
+- [x] `blt` / `bltm`（画像バンク・タイルマップへのアクセス、`pal` と透明色の合成）
+- [x] `text`（API シグネチャと clip/camera 連携。フォントデータは M4 で流し込み、M2c 時点はダミーフォントでテスト）
 
 ### M3 — 入力系
 
