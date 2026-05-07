@@ -10,20 +10,21 @@ Pyxift は Pyxel の API 互換を目指す独立実装。このスキルは本�
 
 ## 追跡対象ファイル（SSOT）
 
-以下の bash 配列を本スキル内の各ブロックで展開して使う。
+追跡対象は `docs/pyxel-reference.md` の「追跡対象テーブル」が SSOT。本スキルは表をパースして bash 配列を構築する。表はマーカー `<!-- pyxel-tracked-files:start -->` ～ `<!-- pyxel-tracked-files:end -->` で範囲特定する。
 
 ```bash
-TRACKED_FILES=(
-    python/pyxel/__init__.pyi
-    crates/pyxel-core/src/settings.rs
-    crates/pyxel-core/src/canvas.rs
-    LICENSE
-)
-TRACKED_DIFF_FILES=(
-    python/pyxel/__init__.pyi
-    crates/pyxel-core/src/settings.rs
-    crates/pyxel-core/src/canvas.rs
-)
+# 本家側ファイル全件（sparse-checkout・差分検出に使用）
+mapfile -t TRACKED_FILES < <(awk '/pyxel-tracked-files:start/,/pyxel-tracked-files:end/' docs/pyxel-reference.md \
+    | awk -F'|' 'NF>=6 && $3 !~ /^[ -]*$/ && $3 !~ /本家側/ {gsub(/^ +| +$/,"",$3); print $3}')
+
+# diff 提示対象（diff 提示列が ○ の行のみ）
+mapfile -t TRACKED_DIFF_FILES < <(awk '/pyxel-tracked-files:start/,/pyxel-tracked-files:end/' docs/pyxel-reference.md \
+    | awk -F'|' 'NF>=6 && $3 !~ /^[ -]*$/ && $3 !~ /本家側/ {gsub(/^ +| +$/,"",$3); gsub(/^ +| +$/,"",$5); if ($5 == "○") print $3}')
+
+if [ ${#TRACKED_FILES[@]} -eq 0 ]; then
+    echo "ERROR: docs/pyxel-reference.md の追跡対象テーブルが抽出できません。マーカー <!-- pyxel-tracked-files:start/end --> を確認してください。" >&2
+    exit 1
+fi
 ```
 
 ## 起動時の挙動
@@ -43,6 +44,8 @@ if [ -d ../pyxel/.git ]; then
             exit 1
             ;;
     esac
+    # 表更新が sparse-checkout に反映されるよう毎回 set し直す（冪等）
+    git -C ../pyxel sparse-checkout set "${TRACKED_FILES[@]}"
     git -C ../pyxel fetch origin
     git -C ../pyxel reset --hard origin/main
 else
