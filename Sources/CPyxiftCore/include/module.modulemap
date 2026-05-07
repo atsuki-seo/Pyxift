@@ -1,5 +1,6 @@
 module CPyxiftCore {
     header "pyxift_c.h"
     header "pyxift_input_test_c.h"
+    header "pyxift_font_test_c.h"
     export *
 }
