@@ -58,6 +58,14 @@ Window::~Window() {
     if (window_ != nullptr) SDL_DestroyWindow(window_);
 }
 
+void Window::set_cursor_visible(bool visible) {
+    if (visible) {
+        SDL_ShowCursor();
+    } else {
+        SDL_HideCursor();
+    }
+}
+
 void Window::set_title(const std::string &title) {
     if (window_ == nullptr) return;
     SDL_SetWindowTitle(window_, title.c_str());

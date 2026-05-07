@@ -27,6 +27,14 @@ public:
     // palette: RGB値 16 個
     void present(const uint8_t *index_buffer, const uint32_t *palette);
 
+    // SDL3 イベントをロジカル解像度の座標系に変換するために renderer を露出する。
+    // 入力アダプタ層が SDL_ConvertEventToRenderCoordinates に渡す。
+    SDL_Renderer *renderer() { return renderer_; }
+    SDL_Window *sdl_window() { return window_; }
+
+    // マウスカーソルの表示制御。
+    static void set_cursor_visible(bool visible);
+
 private:
     int32_t width_;
     int32_t height_;

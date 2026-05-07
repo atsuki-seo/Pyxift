@@ -14,7 +14,7 @@ using clock_t_ = std::chrono::steady_clock;
 using ns_t_ = std::chrono::nanoseconds;
 
 bool ensure_sdl_init() {
-    return SDL_Init(SDL_INIT_VIDEO);
+    return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 }
 
 } // namespace
@@ -24,6 +24,7 @@ PyxiftEngine::PyxiftEngine(int32_t width, int32_t height, std::string title, int
       window_((ensure_sdl_init(), pyxift::platform::Window(width, height, title))),
       fps_(fps > 0 ? fps : 30) {
     sdl_initialized_ = true;
+    event_translator_.set_renderer(window_.renderer());
 }
 
 pyxift::Image *PyxiftEngine::image(int32_t bank) {
@@ -51,19 +52,13 @@ void PyxiftEngine::quit() {
 }
 
 void PyxiftEngine::pump_events() {
+    // 前フレームの pressed/released を消し、最終状態（button/key/mouse_button）のみ残す。
+    input_.end_frame();
+
     SDL_Event ev;
     while (SDL_PollEvent(&ev)) {
-        switch (ev.type) {
-            case SDL_EVENT_QUIT:
-                quit_requested_ = true;
-                break;
-            case SDL_EVENT_KEY_DOWN:
-                if (ev.key.key == SDLK_ESCAPE) {
-                    quit_requested_ = true;
-                }
-                break;
-            default:
-                break;
+        if (event_translator_.translate(ev, input_)) {
+            quit_requested_ = true;
         }
     }
 }
@@ -286,6 +281,72 @@ void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
     auto *tm = engine->tilemap(tilemap_index);
     if (tm == nullptr) return;
     tm->set_image_bank(image_bank);
+}
+
+// ---- 入力 (M3) ----
+
+bool pyxift_engine_button(const PyxiftEngine *engine, uint8_t button, int32_t player) {
+    if (engine == nullptr) return false;
+    return engine->input().button(static_cast<pyxift::Button>(button), player);
+}
+
+bool pyxift_engine_button_pressed(const PyxiftEngine *engine, uint8_t button, int32_t player) {
+    if (engine == nullptr) return false;
+    return engine->input().button_pressed(static_cast<pyxift::Button>(button), player);
+}
+
+bool pyxift_engine_button_released(const PyxiftEngine *engine, uint8_t button, int32_t player) {
+    if (engine == nullptr) return false;
+    return engine->input().button_released(static_cast<pyxift::Button>(button), player);
+}
+
+bool pyxift_engine_key(const PyxiftEngine *engine, int32_t keycode) {
+    if (engine == nullptr) return false;
+    return engine->input().key(keycode);
+}
+
+bool pyxift_engine_key_pressed(const PyxiftEngine *engine, int32_t keycode) {
+    if (engine == nullptr) return false;
+    return engine->input().key_pressed(keycode);
+}
+
+bool pyxift_engine_key_released(const PyxiftEngine *engine, int32_t keycode) {
+    if (engine == nullptr) return false;
+    return engine->input().key_released(keycode);
+}
+
+void pyxift_engine_mouse(const PyxiftEngine *engine, int32_t *out_x, int32_t *out_y) {
+    if (engine == nullptr) {
+        if (out_x != nullptr) *out_x = 0;
+        if (out_y != nullptr) *out_y = 0;
+        return;
+    }
+    if (out_x != nullptr) *out_x = engine->input().mouse_x();
+    if (out_y != nullptr) *out_y = engine->input().mouse_y();
+}
+
+int32_t pyxift_engine_mouse_wheel(const PyxiftEngine *engine) {
+    return engine != nullptr ? engine->input().mouse_wheel() : 0;
+}
+
+bool pyxift_engine_mouse_button(const PyxiftEngine *engine, uint8_t button) {
+    if (engine == nullptr) return false;
+    return engine->input().mouse_button(static_cast<pyxift::MouseButton>(button));
+}
+
+bool pyxift_engine_mouse_button_pressed(const PyxiftEngine *engine, uint8_t button) {
+    if (engine == nullptr) return false;
+    return engine->input().mouse_button_pressed(static_cast<pyxift::MouseButton>(button));
+}
+
+bool pyxift_engine_mouse_button_released(const PyxiftEngine *engine, uint8_t button) {
+    if (engine == nullptr) return false;
+    return engine->input().mouse_button_released(static_cast<pyxift::MouseButton>(button));
+}
+
+void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible) {
+    (void)engine;
+    pyxift::platform::Window::set_cursor_visible(visible);
 }
 
 } // extern "C"

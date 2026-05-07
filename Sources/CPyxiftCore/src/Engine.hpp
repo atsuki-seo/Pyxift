@@ -3,7 +3,9 @@
 
 #include "core/Canvas.hpp"
 #include "core/Image.hpp"
+#include "core/Input.hpp"
 #include "core/Tilemap.hpp"
+#include "platform/EventTranslator.hpp"
 #include "platform/Window.hpp"
 
 #include "pyxift_c.h"
@@ -34,9 +36,14 @@ struct PyxiftEngine {
     pyxift::Image *image(int32_t bank);
     pyxift::Tilemap *tilemap(int32_t index);
 
+    pyxift::InputState &input() { return input_; }
+    const pyxift::InputState &input() const { return input_; }
+
 private:
     pyxift::Canvas canvas_;
     pyxift::platform::Window window_;
+    pyxift::InputState input_{};
+    pyxift::platform::EventTranslator event_translator_{};
     int32_t fps_;
     int32_t frame_count_ = 0;
     bool quit_requested_ = false;
