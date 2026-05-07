@@ -2,7 +2,7 @@
 
 Pyxel風のレトロ2Dゲームエンジン（Swift製・C++コア・SDL3バックエンド）。Linux と macOS が対象。
 
-> 🛠️ **開発中**: M1（垂直スライス "hello pixel"）相当。設計判断と未解決事項は `docs/` 参照。
+> 🛠️ **開発中**: v0.1.0 リリース直前（M5 仕上げ完了）。設計判断と未解決事項は `docs/` 参照。
 
 ## ねらい
 
@@ -25,9 +25,9 @@ struct MyGame: App {
     }
 
     func draw() {
-        Pyx.cls(color: 0)
-        Pyx.pset(x: x, y: y, color: 7)
-        Pyx.text(x: 4, y: 4, "hello", color: 7)
+        Pyx.cls(color: .black)
+        Pyx.pset(x: x, y: y, color: .white)
+        Pyx.text(x: 4, y: 4, "hello", color: .white)
     }
 }
 
@@ -71,15 +71,15 @@ swift run PyxiftDemo
 
 | バージョン | 内容 |
 | --- | --- |
-| v0.1.0（未着手） | 描画・入力・固定タイムステップループ・内蔵フォント・PNGロード |
+| v0.1.0（M5 完了） | 描画・入力・固定タイムステップループ・内蔵フォント・PNGロード |
 | v0.2.0（未着手） | 音声合成（4ch・矩形/三角/パルス/ノイズ） |
 | v0.3.0（未着手） | アセットバンドル `.pyxift` 形式 |
 
 ## ライセンス
 
-MIT License を予定（コード追加時に LICENSE ファイルを設置）。
+MIT License。詳細は [LICENSE](LICENSE) 参照。
 
-Pyxel（MIT License, Copyright (c) 2018-2026 Takashi Kitao）の数値仕様・既定パレット・内蔵フォントデータを参考または流用する予定。流用箇所は該当ファイル内で明示する。
+Pyxel（MIT License, Copyright (c) 2018-2026 Takashi Kitao）の数値仕様・既定パレット・内蔵フォントデータを流用している。流用箇所は該当ファイル冒頭に出典コメントを明記。
 
 ## ドキュメント
 
