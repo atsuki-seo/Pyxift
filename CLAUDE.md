@@ -81,12 +81,8 @@ C++ 実装は2層に分ける:
 
 ## Pyxel 本家との API/数値同期
 
-Pyxift は Pyxel API 互換を目指す独立実装。本家追従は `/pyxel-sync` スキルが管理する。
+Pyxift は Pyxel API 互換を目指す独立実装。本家追従の起動契機・検出範囲・差分処理方針は `/pyxel-sync` スキル（`.claude/skills/pyxel-sync/SKILL.md`）に集約。
 
-- 起動: ユーザーが任意で `/pyxel-sync` を叩く + リリースタグ前チェックリスト実行時
-- 検出範囲: `../pyxel/` の追跡ファイル（`__init__.pyi` / `settings.rs` / `canvas.rs` / `LICENSE`）に Tracked SHA 以降の変更があるかどうか
-- API/数値差分: 報告のみ → 人間判断 → 別コミット
-- 著作権年表記の差分: スキルが自動修正 + 単独コミット
 - リスペクト表明: `ACKNOWLEDGMENTS.md`、ライセンス全文: `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
 
 ## 作業前に必ず読むファイル
