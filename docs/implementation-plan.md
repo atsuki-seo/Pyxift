@@ -73,8 +73,8 @@ Examples/
 - [x] `tri` / `trib`（線のみ、塗りは M2c で）
 
 **M2b — 状態系**
-- [ ] `clip` / `camera` をエンジン状態として保持し、M2a の全関数を state 経由に通すリファクタ
-- [ ] `pal` 設定の保持。`blt` の透明色判定はパレット適用前のソース色で行う（`decisions.md` 7 番）
+- [x] `clip` / `camera` をエンジン状態として保持し、M2a の全関数を state 経由に通すリファクタ
+- [x] `pal` 設定の保持。`blt` の透明色判定はパレット適用前のソース色で行う（`decisions.md` 7 番）
 
 **M2c — 転送系**
 - [ ] `tri`/`trib` の塗り完成（scanline fill）
