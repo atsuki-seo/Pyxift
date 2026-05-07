@@ -4,7 +4,10 @@
 #
 # 検査項目:
 #   1. docs/pyxel-reference.md の Tracked SHA が ../pyxel の origin/main HEAD と一致
-#   2. （swift build 警告ゼロは外部状態のため hook では検査しない。/pyxel-sync 完了は SHA 一致で代替）
+#   2. 追跡対象テーブルの「状態」列が全行で正規値（実装済み / 予約:vX.Y.Z / 保留 / 見送り）
+#   3. 打とうとしているタグと同じ「予約:<タグ>」が残っている行が無い（実装済みへ遷移済み）
+#   4. 「見送り」行は Pyxift 側列に docs/decisions.md か docs/status.md への参照リンクを持つ
+#   （swift build 警告ゼロは外部状態のため hook では検査しない。/pyxel-sync 完了は SHA 一致で代替）
 #
 # 動作:
 #   - 検査失敗 → exit 2 で操作ブロック
@@ -29,6 +32,9 @@ if printf '%s' "$COMMAND" | grep -qE '\bgit[[:space:]]+tag\b[^|;&]*-d\b'; then
   exit 0
 fi
 
+# 打とうとしているタグ名を抽出（例: "v0.1.0"）
+RELEASE_TAG=$(printf '%s' "$COMMAND" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 ERRORS=()
 
@@ -49,6 +55,45 @@ else
     elif [ "$TRACKED_SHA" != "$UPSTREAM_SHA" ]; then
       ERRORS+=("Tracked SHA ($TRACKED_SHA) が ../pyxel の origin/main ($UPSTREAM_SHA) と一致しません。/pyxel-sync を実行してください。")
     fi
+  fi
+fi
+
+# 3. 追跡対象テーブルの「状態」列検査
+REFERENCE_MD="$PROJECT_DIR/docs/pyxel-reference.md"
+if [ ! -f "$REFERENCE_MD" ]; then
+  ERRORS+=("$REFERENCE_MD が見つかりません。")
+else
+  TABLE_BODY=$(awk '/pyxel-tracked-files:start/,/pyxel-tracked-files:end/' "$REFERENCE_MD" \
+      | awk -F'|' 'NF>=6 && $3 !~ /^[ -]*$/ && $3 !~ /本家側/ {print}')
+
+  if [ -z "$TABLE_BODY" ]; then
+    ERRORS+=("docs/pyxel-reference.md の追跡対象テーブルが抽出できません（マーカー確認）。")
+  else
+    while IFS= read -r ROW; do
+      [ -z "$ROW" ] && continue
+      PYXIFT_COL=$(printf '%s' "$ROW" | awk -F'|' '{gsub(/^ +| +$/,"",$2); print $2}')
+      UPSTREAM_COL=$(printf '%s' "$ROW" | awk -F'|' '{gsub(/^ +| +$/,"",$3); print $3}')
+      STATUS_COL=$(printf '%s' "$ROW" | awk -F'|' '{gsub(/^ +| +$/,"",$6); print $6}')
+
+      case "$STATUS_COL" in
+        実装済み|保留)
+          ;;
+        見送り)
+          if ! printf '%s' "$PYXIFT_COL" | grep -qE 'docs/(decisions|status)\.md'; then
+            ERRORS+=("追跡対象テーブル: $UPSTREAM_COL の状態が「見送り」だが Pyxift 側列に docs/decisions.md か docs/status.md への参照リンクがありません。")
+          fi
+          ;;
+        予約:v*.*.*)
+          RESERVED_TAG="${STATUS_COL#予約:}"
+          if [ "$RESERVED_TAG" = "$RELEASE_TAG" ]; then
+            ERRORS+=("追跡対象テーブル: $UPSTREAM_COL の状態が「$STATUS_COL」のままです。$RELEASE_TAG タグを打つ前に「実装済み」へ更新してください。")
+          fi
+          ;;
+        *)
+          ERRORS+=("追跡対象テーブル: $UPSTREAM_COL の状態列が不正値「$STATUS_COL」（許容: 実装済み / 予約:vX.Y.Z / 保留 / 見送り）。")
+          ;;
+      esac
+    done <<< "$TABLE_BODY"
   fi
 fi
 
