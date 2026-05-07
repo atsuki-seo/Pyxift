@@ -88,7 +88,7 @@ Pyxel本家にあるが Pyxift v0.1 では提供しない:
 - 描画: `elli`/`ellib`（楕円）、`fill`、`dither`、`blt3d`/`bltm3d`（回転反転blt）— v0.1.x 以降
 - システム: `flip`、`fullscreen`、`resize`、`screen_mode`、`integer_scale`、`screenshot`、`screencast`、`perf_monitor`、`icon`、`load_pal`/`save_pal`、`user_data_dir` — v0.1.x 以降
 - 入力: `btnv`（アナログ軸生値）、`input_keys`/`input_text`（テキスト入力）、`dropped_files`、`set_btn` 系 — v0.1.x 以降
-- 数学・乱数: `ceil`/`floor`/`clamp`/`sgn`/`sqrt`/`sin`/`cos`/`atan2`/`rseed`/`rndi`/`rndf`/`nseed`/`noise` — Swift 標準で代替するため永続的に未提供（`noise` のみ将来検討）
+- 数学・乱数 API: 詳細は `decisions.md` の「数学・乱数 API：Pyxel仕様より Swift 慣用を優先」節を参照（一次台帳）
 
 ## 色
 
