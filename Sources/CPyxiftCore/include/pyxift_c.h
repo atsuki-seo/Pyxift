@@ -73,6 +73,32 @@ void pyxift_engine_camera_reset(PyxiftEngine *engine);
 void pyxift_engine_pal(PyxiftEngine *engine, uint8_t from, uint8_t to);
 void pyxift_engine_pal_reset(PyxiftEngine *engine);
 
+// 転送系 (M2c)。transparent は 0..15 の色インデックス、もしくは「透明色なし」を表す -1。
+void pyxift_engine_blt(PyxiftEngine *engine,
+                       int32_t x, int32_t y,
+                       int32_t image_bank,
+                       int32_t u, int32_t v, int32_t w, int32_t h,
+                       int32_t transparent);
+void pyxift_engine_bltm(PyxiftEngine *engine,
+                        int32_t x, int32_t y,
+                        int32_t tilemap_index,
+                        int32_t u, int32_t v, int32_t w, int32_t h,
+                        int32_t transparent);
+void pyxift_engine_text(PyxiftEngine *engine,
+                        int32_t x, int32_t y, const char *s, uint8_t color);
+
+// 画像バンク・タイルマップ書き込み (M2c のテスト用 / M4 で loadImage が後から共用)。
+void pyxift_engine_image_pset(PyxiftEngine *engine,
+                              int32_t image_bank,
+                              int32_t x, int32_t y, uint8_t color);
+void pyxift_engine_tilemap_set(PyxiftEngine *engine,
+                               int32_t tilemap_index,
+                               int32_t cx, int32_t cy,
+                               uint8_t tile_x, uint8_t tile_y);
+void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
+                                          int32_t tilemap_index,
+                                          int32_t image_bank);
+
 #ifdef __cplusplus
 }
 #endif

@@ -26,6 +26,16 @@ PyxiftEngine::PyxiftEngine(int32_t width, int32_t height, std::string title, int
     sdl_initialized_ = true;
 }
 
+pyxift::Image *PyxiftEngine::image(int32_t bank) {
+    if (bank < 0 || bank >= kImageBankCount) return nullptr;
+    return &images_[bank];
+}
+
+pyxift::Tilemap *PyxiftEngine::tilemap(int32_t index) {
+    if (index < 0 || index >= kTilemapCount) return nullptr;
+    return &tilemaps_[index];
+}
+
 PyxiftEngine::~PyxiftEngine() {
     if (sdl_initialized_) {
         SDL_Quit();
@@ -219,6 +229,63 @@ void pyxift_engine_pal(PyxiftEngine *engine, uint8_t from, uint8_t to) {
 
 void pyxift_engine_pal_reset(PyxiftEngine *engine) {
     if (engine != nullptr) engine->canvas().reset_pal();
+}
+
+void pyxift_engine_blt(PyxiftEngine *engine,
+                       int32_t x, int32_t y,
+                       int32_t image_bank,
+                       int32_t u, int32_t v, int32_t w, int32_t h,
+                       int32_t transparent) {
+    if (engine == nullptr) return;
+    auto *img = engine->image(image_bank);
+    if (img == nullptr) return;
+    engine->canvas().blt(x, y, *img, u, v, w, h, transparent);
+}
+
+void pyxift_engine_bltm(PyxiftEngine *engine,
+                        int32_t x, int32_t y,
+                        int32_t tilemap_index,
+                        int32_t u, int32_t v, int32_t w, int32_t h,
+                        int32_t transparent) {
+    if (engine == nullptr) return;
+    auto *tm = engine->tilemap(tilemap_index);
+    if (tm == nullptr) return;
+    auto *img = engine->image(tm->image_bank());
+    if (img == nullptr) return;
+    engine->canvas().bltm(x, y, *tm, *img, u, v, w, h, transparent);
+}
+
+void pyxift_engine_text(PyxiftEngine *engine,
+                        int32_t x, int32_t y, const char *s, uint8_t color) {
+    if (engine != nullptr && s != nullptr) engine->canvas().text(x, y, s, color);
+}
+
+void pyxift_engine_image_pset(PyxiftEngine *engine,
+                              int32_t image_bank,
+                              int32_t x, int32_t y, uint8_t color) {
+    if (engine == nullptr) return;
+    auto *img = engine->image(image_bank);
+    if (img == nullptr) return;
+    img->pset(x, y, color);
+}
+
+void pyxift_engine_tilemap_set(PyxiftEngine *engine,
+                               int32_t tilemap_index,
+                               int32_t cx, int32_t cy,
+                               uint8_t tile_x, uint8_t tile_y) {
+    if (engine == nullptr) return;
+    auto *tm = engine->tilemap(tilemap_index);
+    if (tm == nullptr) return;
+    tm->set_cell(cx, cy, tile_x, tile_y);
+}
+
+void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
+                                          int32_t tilemap_index,
+                                          int32_t image_bank) {
+    if (engine == nullptr) return;
+    auto *tm = engine->tilemap(tilemap_index);
+    if (tm == nullptr) return;
+    tm->set_image_bank(image_bank);
 }
 
 } // extern "C"
