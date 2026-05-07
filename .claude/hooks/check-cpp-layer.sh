@@ -11,9 +11,9 @@
 
 set -u
 
-INPUT=$(cat)
-TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
-FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+source "$(dirname "$0")/lib/hook-common.sh"
+
+parse_hook_input
 
 [ -z "$FILE_PATH" ] && exit 0
 
@@ -29,21 +29,7 @@ case "$FILE_PATH" in
   *) exit 0 ;;
 esac
 
-case "$TOOL_NAME" in
-  Write)
-    NEW_CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.content // ""')
-    ;;
-  Edit)
-    NEW_STRING=$(printf '%s' "$INPUT" | jq -r '.tool_input.new_string // ""')
-    NEW_CONTENT="$NEW_STRING"
-    ;;
-  MultiEdit)
-    NEW_CONTENT=$(printf '%s' "$INPUT" | jq -r '[.tool_input.edits[]?.new_string] | join("\n")')
-    ;;
-  *)
-    exit 0
-    ;;
-esac
+extract_new_string_only
 
 if printf '%s' "$NEW_CONTENT" | grep -qE '#\s*include\s*[<"]SDL3'; then
   cat >&2 <<EOF

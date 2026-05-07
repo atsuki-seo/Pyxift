@@ -10,40 +10,14 @@
 
 set -u
 
-INPUT=$(cat)
-TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
-FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+source "$(dirname "$0")/lib/hook-common.sh"
+
+parse_hook_input
 
 [ -z "$FILE_PATH" ] && exit 0
 
 # 編集後のファイル内容を組み立てる（ツールごとに違う）
-case "$TOOL_NAME" in
-  Write)
-    NEW_CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.content // ""')
-    ;;
-  Edit)
-    NEW_STRING=$(printf '%s' "$INPUT" | jq -r '.tool_input.new_string // ""')
-    # 既存ファイル + 新規挿入分を結合（簡易チェック用）
-    if [ -f "$FILE_PATH" ]; then
-      NEW_CONTENT="$(cat "$FILE_PATH")
-$NEW_STRING"
-    else
-      NEW_CONTENT="$NEW_STRING"
-    fi
-    ;;
-  MultiEdit)
-    EDITS=$(printf '%s' "$INPUT" | jq -r '[.tool_input.edits[]?.new_string] | join("\n")')
-    if [ -f "$FILE_PATH" ]; then
-      NEW_CONTENT="$(cat "$FILE_PATH")
-$EDITS"
-    else
-      NEW_CONTENT="$EDITS"
-    fi
-    ;;
-  *)
-    exit 0
-    ;;
-esac
+extract_full_content_after_edit
 
 # 本家流用シンボルを含むか
 if printf '%s' "$NEW_CONTENT" | grep -qE '(FONT_DATA|DEFAULT_COLORS|DEFAULT_TONE_)'; then
