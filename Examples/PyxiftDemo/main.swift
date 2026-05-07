@@ -1,8 +1,6 @@
 import Pyxift
 import Foundation
 
-// Tab キーでシーン切り替え：描画プリミティブ / 入力可視化 / アセット / ボール跳ね返し。
-
 enum Scene: Int {
     case drawing = 0
     case input = 1
@@ -19,7 +17,6 @@ enum Scene: Int {
     }
 }
 
-// 1 個のボール状態。位置・速度・色をフレームごとに更新。
 struct Ball {
     var x: Double
     var y: Double
@@ -33,7 +30,6 @@ struct Demo: App {
     var initialized = false
     var scene: Scene = .bouncing
 
-    // pressed / released フラッシュ用：イベントが発火したフレーム番号を記録。
     var lastButtonPressedFrame: [Button: Int] = [:]
     var lastButtonReleasedFrame: [Button: Int] = [:]
     var lastMouseWheelFrame: Int = -100
@@ -53,7 +49,6 @@ struct Demo: App {
         if scene == .bouncing {
             updateBalls()
         }
-        // フラッシュ表示用に「直近で pressed/released した時刻」を記録
         for b in Button.all {
             if Pyx.buttonPressed(b) {
                 lastButtonPressedFrame[b] = Pyx.frameCount
@@ -72,7 +67,6 @@ struct Demo: App {
     func draw() {
         Pyx.cls(color: .black)
 
-        // 画面右下にシーン切り替えのヒントを常時表示
         Pyx.text(x: Pyx.width - 80, y: Pyx.height - 8, "TAB:SWITCH", color: .gray)
 
         switch scene {
@@ -83,10 +77,9 @@ struct Demo: App {
         }
     }
 
-    // MARK: - Scene 3: ボール跳ね返し
     private mutating func spawnBalls() {
         let palette: [Color] = [.red, .yellow, .lime, .cyan, .pink, .orange, .lightBlue, .white]
-        // 再現性のため Foundation 非依存の線形合同法を使う。
+        // 起動ごとの再現性を担保するため、Foundation の乱数ではなく固定シードの線形合同法を使う。
         var seed: UInt32 = 0x9E37_79B9
         func next() -> Double {
             seed = seed &* 1_664_525 &+ 1_013_904_223
@@ -136,7 +129,6 @@ struct Demo: App {
         }
     }
 
-    // MARK: - Scene 2: アセット（内蔵フォント + loadImage）
     private func drawAssetsScene() {
         Pyx.text(x: 4, y: 4, "ASSETS", color: .yellow)
 
@@ -151,11 +143,8 @@ struct Demo: App {
             Pyx.text(x: cx, y: cy, s, color: .white)
         }
 
-        // bank 1 にロードした PNG を等倍と 2倍相当（隣に並べて）で表示。
-        // 透明色を black（パレット 0）に指定して周囲を抜いて重ね描き。
         Pyx.text(x: 4, y: 78, "LOADED PNG (BANK 1)", color: .gray)
         Pyx.blt(x: 4, y: 88, image: 1, u: 0, v: 0, w: 32, h: 32, transparent: nil)
-        // pal を切り替えて 2 個目を別カラーで表示
         Pyx.pal(from: .red, to: .lime)
         Pyx.blt(x: 40, y: 88, image: 1, u: 0, v: 0, w: 32, h: 32, transparent: .black)
         Pyx.pal()
@@ -165,7 +154,6 @@ struct Demo: App {
         Pyx.text(x: 80, y: 110, "FRAME=\(Pyx.frameCount)", color: .lightBlue)
     }
 
-    // MARK: - Scene 0: 描画プリミティブ
     private func drawDrawingScene() {
         Pyx.text(x: 4, y: 4, "M2 PRIMITIVES", color: .yellow)
 
@@ -192,12 +180,10 @@ struct Demo: App {
         Pyx.text(x: 100, y: 115, "M2 OK",  color: .yellow)
     }
 
-    // MARK: - Scene 1: 入力可視化
     private func drawInputScene() {
         Pyx.text(x: 4, y: 4, "M3 INPUT", color: .yellow)
         Pyx.text(x: 4, y: 14, "P0 KEYBOARD+PAD", color: .gray)
 
-        // ---- ゲームパッド風レイアウト（左に十字キー・右に A/B/START） ----
         let padX = 20, padY = 40
         drawDpad(centerX: padX, centerY: padY)
 
@@ -205,28 +191,19 @@ struct Demo: App {
         drawFaceButton(x: abX,      y: abY + 10, button: .a, label: "A")
         drawFaceButton(x: abX + 24, y: abY,      button: .b, label: "B")
 
-        // START は中央に少し小さめに
         drawStartButton(x: 60, y: padY + 4)
 
-        // ---- マウス可視化（右側のミニマップ風枠） ----
         drawMouseArea(x: 150, y: 32, w: Pyx.width - 154, h: 60)
 
-        // ---- 押下中キーの一覧（下部） ----
         drawKeyDisplay(x: 4, y: Pyx.height - 30)
     }
 
     private func drawDpad(centerX cx: Int, centerY cy: Int) {
-        // 1 マス 12px の十字。各方向ボタンを矩形で表示。
         let s = 12
-        // 中心（飾り）
         Pyx.rectb(x: cx - s/2, y: cy - s/2, w: s, h: s, color: .gray)
-        // 上
         drawArrow(x: cx - s/2, y: cy - s - s/2, w: s, h: s, button: .up, glyph: "^")
-        // 下
         drawArrow(x: cx - s/2, y: cy + s/2,     w: s, h: s, button: .down, glyph: "v")
-        // 左
         drawArrow(x: cx - s - s/2, y: cy - s/2, w: s, h: s, button: .left, glyph: "<")
-        // 右
         drawArrow(x: cx + s/2,     y: cy - s/2, w: s, h: s, button: .right, glyph: ">")
     }
 
@@ -240,7 +217,6 @@ struct Demo: App {
     }
 
     private func drawFaceButton(x: Int, y: Int, button: Button, label: String) {
-        // 円形ボタン。押下中は赤塗り、通常は枠のみ。
         let r = 8
         let pressed = Pyx.button(button)
         if pressed {
@@ -262,17 +238,14 @@ struct Demo: App {
         drawEdgeFlash(x: x, y: y, w: w, h: h, button: .start)
     }
 
-    // pressed / released を 6 フレームの色付き枠で表示。
     private func drawEdgeFlash(x: Int, y: Int, w: Int, h: Int, button: Button) {
         let now = Pyx.frameCount
         let kFlashFrames = 6
         if let f = lastButtonPressedFrame[button], now - f < kFlashFrames {
-            // 押された瞬間 = 緑のリング（外側に膨らむ）
             let pad = 2 + (now - f)
             Pyx.rectb(x: x - pad, y: y - pad, w: w + pad * 2, h: h + pad * 2, color: .lime)
         }
         if let f = lastButtonReleasedFrame[button], now - f < kFlashFrames {
-            // 離された瞬間 = 黄色のリング
             let pad = 2 + (now - f)
             Pyx.rectb(x: x - pad, y: y - pad, w: w + pad * 2, h: h + pad * 2, color: .yellow)
         }
@@ -283,24 +256,19 @@ struct Demo: App {
         Pyx.text(x: x + 2, y: y - 8, "MOUSE", color: .gray)
 
         let m = Pyx.mouse()
-        // 枠内ならクロスヘア、枠外でも座標は表示
         let inside = m.x >= x && m.x < x + w && m.y >= y && m.y < y + h
         if inside {
             Pyx.line(x1: x, y1: m.y, x2: x + w - 1, y2: m.y, color: .darkBlue)
             Pyx.line(x1: m.x, y1: y, x2: m.x, y2: y + h - 1, color: .darkBlue)
-            // 中心点を強調
             Pyx.rect(x: m.x - 1, y: m.y - 1, w: 3, h: 3, color: .yellow)
         }
 
-        // ボタン状態
         let l = Pyx.mouseButton(.left)   ? "L" : "."
         let r = Pyx.mouseButton(.right)  ? "R" : "."
         let mb = Pyx.mouseButton(.middle) ? "M" : "."
         Pyx.text(x: x + 2, y: y + h + 2, "BTN \(l)\(r)\(mb)", color: .white)
-        // 座標数値
         Pyx.text(x: x + 2, y: y + h + 10, "X\(m.x) Y\(m.y)", color: .lightBlue)
 
-        // wheel: 直近の値を 12 フレーム表示
         let now = Pyx.frameCount
         if now - lastMouseWheelFrame < 12 {
             Pyx.text(x: x + 2, y: y + h + 18, "WHEEL \(lastMouseWheel)", color: .lime)
@@ -309,7 +277,6 @@ struct Demo: App {
 
     private func drawKeyDisplay(x: Int, y: Int) {
         Pyx.text(x: x, y: y, "KEYS HELD:", color: .gray)
-        // 監視するキーの一覧（押下中のみ表示）
         let watch: [(Key, String)] = [
             (.space, "SPC"), (.return, "ENT"), (.tab, "TAB"),
             (.leftShift, "LSH"), (.leftCtrl, "LCT"), (.leftAlt, "LAL"),
