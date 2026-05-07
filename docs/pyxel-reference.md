@@ -2,9 +2,25 @@
 
 出典: [kitao/pyxel](https://github.com/kitao/pyxel) （MIT License, Copyright (c) 2018-2026 Takashi Kitao）
 
-該当ファイルは `crates/pyxel-core/src/settings.rs`（クローン物では `~/ドキュメント/pyxel/...`）。
-
 Pyxift もMITライセンスで配布する前提で、これらは流用箇所のソースファイル冒頭に出典コメントを残した上で取り込む。
+ライセンス全文は [`THIRD_PARTY_LICENSES/pyxel-MIT.txt`](../THIRD_PARTY_LICENSES/pyxel-MIT.txt)、関係性の表明は [`ACKNOWLEDGMENTS.md`](../ACKNOWLEDGMENTS.md) を参照。
+
+<!-- pyxel-upstream-sync -->
+## 上流追従ステータス
+
+`/pyxel-sync` スキルが管理する追跡台帳。手で書き換えず、スキル実行で更新する。
+
+- **参照元**: 親ディレクトリの `../pyxel/`（kitao/pyxel の clone）。スキル起動時に `git fetch && git reset --hard origin/main` で上書き同期される
+- **Tracked SHA**: `84c674966f0cab0e47cf43a0d39111976b5932f5`
+- **Last synced**: 2026-05-08
+- **Tracked files**:
+  - `python/pyxel/__init__.pyi`（公開 API 表面）
+  - `crates/pyxel-core/src/settings.rs`（数値定数・FONT_DATA・DEFAULT_COLORS・DEFAULT_TONE_*）
+  - `crates/pyxel-core/src/canvas.rs`（描画ロジック参考）
+  - `LICENSE`（MIT 全文）
+
+差分検出時の運用は `.claude/skills/pyxel-sync/SKILL.md` を参照。
+<!-- /pyxel-upstream-sync -->
 
 ## 既定16色パレット
 
