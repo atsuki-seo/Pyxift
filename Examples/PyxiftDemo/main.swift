@@ -6,13 +6,15 @@ enum Scene: Int {
     case input = 1
     case assets = 2
     case bouncing = 3
+    case music = 4
 
     var next: Scene {
         switch self {
         case .drawing:  return .input
         case .input:    return .assets
         case .assets:   return .bouncing
-        case .bouncing: return .drawing
+        case .bouncing: return .music
+        case .music:    return .drawing
         }
     }
 }
@@ -41,8 +43,17 @@ struct Demo: App {
         if !initialized {
             buildAssets()
             buildSounds()
+            buildMusic()
             spawnBalls()
             initialized = true
+        }
+        if scene == .music {
+            if Pyx.keyPressed(.m) {
+                Pyx.playMusic(0, loop: true)
+            }
+            if Pyx.keyPressed(.s) {
+                Pyx.stop()
+            }
         }
         if Pyx.keyPressed(.tab) {
             scene = scene.next
@@ -82,6 +93,7 @@ struct Demo: App {
         case .input:    drawInputScene()
         case .assets:   drawAssetsScene()
         case .bouncing: drawBouncingScene()
+        case .music:    drawMusicScene()
         }
     }
 
@@ -126,6 +138,30 @@ struct Demo: App {
                 balls[i].vy = -balls[i].vy
             }
         }
+    }
+
+    private func drawMusicScene() {
+        Pyx.text(x: 4, y: 4, "M2C MUSIC", color: .yellow)
+        Pyx.text(x: 4, y: 14, "M:PLAY  S:STOP", color: .gray)
+
+        let anyPlaying = (0..<4).contains { Pyx.isPlaying(channel: $0) }
+        Pyx.text(x: 4, y: 26, anyPlaying ? "STATE: PLAYING" : "STATE: STOPPED",
+                 color: anyPlaying ? .lime : .gray)
+
+        Pyx.text(x: 4, y: 40, "PLAY POS PER CHANNEL:", color: .gray)
+        for ch in 0..<4 {
+            let y = 50 + ch * 10
+            let label = "CH\(ch):"
+            Pyx.text(x: 4, y: y, label, color: .white)
+            if let pos = Pyx.playPos(channel: ch) {
+                let secText = String(format: "%.2f", pos.sec)
+                Pyx.text(x: 36, y: y, "S=\(pos.sound) T=\(secText)", color: .lightBlue)
+            } else {
+                Pyx.text(x: 36, y: y, "(idle)", color: .navy)
+            }
+        }
+
+        Pyx.rectb(x: 0, y: 0, w: Pyx.width, h: Pyx.height, color: .darkBlue)
     }
 
     private func drawBouncingScene() {
@@ -314,6 +350,15 @@ struct Demo: App {
         Pyx.sound(0, notes: "c3e3g3", tones: "p", volumes: "5", effects: "f", speed: 8)
         Pyx.sound(1, notes: "g2c3e3g3", tones: "t", volumes: "7", effects: "n", speed: 6)
         Pyx.sound(2, notes: "f1", tones: "n", volumes: "6", effects: "f", speed: 12)
+
+        Pyx.sound(8,  notes: "c3e3g3c4g3e3", tones: "t", volumes: "6", effects: "n", speed: 16)
+        Pyx.sound(9,  notes: "g2c3e3c3",     tones: "t", volumes: "6", effects: "n", speed: 16)
+        Pyx.sound(10, notes: "c2g2c3g2",     tones: "p", volumes: "5", effects: "n", speed: 16)
+        Pyx.sound(11, notes: "f0f0f0f0",     tones: "n", volumes: "4", effects: "f", speed: 16)
+    }
+
+    private func buildMusic() {
+        Pyx.music(0, ch0: [8], ch1: [9], ch2: [10], ch3: [11])
     }
 
     private func buildAssets() {
