@@ -15,7 +15,7 @@ using clock_t_ = std::chrono::steady_clock;
 using ns_t_ = std::chrono::nanoseconds;
 
 bool ensure_sdl_init() {
-    return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
+    return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO);
 }
 
 } // namespace
@@ -26,6 +26,7 @@ PyxiftEngine::PyxiftEngine(int32_t width, int32_t height, std::string title, int
       fps_(fps > 0 ? fps : 30) {
     sdl_initialized_ = true;
     event_translator_.set_renderer(window_.renderer());
+    audio_output_.open(&audio_mixer_);
 }
 
 pyxift::Image *PyxiftEngine::image(int32_t bank) {
@@ -39,6 +40,7 @@ pyxift::Tilemap *PyxiftEngine::tilemap(int32_t index) {
 }
 
 PyxiftEngine::~PyxiftEngine() {
+    audio_output_.close();
     if (sdl_initialized_) {
         SDL_Quit();
     }

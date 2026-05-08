@@ -1,10 +1,12 @@
 #ifndef PYXIFT_ENGINE_HPP
 #define PYXIFT_ENGINE_HPP
 
+#include "core/AudioMixer.hpp"
 #include "core/Canvas.hpp"
 #include "core/Image.hpp"
 #include "core/Input.hpp"
 #include "core/Tilemap.hpp"
+#include "platform/AudioOutput.hpp"
 #include "platform/EventTranslator.hpp"
 #include "platform/Window.hpp"
 
@@ -39,11 +41,16 @@ struct PyxiftEngine {
     pyxift::InputState &input() { return input_; }
     const pyxift::InputState &input() const { return input_; }
 
+    pyxift::AudioMixer &audio_mixer() { return audio_mixer_; }
+    const pyxift::AudioMixer &audio_mixer() const { return audio_mixer_; }
+
 private:
     pyxift::Canvas canvas_;
     pyxift::platform::Window window_;
     pyxift::InputState input_{};
     pyxift::platform::EventTranslator event_translator_{};
+    pyxift::AudioMixer audio_mixer_{};
+    pyxift::platform::AudioOutput audio_output_{};
     int32_t fps_;
     int32_t frame_count_ = 0;
     bool quit_requested_ = false;
