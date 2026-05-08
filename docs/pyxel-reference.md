@@ -35,7 +35,7 @@ Values for the "Status" column:
 | Pyxift side | Upstream side | Purpose | Show diff | Status |
 | --- | --- | --- | --- | --- |
 | (not implemented) | python/pyxel/__init__.pyi | Public API surface | ○ | pending |
-| Sources/CPyxiftCore/src/core/Palette.hpp<br>Sources/CPyxiftCore/src/core/Font.hpp | crates/pyxel-core/src/settings.rs | Numeric constants (DEFAULT_COLORS / FONT_DATA / DEFAULT_TONE_*) | ○ | implemented |
+| Sources/CPyxiftCore/src/core/Palette.hpp<br>Sources/CPyxiftCore/src/core/Font.hpp<br>Sources/CPyxiftCore/src/core/Tone.hpp | crates/pyxel-core/src/settings.rs | Numeric constants (DEFAULT_COLORS / FONT_DATA / DEFAULT_TONE_*) | ○ | implemented |
 | (not implemented) | crates/pyxel-core/src/canvas.rs | Reference for drawing logic | ○ | pending |
 | THIRD_PARTY_LICENSES/pyxel-MIT.txt | LICENSE | Copyright year range and full MIT text | × | implemented |
 <!-- pyxel-tracked-files:end -->
@@ -98,4 +98,4 @@ Implementation note: 4×6 = 24 bits are filled from the most significant bit, in
 
 - Icon data (`ICON_DATA`) — Pyxift will ship its own icon
 - Cursor data (`CURSOR_DATA`) — v0.1 uses the SDL3 standard cursor
-- Tone tables (`DEFAULT_TONE_*`) — to be re-evaluated when implementing audio in v0.2 (likely to be adopted as-is)
+- (Previously listed `DEFAULT_TONE_*`: adopted byte-for-byte in v0.2 — see `Sources/CPyxiftCore/src/core/Tone.hpp`.)

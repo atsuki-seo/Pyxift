@@ -4,7 +4,11 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 ## Open tasks
 
-(The v0.1.0 tag is complete. New entries will be added when work on the next milestone, v0.2.0, begins.)
+- v0.2.0 audio (in progress):
+  - [x] M2a: synthesis core (Tone / Sound / AudioMixer / SDL_AudioStream adapter)
+  - [x] M2b: Sound layer + Swift API (`Pyx.sound` / `Pyx.play` / `Pyx.stop` / `Pyx.isPlaying`) + tests + sample SE in PyxiftDemo
+  - [ ] M2c: Music API (`Pyx.music` / `Pyx.playMusic`) and `playPos` — required for the v0.2.0 tag
+  - [ ] (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — out of v0.2.0 scope
 
 ## Open questions
 
@@ -12,7 +16,7 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 ## Roadmap from v0.2 onward
 
-- v0.2.0: audio synthesis (4 channels: square / triangle / pulse / noise)
+- v0.2.0: audio synthesis (4 channels: triangle / square / pulse / noise) — Sound + Music; MML mode is deferred
 - v0.3.0: asset bundle in the `.pyxift` format
 
 ## Pre-release-tag checklist

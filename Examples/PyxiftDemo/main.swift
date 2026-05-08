@@ -40,11 +40,19 @@ struct Demo: App {
     mutating func update() {
         if !initialized {
             buildAssets()
+            buildSounds()
             spawnBalls()
             initialized = true
         }
         if Pyx.keyPressed(.tab) {
             scene = scene.next
+            Pyx.play(channel: 0, sound: 0)
+        }
+        if Pyx.buttonPressed(.a) || Pyx.keyPressed(.z) {
+            Pyx.play(channel: 1, sound: 1)
+        }
+        if Pyx.buttonPressed(.b) || Pyx.keyPressed(.x) {
+            Pyx.play(channel: 2, sound: 2)
         }
         if scene == .bouncing {
             updateBalls()
@@ -300,6 +308,12 @@ struct Demo: App {
         if col == 0 {
             Pyx.text(x: x, y: y + 8, "(press any key)", color: .gray)
         }
+    }
+
+    private func buildSounds() {
+        Pyx.sound(0, notes: "c3e3g3", tones: "p", volumes: "5", effects: "f", speed: 8)
+        Pyx.sound(1, notes: "g2c3e3g3", tones: "t", volumes: "7", effects: "n", speed: 6)
+        Pyx.sound(2, notes: "f1", tones: "n", volumes: "6", effects: "f", speed: 12)
     }
 
     private func buildAssets() {
