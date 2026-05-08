@@ -1,55 +1,55 @@
 ---
 name: pyxel-sync
-description: Pyxel 本家 (kitao/pyxel) との API/数値仕様の差分を検出し、Pyxift 側 SSOT (`docs/pyxel-reference.md`) との同期を支援する。ユーザーが `/pyxel-sync` と打ったとき、またはリリースタグ前チェックリスト実行時に呼ばれる。
+description: Detect API and numeric-spec drift between upstream Pyxel (kitao/pyxel) and Pyxift's SSOT (`docs/pyxel-reference.md`), and assist in syncing them. Invoked when the user runs `/pyxel-sync`, or as part of the pre-release-tag checklist.
 allowed-tools: Bash(git -C ../pyxel:*) Bash(git clone:*) Bash(grep:*)
 ---
 
 # pyxel-sync
 
-Pyxift は Pyxel の API 互換を目指す独立実装。このスキルは本家リポジトリ (`../pyxel/`) を追跡し、追跡対象ファイルに変更があれば検出して人間に提示する。
+Pyxift is an independent implementation aiming for Pyxel API compatibility. This skill tracks the upstream repository (`../pyxel/`) and surfaces any changes to the tracked files for human review.
 
-## 追跡対象ファイル（SSOT）
+## Tracked Files (SSOT)
 
-追跡対象は `docs/pyxel-reference.md` の「追跡対象テーブル」が SSOT。本スキルは表をパースして bash 配列を構築する。表はマーカー `<!-- pyxel-tracked-files:start -->` ～ `<!-- pyxel-tracked-files:end -->` で範囲特定する。
+The "tracked-files table" in `docs/pyxel-reference.md` is the SSOT for what is tracked. This skill parses that table into bash arrays. The table is delimited by the markers `<!-- pyxel-tracked-files:start -->` and `<!-- pyxel-tracked-files:end -->`.
 
 ```bash
-# 本家側ファイル全件（sparse-checkout・差分検出に使用）
+# All tracked upstream files (used for sparse-checkout and drift detection).
 mapfile -t TRACKED_FILES < <(awk '/pyxel-tracked-files:start/,/pyxel-tracked-files:end/' docs/pyxel-reference.md \
-    | awk -F'|' 'NF>=6 && $3 !~ /^[ -]*$/ && $3 !~ /本家側/ {gsub(/^ +| +$/,"",$3); print $3}')
+    | awk -F'|' 'NF>=6 && $3 !~ /^[ -]*$/ && $3 !~ /Upstream side/ {gsub(/^ +| +$/,"",$3); print $3}')
 
-# diff 提示対象（diff 提示列が ○ の行のみ）
+# Files for which to surface diffs (rows whose "Show diff" column is marked with ○).
 mapfile -t TRACKED_DIFF_FILES < <(awk '/pyxel-tracked-files:start/,/pyxel-tracked-files:end/' docs/pyxel-reference.md \
-    | awk -F'|' 'NF>=6 && $3 !~ /^[ -]*$/ && $3 !~ /本家側/ {gsub(/^ +| +$/,"",$3); gsub(/^ +| +$/,"",$5); if ($5 == "○") print $3}')
+    | awk -F'|' 'NF>=6 && $3 !~ /^[ -]*$/ && $3 !~ /Upstream side/ {gsub(/^ +| +$/,"",$3); gsub(/^ +| +$/,"",$5); if ($5 == "○") print $3}')
 
 if [ ${#TRACKED_FILES[@]} -eq 0 ]; then
-    echo "ERROR: docs/pyxel-reference.md の追跡対象テーブルが抽出できません。マーカー <!-- pyxel-tracked-files:start/end --> を確認してください。" >&2
+    echo "ERROR: failed to extract the tracked-files table from docs/pyxel-reference.md. Check that the markers <!-- pyxel-tracked-files:start/end --> are intact." >&2
     exit 1
 fi
 ```
 
-## 起動時の挙動
+## Behavior on Launch
 
-### 1. 参照リポジトリの準備
+### 1. Prepare the reference repository
 
-親ディレクトリの `../pyxel/` を kitao/pyxel の最新 main に揃える。
+Bring `../pyxel/` (in the parent directory) up to the latest `main` of kitao/pyxel.
 
 ```bash
 if [ -d ../pyxel/.git ]; then
-    # origin が kitao/pyxel であることを確認
+    # Verify origin points at kitao/pyxel.
     REMOTE_URL=$(git -C ../pyxel remote get-url origin 2>/dev/null || echo "")
     case "$REMOTE_URL" in
         *github.com[:/]kitao/pyxel*) ;;
         *)
-            echo "ERROR: ../pyxel の origin が kitao/pyxel ではありません: $REMOTE_URL"
+            echo "ERROR: ../pyxel's origin is not kitao/pyxel: $REMOTE_URL"
             exit 1
             ;;
     esac
-    # 表更新が sparse-checkout に反映されるよう毎回 set し直す（冪等）
+    # Re-set sparse-checkout each time so updates to the table are reflected (idempotent).
     git -C ../pyxel sparse-checkout set "${TRACKED_FILES[@]}"
     git -C ../pyxel fetch origin
     git -C ../pyxel reset --hard origin/main
 else
-    # 必要パスのみ取得（履歴メタは保持）
+    # Fetch only the necessary paths (history metadata is preserved).
     git clone --filter=blob:none --no-checkout https://github.com/kitao/pyxel.git ../pyxel
     git -C ../pyxel sparse-checkout init --no-cone
     git -C ../pyxel sparse-checkout set "${TRACKED_FILES[@]}"
@@ -57,27 +57,27 @@ else
 fi
 ```
 
-参照ディレクトリでの作業は想定しないため、ローカル変更チェックは省略（問答無用で上書き）。
+The reference directory is not expected to be edited locally, so the local-modifications check is skipped (it gets overwritten unconditionally).
 
-### 2. Tracked SHA との差分検出
+### 2. Detect drift against the tracked SHA
 
-`docs/pyxel-reference.md` の `<!-- pyxel-upstream-sync -->` ブロックから現在の Tracked SHA を読み取り、以降に追跡ファイルへの変更があるかを確認する。
+Read the current Tracked SHA from the `<!-- pyxel-upstream-sync -->` block of `docs/pyxel-reference.md`, and check whether any tracked file has changed since.
 
 ```bash
 TRACKED_SHA=$(grep -oP 'Tracked SHA\*\*: `\K[a-f0-9]+' docs/pyxel-reference.md)
 CURRENT_SHA=$(git -C ../pyxel rev-parse HEAD)
 
 if [ "$TRACKED_SHA" = "$CURRENT_SHA" ]; then
-    echo "上流に変更なし（Tracked SHA = $TRACKED_SHA）"
-    # 年表記チェックは続行
+    echo "No upstream changes (Tracked SHA = $TRACKED_SHA)."
+    # Continue to the year-notation check anyway.
 else
     git -C ../pyxel log --oneline "$TRACKED_SHA..HEAD" -- "${TRACKED_FILES[@]}"
 fi
 ```
 
-### 3. 変更ファイルごとの diff 提示
+### 3. Surface a diff per changed file
 
-変更があった場合、ユーザーに各ファイルの diff を提示し、Pyxift 側に取り込むかどうか判断を仰ぐ。
+If there are changes, present the diff for each file to the user and ask whether to incorporate it on the Pyxift side.
 
 ```bash
 for f in "${TRACKED_DIFF_FILES[@]}"; do
@@ -85,35 +85,35 @@ for f in "${TRACKED_DIFF_FILES[@]}"; do
 done
 ```
 
-判断は人間が行う:
+The decision is made by a human:
 
-- **取り込む**: 該当する Pyxift 側ファイル（`Sources/...`、`docs/pyxel-reference.md` 等）を更新。コミットメッセージは `chore(pyxel-sync): ...` 形式
-- **取り込まない**: 取り込まない理由を `docs/decisions.md` または `docs/status.md` に記録
+- **Incorporate**: Update the corresponding Pyxift files (`Sources/...`, `docs/pyxel-reference.md`, etc.). Use commit messages of the form `chore(pyxel-sync): ...`.
+- **Skip**: Record the rationale in `docs/decisions.md` or `docs/status.md`.
 
-判断完了後、`docs/pyxel-reference.md` の Tracked SHA と Last synced を更新するコミットを単独で打つ:
+Once decisions are made, create a single dedicated commit that updates the Tracked SHA and Last-synced fields in `docs/pyxel-reference.md`:
 
 ```
-chore(pyxel-sync): Tracked SHA を <new-sha> に更新
+chore(pyxel-sync): bump Tracked SHA to <new-sha>
 ```
 
-### 4. 著作権年表記の自動同期
+### 4. Auto-sync copyright-year notation
 
-著作権年表記の同期は `copyright-sync` スキルへ委譲する。Skill ツールで `copyright-sync` を引数なしで呼び出し、本家 (Takashi Kitao) と Pyxift 自身 (atsuki.seo) の年範囲をそれぞれ SSOT に揃える。詳細仕様（対象ファイル・コミット粒度・検出ロジック）は `.claude/skills/copyright-sync/SKILL.md` を参照。
+Copyright-year synchronization is delegated to the `copyright-sync` skill. Invoke `copyright-sync` with no arguments via the Skill tool to bring the upstream (Takashi Kitao) and Pyxift (atsuki.seo) year ranges into line with their respective SSOTs. For the detailed spec (target files, commit granularity, detection logic) see `.claude/skills/copyright-sync/SKILL.md`.
 
-## スコープ外（やらないこと）
+## Out of Scope (What This Skill Does NOT Do)
 
-- Pyxift 実装が SSOT に従っているかの双方向チェック（API シグネチャ抽出など）
-  - v0.1.0 タグ後の検討事項。`docs/status.md`「将来検討事項」を参照
-- MIT ライセンス全文の同期
-  - MIT はバージョンレスかつ過去の許諾は不変なので、初回コピー後は追従不要
-- 追跡対象テーブルに登録されていない本家ファイル
-  - 表に無いものは sparse-checkout も diff 提示も対象外。追跡したくなったら表に追加する
+- Bidirectional checks that the Pyxift implementation actually conforms to the SSOT (e.g. extracting API signatures).
+  - Deferred until after the v0.1.0 tag. See "Future considerations" in `docs/status.md`.
+- Syncing the full MIT license body.
+  - The MIT license is versionless and historical grants do not change, so no follow-up is needed after the initial copy.
+- Upstream files not listed in the tracked-files table.
+  - Anything not in the table is excluded from both sparse-checkout and diff surfacing. To start tracking it, add a row to the table.
 
-## 関連ファイル
+## Related Files
 
-- SSOT 台帳: `docs/pyxel-reference.md`
-- リスペクト表明: `ACKNOWLEDGMENTS.md`
-- ライセンス全文: `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
-- リリースタグ前チェックリスト: `docs/status.md`
-- 出典コメント hook: `.claude/hooks/check-source-comment.sh`
-- タグ前検査 hook: `.claude/hooks/check-release-tag.sh`
+- SSOT ledger: `docs/pyxel-reference.md`
+- Acknowledgments: `ACKNOWLEDGMENTS.md`
+- Full license text: `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
+- Pre-release-tag checklist: `docs/status.md`
+- Attribution-comment hook: `.claude/hooks/check-source-comment.sh`
+- Pre-tag check hook: `.claude/hooks/check-release-tag.sh`

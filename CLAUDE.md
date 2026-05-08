@@ -1,86 +1,90 @@
-# Pyxift — Claude 向け運用ルール
+# Pyxift — Operating Rules for Claude
 
-このリポジトリで作業する Claude Code のための、プロジェクト固有の指針。
-`docs/decisions.md`（設計判断）と `docs/status.md`（未達タスク・未解決事項）を必ず最初に確認してから作業する。
+Project-specific guidance for Claude Code working in this repository.
+Always start by reviewing `docs/decisions.md` (design decisions) and `docs/status.md` (open tasks and unresolved issues) before doing any work.
 
-## プロジェクト概要
+## Project Overview
 
-Pyxel風レトロ2Dゲームエンジン（Swift製・C++コア・SDL3バックエンド）。詳細な設計判断（対象OS・言語・配布形式・ライセンス）は `docs/decisions.md` を参照。
+A Pyxel-style retro 2D game engine (written in Swift, with a C++ core and an SDL3 backend). For detailed design decisions (target OS, language, distribution format, license), see `docs/decisions.md`.
 
-## マイルストーン区切り規約
+## Language Policy
 
-各マイルストーン完了時の手順:
+All artifacts committed to this repository must be written in English. See `.claude/rules/language-policy.md` for the full policy and the list of exceptions.
 
-1. 完了マーカーとして空コミットを打つ:
+## Milestone Conventions
+
+Steps to take when a milestone is complete:
+
+1. Mark completion with an empty commit:
    ```
-   git commit --allow-empty -m "M1: 垂直スライス完了"
+   git commit --allow-empty -m "M1: vertical-slice complete"
    ```
-   コミットメッセージ先頭は `M<番号>: ` 固定（例: `M1:`、`M2a:`、`M13:`）
-2. リリース版のみ `git tag` を打つ。中間タグは打たない。タグを打つ前には `docs/status.md` の「リリースタグ前チェックリスト」を完了させる（`.claude/hooks/check-release-tag.sh` が機械的に検査する）
+   The commit message must always start with `M<number>: ` (for example `M1:`, `M2a:`, `M13:`).
+2. Tag only official releases with `git tag`; do not create intermediate tags. Before tagging, complete the "pre-release-tag checklist" in `docs/status.md` (`.claude/hooks/check-release-tag.sh` enforces it mechanically).
 
-完了済みマイルストーンの確認は `git log --grep '^M[0-9]'`。
+Use `git log --grep '^M[0-9]'` to review completed milestones.
 
-## ブランチ運用
+## Branching
 
-- **main 直接コミット**で進める（1人開発・速度優先）
-- PR は使わない
-- 論理的に最小単位で段階的にコミット（既存の `~/.claude/rules/git-commit.md` 通り）
+- Commit directly to **main** (single-developer project, optimized for velocity).
+- No PRs.
+- Commit incrementally in the smallest logical units (per the existing `~/.claude/rules/git-commit.md` convention).
 
-## Pyxel 本家リポジトリの参照
+## Referencing the Upstream Pyxel Repository
 
-本家コードは Pyxift リポジトリの**親ディレクトリ**の `../pyxel/` に置く前提（**Rust 製**）。
-`/pyxel-sync` スキルが起動時に存在確認・無ければ clone・あれば `git fetch && git reset --hard origin/main` で同期する。
+The upstream code is expected to live in `../pyxel/` — the **parent directory** of the Pyxift repo (Pyxel itself is **written in Rust**).
+The `/pyxel-sync` skill checks for it on launch, clones it if missing, and otherwise syncs via `git fetch && git reset --hard origin/main`.
 
-追跡対象ファイル（本家のどのパスを Pyxift のどのファイルが参照しているか）は `docs/pyxel-reference.md` の「追跡対象テーブル」が SSOT。本家を参考にした実装を追加する際は同表へのエントリ登録が必須（`.claude/hooks/check-source-comment.sh` が出典コメントを持つファイルの表登録を機械的に検査する）。
-追跡 SHA と最終同期日は同ファイルの「上流追従ステータス」ブロックが SSOT。
+The "tracked-files table" in `docs/pyxel-reference.md` is the SSOT for which upstream paths are referenced by which Pyxift files. Whenever you add an implementation that draws on upstream code, you must register an entry in that table (`.claude/hooks/check-source-comment.sh` mechanically verifies that any file carrying an attribution comment is listed in the table).
+The tracked SHA and last-sync date live in the "upstream sync status" block of the same file, which is the SSOT for those values.
 
-API 互換と数値仕様の上流追従は `/pyxel-sync` スキル（`.claude/skills/pyxel-sync/SKILL.md`）に集約。
+API compatibility and numeric-spec upstream sync are consolidated in the `/pyxel-sync` skill (`.claude/skills/pyxel-sync/SKILL.md`).
 
-## コメント方針
+## Comment Style
 
-ソースコードのコメント方針は `.claude/rules/comment-style.md` に従う。
+Source-code comments follow `.claude/rules/comment-style.md`.
 
-## 本家流用コード — 出典コメント必須
+## Upstream-Derived Code — Attribution Comment Required
 
-`FONT_DATA` / `DEFAULT_COLORS` / `DEFAULT_TONE_*` のいずれかを含むファイルは**冒頭に出典コメント必須**:
+Any file containing `FONT_DATA`, `DEFAULT_COLORS`, or any `DEFAULT_TONE_*` symbol **must carry an attribution comment at the top of the file**:
 
 ```cpp
 // Source: kitao/pyxel crates/pyxel-core/src/settings.rs
 // License: MIT (Copyright (c) 2018-2026 Takashi Kitao)
 ```
 
-`.claude/hooks/check-source-comment.sh` が編集前にチェックして警告する。
+`.claude/hooks/check-source-comment.sh` checks this before edits and warns if it is missing.
 
-## C++ コア層の SDL3 import 禁止ルール
+## C++ Core Layer: No SDL3 Imports
 
-C++ 実装は2層に分ける:
+The C++ implementation is split into two layers:
 
-- **コア層** (`Sources/CPyxiftCore/src/core/`): pure C++、テスト容易性優先
-  - `InputState`、`AudioMixer`、`Canvas`（描画ロジック）など
-  - `#include <SDL3/...>` は**禁止**
-- **アダプタ層** (`Sources/CPyxiftCore/src/platform/`): SDL3 依存
-  - `SDL_Event` → `VirtualEvent` 変換、`SDL_AudioStream` ラッパー、ウィンドウ管理
-  - `#include <SDL3/...>` OK
+- **Core layer** (`Sources/CPyxiftCore/src/core/`): pure C++, prioritizing testability.
+  - Includes `InputState`, `AudioMixer`, `Canvas` (drawing logic), and so on.
+  - `#include <SDL3/...>` is **forbidden**.
+- **Adapter layer** (`Sources/CPyxiftCore/src/platform/`): SDL3-dependent.
+  - Handles `SDL_Event` → `VirtualEvent` conversion, `SDL_AudioStream` wrappers, window management, etc.
+  - `#include <SDL3/...>` is allowed.
 
-`.claude/hooks/check-cpp-layer.sh` がコア層への SDL3 import を検出して警告する。
+`.claude/hooks/check-cpp-layer.sh` detects SDL3 imports in the core layer and warns.
 
-## Swift 6 strict concurrency
+## Swift 6 Strict Concurrency
 
-- すべての Swift コードを strict concurrency で書く（`swift-language-mode: 6`）
-- ゲームループは `@MainActor` 単一実行
-- C関数橋渡しは `nonisolated(unsafe)` で明示
-- ファイル単位で `swift build` を毎回走らせるのは遅いので **マイルストーン完了時に手動で** `swift build -Xswiftc -warnings-as-errors` を実行して警告ゼロを確認
+- All Swift code is written under strict concurrency (`swift-language-mode: 6`).
+- The game loop runs on a single `@MainActor`.
+- C-function bridges are explicitly marked `nonisolated(unsafe)`.
+- Running `swift build` on every file edit is too slow, so run `swift build -Xswiftc -warnings-as-errors` **manually at each milestone completion** to confirm zero warnings.
 
-## Pyxel 本家との API/数値同期
+## API and Numeric Sync with Upstream Pyxel
 
-Pyxift は Pyxel API 互換を目指す独立実装。本家追従の起動契機・検出範囲・差分処理方針は `/pyxel-sync` スキル（`.claude/skills/pyxel-sync/SKILL.md`）に集約。著作権年範囲の同期だけは独立スキル `/copyright-sync`（`.claude/skills/copyright-sync/SKILL.md`）に切り出されており、`/pyxel-sync` 実行時に内部委譲される。
+Pyxift is an independent implementation aiming for Pyxel API compatibility. The triggers, detection scope, and diff-handling policy for upstream sync are consolidated in the `/pyxel-sync` skill (`.claude/skills/pyxel-sync/SKILL.md`). Copyright-year synchronization alone is split into a dedicated `/copyright-sync` skill (`.claude/skills/copyright-sync/SKILL.md`), which `/pyxel-sync` delegates to internally.
 
-- リスペクト表明: `ACKNOWLEDGMENTS.md`、ライセンス全文: `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
+- Acknowledgments: `ACKNOWLEDGMENTS.md`. Full license text: `THIRD_PARTY_LICENSES/pyxel-MIT.txt`.
 
-## 作業前に必ず読むファイル
+## Files to Read Before Starting Work
 
-新しいセッションでこのリポジトリに入った Claude は、以下を順に読むこと:
+When Claude enters this repository in a new session, read the following in order:
 
-1. `docs/decisions.md` — 設計判断
-2. `docs/status.md` — 未達タスク・未解決事項・ロードマップ・リリースタグ前チェックリスト
-3. `docs/pyxel-reference.md` — 本家から流用する数値・データ・上流追従ステータス
+1. `docs/decisions.md` — design decisions
+2. `docs/status.md` — open tasks, unresolved issues, roadmap, pre-release-tag checklist
+3. `docs/pyxel-reference.md` — numeric/data references reused from upstream and upstream-sync status

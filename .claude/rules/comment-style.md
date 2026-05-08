@@ -8,39 +8,39 @@ paths:
   - "**/*.sh"
 ---
 
-# コメント方針
+# Comment Style
 
-コメントを書くのは、次の **両方** を満たすときだけ。
+Only write a comment when **both** of the following hold:
 
-1. **外部制約・非自明な前提** が存在する（外部仕様の都合、ハードウェア制約、ライブラリの挙動、互換性要件など、コードからは読み取れない情報）
-2. その制約に対応するために **一般的な実装では選ばれない実装** を採っている
+1. There is an **external constraint or non-obvious premise** at play (an external-spec quirk, a hardware constraint, library behavior, a compatibility requirement — something that cannot be inferred from the code itself).
+2. To accommodate that constraint, the code adopts an **implementation that would not normally be the obvious choice**.
 
-「コードを読めば分かる」「型・識別子で表現できる」「仕様の説明」「テストやサンプルが何をしているかの解説」はすべて **書かない**。形式は自由だが、上記2要素が両方文中に含まれていること。
+"Self-explanatory from the code," "expressible by types or identifiers," "explanation of the spec," "narration of what a test or sample is doing" — none of these warrant comments. The form is free, but both elements above must be present in the comment text.
 
-## 書かない例
+## Examples of What NOT to Write
 
-- How の説明（"X を Y に変換する"、"ループで合計を取る"）
-- 型・関数の役割ドキュメント（"X は Y を表す"、"このファイルは Z 用"）
-- 列挙体・関数群の区切りラベル（"// 制御"、"// 矢印"）
-- タスク参照（"M1 で追加"、"issue #123"、"PR で変更"）
-- ファイル冒頭の概要（ファイル名・配置・include で読み取れる）
+- "How" explanations ("convert X to Y", "sum with a loop")
+- Role descriptions for types or functions ("X represents Y", "this file handles Z")
+- Section headers/dividers for enums or function groups ("// controls", "// arrows")
+- Task references ("added in M1", "issue #123", "changed in PR")
+- File-header summaries (already conveyed by the filename, location, and includes)
 
-既存コードでこれらに該当するコメントを見つけたら、編集ついでに削除してよい（仕様変更を伴わない範囲で）。
+If you find existing comments of these kinds, feel free to delete them as part of an unrelated edit (provided the change does not alter behavior).
 
-## 書く例
+## Examples of What to Write
 
 ```cpp
-// SDL3 keycode は値域が広く非連続のため、配列ではなく集合で保持。
+// SDL3 keycodes have a wide, non-contiguous value range, so we use a set rather than an array.
 std::unordered_set<std::uint32_t> keys_held;
 ```
 
 ```cpp
-// 本家挙動に合わせて α は捨てる（RGB 3ch 強制で読み込む）。
+// Match upstream behavior: drop alpha by forcing 3-channel RGB load.
 stbi_load(..., &w, &h, &n, 3);
 ```
 
-どちらも「外部制約（SDL3 値域 / 本家互換要件）」と「一般的でない選択（集合採用 / α破棄）」が文中に揃っている。
+In both cases, the external constraint (SDL3 value range / upstream-compatibility requirement) and the unusual choice (using a set / discarding alpha) appear together in the comment.
 
-## 例外
+## Exception
 
-ライセンス帰属が必要な流用コードの **出典コメント** は本ルールの対象外（CLAUDE.md「本家流用コード — 出典コメント必須」参照）。
+Attribution comments on derivative code that requires license attribution are exempt from this rule (see "Upstream-Derived Code — Attribution Comment Required" in CLAUDE.md).

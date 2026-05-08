@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# PreToolUse hook: C++ コア層 (Sources/CPyxiftCore/src/core/) に SDL3 を import しようとしたら警告。
+# PreToolUse hook: warns when C++ code under the core layer
+# (Sources/CPyxiftCore/src/core/) tries to import SDL3.
 #
-# レイヤー方針:
-#   - core/    : pure C++ ロジック層（SDL3 import 禁止）
-#   - platform/: SDL3 アダプタ層（SDL3 import OK）
+# Layer policy:
+#   - core/    : pure C++ logic layer (SDL3 imports forbidden)
+#   - platform/: SDL3 adapter layer (SDL3 imports allowed)
 #
-# 動作:
-#   - core/ 配下のファイルで #include <SDL3/...> が編集後に存在 → exit 2
-#   - 問題なし → exit 0
+# Behavior:
+#   - If a file under core/ ends up containing #include <SDL3/...> after the edit, exit 2.
+#   - Otherwise, exit 0.
 
 set -u
 
@@ -17,13 +18,13 @@ parse_hook_input
 
 [ -z "$FILE_PATH" ] && exit 0
 
-# 対象は C++ ソース・ヘッダのみ
+# Only consider C++ source/header files.
 case "$FILE_PATH" in
   *.cpp|*.hpp|*.cc|*.cxx|*.h) ;;
   *) exit 0 ;;
 esac
 
-# core 層のパスのみ対象（platform 層は SDL OK）
+# Only consider paths inside the core layer (the platform layer is allowed to use SDL).
 case "$FILE_PATH" in
   */CPyxiftCore/src/core/*) ;;
   *) exit 0 ;;
@@ -33,17 +34,18 @@ extract_new_string_only
 
 if printf '%s' "$NEW_CONTENT" | grep -qE '#\s*include\s*[<"]SDL3'; then
   cat >&2 <<EOF
-[Pyxift hook] C++ コア層 (Sources/CPyxiftCore/src/core/) に SDL3 ヘッダを
-include しようとしています。コア層は pure C++ で保ち、SDL3 依存は
-platform/ アダプタ層に閉じ込めるのが Pyxift の設計方針です。
+[Pyxift hook] You are trying to include an SDL3 header in the C++ core layer
+(Sources/CPyxiftCore/src/core/). Pyxift's design keeps the core layer in
+pure C++ and confines all SDL3 dependencies to the platform/ adapter layer.
 
-該当ファイル: $FILE_PATH
+File: $FILE_PATH
 
-選択肢:
-  1. SDL3 を使うロジックを Sources/CPyxiftCore/src/platform/ 配下に移す
-  2. core 層では VirtualEvent などの中間型で受け取り、SDL3 アダプタ層で変換する
+Options:
+  1. Move the SDL3-using logic under Sources/CPyxiftCore/src/platform/.
+  2. Have the core layer accept an intermediate type (e.g. VirtualEvent), and
+     translate from SDL3 in the adapter layer.
 
-詳細: CLAUDE.md の「C++ コア層の SDL3 import 禁止ルール」を参照
+See "C++ Core Layer: No SDL3 Imports" in CLAUDE.md for details.
 EOF
   exit 2
 fi

@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# 共通ヘルパー: PreToolUse hook の入力 JSON 解析と編集後コンテンツ組み立て。
+# Shared helpers: parse the PreToolUse hook input JSON and assemble the post-edit content.
 #
-# 利用方法:
+# Usage:
 #   source "$(dirname "$0")/lib/hook-common.sh"
-#   parse_hook_input              # INPUT / TOOL_NAME / FILE_PATH を設定
-#   extract_new_string_only       # NEW_CONTENT に新規挿入分のみを格納
-#   extract_full_content_after_edit  # NEW_CONTENT に「既存ファイル + 新規挿入分」を格納
+#   parse_hook_input              # Sets INPUT / TOOL_NAME / FILE_PATH
+#   extract_new_string_only       # Sets NEW_CONTENT to just the newly inserted text
+#   extract_full_content_after_edit  # Sets NEW_CONTENT to "existing file + newly inserted text"
 
-# 標準入力から hook payload を読み、INPUT/TOOL_NAME/FILE_PATH をエクスポートする。
+# Read the hook payload from stdin and export INPUT / TOOL_NAME / FILE_PATH.
 parse_hook_input() {
   INPUT=$(cat)
   TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
   FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
 }
 
-# Write/Edit/MultiEdit の「新規挿入分のみ」を NEW_CONTENT に格納する。
-# 未対応ツール種別の場合は exit 0 で抜ける。
+# Place "only the newly inserted text" from Write/Edit/MultiEdit into NEW_CONTENT.
+# For unsupported tool kinds, exit 0.
 extract_new_string_only() {
   case "$TOOL_NAME" in
     Write)
@@ -34,9 +34,10 @@ extract_new_string_only() {
   esac
 }
 
-# Write の場合は新規コンテンツ、Edit/MultiEdit の場合は「既存ファイル + 新規挿入分」を
-# NEW_CONTENT に格納する。冒頭の出典コメント有無のような「ファイル全体に対する確認」用途。
-# 未対応ツール種別の場合は exit 0 で抜ける。
+# For Write, place the new content into NEW_CONTENT. For Edit/MultiEdit, place
+# "the existing file contents + the newly inserted text" into NEW_CONTENT.
+# Useful for whole-file checks such as confirming an attribution comment is at the top.
+# For unsupported tool kinds, exit 0.
 extract_full_content_after_edit() {
   case "$TOOL_NAME" in
     Write)

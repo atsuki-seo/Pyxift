@@ -1,45 +1,45 @@
 ---
 name: copyright-sync
-description: Pyxel 本家 (Takashi Kitao) と Pyxift 自身 (atsuki.seo) の著作権年範囲を、各 SSOT（本家 LICENSE / 現在年）と同期する。ユーザーが `/copyright-sync` を打ったとき、または pyxel-sync スキルから委譲されたときに呼ばれる。年表記のみが対象で、ライセンス本文は同期しない。
+description: Synchronize the copyright-year ranges of upstream Pyxel (Takashi Kitao) and Pyxift itself (atsuki.seo) against their respective SSOTs (the upstream LICENSE file and the current year). Invoked when the user runs `/copyright-sync`, or when delegated to from the pyxel-sync skill. Only the year notation is in scope — the license body is not synced.
 allowed-tools: Bash(grep:*) Bash(sed:*) Bash(xargs:*) Bash(date:*) Bash(git add:*) Bash(git commit:*) Bash(git diff:*) Bash(git status:*)
 ---
 
 # copyright-sync
 
-Pyxift 内に散在する著作権年表記を、各 SSOT に対して機械的に同期する。対象は2系統:
+Mechanically synchronize the copyright-year notations scattered throughout Pyxift against their respective SSOTs. Two separate tracks are handled:
 
-- **本家 (Takashi Kitao)** の年範囲: SSOT は `../pyxel/LICENSE`
-- **Pyxift 自身 (atsuki.seo)** の年範囲: SSOT は現在年（`date +%Y`）、開始年は 2026 でハードコード
+- **Upstream (Takashi Kitao)** year range: SSOT is `../pyxel/LICENSE`.
+- **Pyxift itself (atsuki.seo)** year range: SSOT is the current year (`date +%Y`); the start year is hardcoded to 2026.
 
-ライセンス本文（MIT 全文）は対象外（バージョンレスかつ過去の許諾は不変なため、初回コピー後は追従不要）。
+The MIT license body is out of scope (the license is versionless and historical grants do not change, so no follow-up is required after the initial copy).
 
-## 前提
+## Prerequisites
 
-- 本スキルは `../pyxel/` が最新 main に同期済みであることを前提とする。`pyxel-sync` から委譲される場合はその §1 で同期済み。`/copyright-sync` 単独実行時は呼び出し元が責任を持つ。
-- 検出のみで何も変更不要なら、コミットを打たず「ズレなし」を1行報告して終了する。
+- This skill assumes that `../pyxel/` is already synced to the latest `main`. When delegated from `pyxel-sync`, this is taken care of in §1 of that skill. When `/copyright-sync` is invoked standalone, the caller is responsible.
+- If detection finds nothing to change, exit with a single-line "no drift" report and do not create any commit.
 
-## 起動時の挙動
+## Behavior on Launch
 
-### 1. 本家 (Takashi Kitao) の年範囲
+### 1. Upstream (Takashi Kitao) year range
 
-`../pyxel/LICENSE` の `Copyright (c) <range> Takashi Kitao` から年範囲を抽出し、Pyxift 内の以下の箇所と比較する:
+Extract the year range from the `Copyright (c) <range> Takashi Kitao` line in `../pyxel/LICENSE` and compare it against the following locations in Pyxift:
 
 - `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
-- `.claude/hooks/check-source-comment.sh`（テンプレ文字列）
-- `CLAUDE.md`（出典コメント例）
-- `docs/pyxel-reference.md` 冒頭の出典表記
+- `.claude/hooks/check-source-comment.sh` (the template string)
+- `CLAUDE.md` (the attribution-comment example)
+- The opening attribution block of `docs/pyxel-reference.md`
 - `ACKNOWLEDGMENTS.md`
-- `README.md`（本家リスペクト記述内の年範囲）
-- `LICENSE`（NOTICE 部の本家年範囲）
-- `Sources/` 配下（grep が `Copyright (c) <range> Takashi Kitao` で出典コメント持ちファイルのみを拾う）
+- `README.md` (the upstream-acknowledgment paragraph)
+- `LICENSE` (the upstream year range in the NOTICE section)
+- Anywhere under `Sources/` (a `grep` for `Copyright (c) <range> Takashi Kitao` picks up only files carrying an attribution comment)
 
-ズレを検出したら、機械的に書き換えて単独コミットを打つ:
+If drift is detected, rewrite mechanically and create a single dedicated commit:
 
 ```
-chore(copyright-sync): Pyxel 著作権表記を <old-range> → <new-range> に更新
+chore(copyright-sync): bump Pyxel copyright notice from <old-range> to <new-range>
 ```
 
-検出例:
+Detection example:
 
 ```bash
 UPSTREAM_RANGE=$(grep -oP 'Copyright \(c\) \K[0-9]{4}-[0-9]{4}' ../pyxel/LICENSE | head -1)
@@ -52,11 +52,11 @@ if [ "$UPSTREAM_RANGE" != "$LOCAL_RANGE" ]; then
 fi
 ```
 
-ズレなしなら何もせず次へ。
+If there is no drift, do nothing and continue.
 
-### 2. Pyxift 自身 (atsuki.seo) の年範囲
+### 2. Pyxift itself (atsuki.seo) year range
 
-`LICENSE` の `Copyright (c) <year-or-range> atsuki.seo` を、開始年 2026 〜 現在年（`date +%Y`）の範囲表記 `2026-<current_year>` に正規化する。現在年が 2026 のままなら単年表記（`Copyright (c) 2026 atsuki.seo`）を維持する。
+Normalize the `Copyright (c) <year-or-range> atsuki.seo` line in `LICENSE` to the range `2026-<current_year>`, where the start year is 2026 and the end year is `date +%Y`. While the current year is still 2026, keep the single-year form (`Copyright (c) 2026 atsuki.seo`).
 
 ```bash
 CURRENT_YEAR=$(date +%Y)
@@ -66,30 +66,30 @@ else
     DESIRED="Copyright (c) 2026-$CURRENT_YEAR atsuki.seo"
 fi
 
-# 現状のいずれの形（単年 / 範囲）にもマッチさせて DESIRED に置換
+# Match either form currently present (single year or range) and rewrite to DESIRED.
 sed -i -E "s|Copyright \(c\) 2026(-[0-9]{4})? atsuki\.seo|$DESIRED|g" LICENSE
 ```
 
-ズレを書き換えた場合は本家年範囲とは独立に単独コミットを打つ:
+If a rewrite happens, create a separate, dedicated commit independent of the upstream-year commit:
 
 ```
-chore(copyright-sync): Pyxift 著作権年を <old> → <new> に更新
+chore(copyright-sync): bump Pyxift copyright year from <old> to <new>
 ```
 
-ズレなしなら何もせず終了。
+If there is no drift, do nothing and exit.
 
-## コミット粒度
+## Commit Granularity
 
-§1（本家年）と §2（Pyxift 自身年）は動機が独立（前者は本家追従、後者は Pyxift 自身の年経過）。検出したズレは**それぞれ単独コミット**として打ち、混ぜない。両方ズレなしならコミットなしで終了。
+§1 (upstream year) and §2 (Pyxift's own year) have independent motivations — the former tracks upstream, the latter tracks the passage of time for Pyxift itself. When drift is detected, **each gets its own dedicated commit**; do not mix them. If neither has drifted, exit without committing.
 
-## スコープ外（やらないこと）
+## Out of Scope (What This Skill Does NOT Do)
 
-- MIT ライセンス全文の同期（`THIRD_PARTY_LICENSES/pyxel-MIT.txt` の本文）
-- 出典コメントの追加・削除（`.claude/hooks/check-source-comment.sh` の責務）
-- 追跡対象テーブル自体の更新（`pyxel-sync` の責務）
+- Syncing the full MIT license body (the body of `THIRD_PARTY_LICENSES/pyxel-MIT.txt`).
+- Adding or removing attribution comments (this is `.claude/hooks/check-source-comment.sh`'s responsibility).
+- Updating the tracked-files table itself (this is `pyxel-sync`'s responsibility).
 
-## 関連ファイル
+## Related Files
 
-- 本家年 SSOT: `../pyxel/LICENSE`
-- Pyxift 自身年 SSOT: 現在年（`date +%Y`）+ 開始年 2026（本ファイル内ハードコード）
-- 呼び出し元: `.claude/skills/pyxel-sync/SKILL.md` §4
+- Upstream-year SSOT: `../pyxel/LICENSE`
+- Pyxift-year SSOT: the current year (`date +%Y`) plus a hardcoded start year of 2026 (hardcoded in this file)
+- Caller: `.claude/skills/pyxel-sync/SKILL.md` §4
