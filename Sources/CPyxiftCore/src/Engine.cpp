@@ -397,4 +397,43 @@ bool pyxift_engine_is_playing(const PyxiftEngine *engine, int32_t channel) {
     return engine->audio_mixer().is_playing(channel);
 }
 
+static std::vector<int32_t> engine_to_vec(const int32_t *p, int32_t n) {
+    if (p == nullptr || n <= 0) return {};
+    return std::vector<int32_t>(p, p + n);
+}
+
+void pyxift_engine_music_set(PyxiftEngine *engine,
+                             int32_t music_index,
+                             const int32_t *ch0, int32_t ch0_len,
+                             const int32_t *ch1, int32_t ch1_len,
+                             const int32_t *ch2, int32_t ch2_len,
+                             const int32_t *ch3, int32_t ch3_len) {
+    if (engine == nullptr) return;
+    pyxift::Music m;
+    m.set(engine_to_vec(ch0, ch0_len),
+          engine_to_vec(ch1, ch1_len),
+          engine_to_vec(ch2, ch2_len),
+          engine_to_vec(ch3, ch3_len));
+    engine->audio_mixer().set_music(music_index, m);
+}
+
+void pyxift_engine_play_music(PyxiftEngine *engine,
+                              int32_t music_index,
+                              bool loop) {
+    if (engine == nullptr) return;
+    engine->audio_mixer().play_music(music_index, loop);
+}
+
+bool pyxift_engine_play_pos(const PyxiftEngine *engine,
+                            int32_t channel,
+                            int32_t *out_sound_index,
+                            float *out_sec) {
+    if (engine == nullptr) return false;
+    auto pos = engine->audio_mixer().play_pos(channel);
+    if (!pos) return false;
+    if (out_sound_index != nullptr) *out_sound_index = pos->first;
+    if (out_sec != nullptr) *out_sec = pos->second;
+    return true;
+}
+
 } // extern "C"

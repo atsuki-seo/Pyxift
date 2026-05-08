@@ -1,9 +1,11 @@
 #include "pyxift_audio_test_c.h"
 
 #include "core/AudioMixer.hpp"
+#include "core/Music.hpp"
 #include "core/Sound.hpp"
 
 #include <cstring>
+#include <vector>
 
 namespace {
 
@@ -93,6 +95,44 @@ bool pyxift_audio_mixer_is_playing(const PyxiftAudioMixerHandle *h, int32_t chan
 void pyxift_audio_mixer_render(PyxiftAudioMixerHandle *h, int16_t *out, int32_t frames) {
     if (h == nullptr || out == nullptr || frames <= 0) return;
     h->mixer.render(out, frames);
+}
+
+static std::vector<int32_t> audio_test_to_vec(const int32_t *p, int32_t n) {
+    if (p == nullptr || n <= 0) return {};
+    return std::vector<int32_t>(p, p + n);
+}
+
+void pyxift_audio_mixer_music_set(PyxiftAudioMixerHandle *h,
+                                  int32_t music_index,
+                                  const int32_t *ch0, int32_t ch0_len,
+                                  const int32_t *ch1, int32_t ch1_len,
+                                  const int32_t *ch2, int32_t ch2_len,
+                                  const int32_t *ch3, int32_t ch3_len) {
+    if (h == nullptr) return;
+    pyxift::Music m;
+    m.set(audio_test_to_vec(ch0, ch0_len),
+          audio_test_to_vec(ch1, ch1_len),
+          audio_test_to_vec(ch2, ch2_len),
+          audio_test_to_vec(ch3, ch3_len));
+    h->mixer.set_music(music_index, m);
+}
+
+void pyxift_audio_mixer_play_music(PyxiftAudioMixerHandle *h,
+                                   int32_t music_index, bool loop) {
+    if (h == nullptr) return;
+    h->mixer.play_music(music_index, loop);
+}
+
+bool pyxift_audio_mixer_play_pos(const PyxiftAudioMixerHandle *h,
+                                 int32_t channel,
+                                 int32_t *out_sound_index,
+                                 float *out_sec) {
+    if (h == nullptr) return false;
+    auto pos = h->mixer.play_pos(channel);
+    if (!pos) return false;
+    if (out_sound_index != nullptr) *out_sound_index = pos->first;
+    if (out_sec != nullptr) *out_sec = pos->second;
+    return true;
 }
 
 } // extern "C"

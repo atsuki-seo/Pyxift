@@ -37,6 +37,19 @@ void pyxift_audio_mixer_stop(PyxiftAudioMixerHandle *h, int32_t channel);
 bool pyxift_audio_mixer_is_playing(const PyxiftAudioMixerHandle *h, int32_t channel);
 void pyxift_audio_mixer_render(PyxiftAudioMixerHandle *h, int16_t *out, int32_t frames);
 
+void pyxift_audio_mixer_music_set(PyxiftAudioMixerHandle *h,
+                                  int32_t music_index,
+                                  const int32_t *ch0, int32_t ch0_len,
+                                  const int32_t *ch1, int32_t ch1_len,
+                                  const int32_t *ch2, int32_t ch2_len,
+                                  const int32_t *ch3, int32_t ch3_len);
+void pyxift_audio_mixer_play_music(PyxiftAudioMixerHandle *h,
+                                   int32_t music_index, bool loop);
+bool pyxift_audio_mixer_play_pos(const PyxiftAudioMixerHandle *h,
+                                 int32_t channel,
+                                 int32_t *out_sound_index,
+                                 float *out_sec);
+
 #ifdef __cplusplus
 }
 #endif

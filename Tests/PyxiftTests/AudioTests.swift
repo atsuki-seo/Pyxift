@@ -103,3 +103,65 @@ private final class Mixer {
     pyxift_audio_mixer_stop(m.h, 0)
     #expect(!pyxift_audio_mixer_is_playing(m.h, 0))
 }
+
+@Test func playPosNilWhenIdle() {
+    let m = Mixer()
+    var idx: Int32 = -1
+    var sec: Float = -1
+    #expect(!pyxift_audio_mixer_play_pos(m.h, 0, &idx, &sec))
+}
+
+@Test func playPosReturnsCurrentSoundIndex() {
+    let m = Mixer()
+    m.setSound(7, notes: "a2", tones: "t", volumes: "7", effects: "n", speed: 30)
+    pyxift_audio_mixer_play(m.h, 0, 7, true)
+    var idx: Int32 = -1
+    var sec: Float = -1
+    #expect(pyxift_audio_mixer_play_pos(m.h, 0, &idx, &sec))
+    #expect(idx == 7)
+    #expect(sec >= 0)
+}
+
+@Test func playPosNilAfterStop() {
+    let m = Mixer()
+    m.setSound(0, notes: "a2", tones: "t", volumes: "7", effects: "n", speed: 30)
+    pyxift_audio_mixer_play(m.h, 0, 0, false)
+    pyxift_audio_mixer_stop(m.h, 0)
+    var idx: Int32 = 0
+    var sec: Float = 0
+    #expect(!pyxift_audio_mixer_play_pos(m.h, 0, &idx, &sec))
+}
+
+@Test func musicPlaysOnAllAssignedChannels() {
+    let m = Mixer()
+    m.setSound(0, notes: "a2", tones: "t", volumes: "7", effects: "n", speed: 30)
+    m.setSound(1, notes: "c2", tones: "t", volumes: "7", effects: "n", speed: 30)
+
+    let ch0: [Int32] = [0]
+    let ch1: [Int32] = [1]
+    let ch2: [Int32] = []
+    let ch3: [Int32] = []
+    ch0.withUnsafeBufferPointer { p0 in
+        ch1.withUnsafeBufferPointer { p1 in
+            ch2.withUnsafeBufferPointer { p2 in
+                ch3.withUnsafeBufferPointer { p3 in
+                    pyxift_audio_mixer_music_set(m.h, 0,
+                        p0.baseAddress, Int32(p0.count),
+                        p1.baseAddress, Int32(p1.count),
+                        p2.baseAddress, Int32(p2.count),
+                        p3.baseAddress, Int32(p3.count))
+                }
+            }
+        }
+    }
+    pyxift_audio_mixer_play_music(m.h, 0, false)
+    #expect(pyxift_audio_mixer_is_playing(m.h, 0))
+    #expect(pyxift_audio_mixer_is_playing(m.h, 1))
+    #expect(!pyxift_audio_mixer_is_playing(m.h, 2))
+    #expect(!pyxift_audio_mixer_is_playing(m.h, 3))
+
+    var buf = [Int16](repeating: 0, count: 1024)
+    pyxift_audio_mixer_render(m.h, &buf, Int32(buf.count))
+    let energy = buf.reduce(0) { $0 + Int($1) * Int($1) }
+    #expect(energy > 0)
+}

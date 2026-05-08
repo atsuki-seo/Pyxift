@@ -46,17 +46,33 @@ Sound AudioMixer::get_sound(int32_t index) const {
     return sounds_[index];
 }
 
-void AudioMixer::play(int32_t channel, int32_t sound_index, bool loop) {
-    if (channel < 0 || channel >= kNumChannels) return;
-    if (sound_index < 0 || sound_index >= kNumSounds) return;
+void AudioMixer::set_music(int32_t index, const Music &music) {
+    if (index < 0 || index >= kNumMusics) return;
     std::lock_guard<std::mutex> lock(mutex_);
-    auto &ch = channels_[channel];
-    ch.sound = sounds_[sound_index];
+    musics_[index] = music;
+}
+
+Music AudioMixer::get_music(int32_t index) const {
+    if (index < 0 || index >= kNumMusics) return Music{};
+    std::lock_guard<std::mutex> lock(mutex_);
+    return musics_[index];
+}
+
+void AudioMixer::start_sound_locked(ChannelState &ch) {
+    if (ch.queue_index < 0 || ch.queue_index >= static_cast<int32_t>(ch.sound_indices.size())) {
+        ch.playing = false;
+        return;
+    }
+    const int32_t sidx = ch.sound_indices[static_cast<size_t>(ch.queue_index)];
+    if (sidx < 0 || sidx >= kNumSounds) {
+        ch.playing = false;
+        return;
+    }
+    ch.sound = sounds_[sidx];
     if (ch.sound.empty()) {
         ch.playing = false;
         return;
     }
-    ch.loop = loop;
     ch.note_index = 0;
     ch.ticks_in_note = 0;
     ch.ticks_per_note = ch.sound.speed > 0 ? ch.sound.speed : 1;
@@ -65,6 +81,52 @@ void AudioMixer::play(int32_t channel, int32_t sound_index, bool loop) {
     ch.prev_note = kRestNote;
     ch.playing = true;
     start_note_locked(ch, 0);
+}
+
+void AudioMixer::play(int32_t channel, int32_t sound_index, bool loop) {
+    play_seq(channel, std::vector<int32_t>{sound_index}, loop);
+}
+
+void AudioMixer::play_seq(int32_t channel, const std::vector<int32_t> &sound_indices, bool loop) {
+    if (channel < 0 || channel >= kNumChannels) return;
+    if (sound_indices.empty()) return;
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto &ch = channels_[channel];
+    ch.sound_indices = sound_indices;
+    ch.queue_index = 0;
+    ch.loop = loop;
+    start_sound_locked(ch);
+}
+
+void AudioMixer::play_music(int32_t music_index, bool loop) {
+    if (music_index < 0 || music_index >= kNumMusics) return;
+    std::lock_guard<std::mutex> lock(mutex_);
+    const Music &m = musics_[music_index];
+    for (int32_t c = 0; c < kNumChannels; ++c) {
+        auto &ch = channels_[c];
+        if (m.seqs[c].empty()) {
+            ch.playing = false;
+            continue;
+        }
+        ch.sound_indices = m.seqs[c];
+        ch.queue_index = 0;
+        ch.loop = loop;
+        start_sound_locked(ch);
+    }
+}
+
+std::optional<std::pair<int32_t, float>> AudioMixer::play_pos(int32_t channel) const {
+    if (channel < 0 || channel >= kNumChannels) return std::nullopt;
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto &ch = channels_[channel];
+    if (!ch.playing) return std::nullopt;
+    if (ch.queue_index < 0 || ch.queue_index >= static_cast<int32_t>(ch.sound_indices.size())) {
+        return std::nullopt;
+    }
+    const int32_t sound_index = ch.sound_indices[static_cast<size_t>(ch.queue_index)];
+    const int32_t total_ticks = ch.note_index * ch.ticks_per_note + ch.ticks_in_note;
+    const float sec = static_cast<float>(total_ticks) / static_cast<float>(kSoundTicksPerSecond);
+    return std::make_pair(sound_index, sec);
 }
 
 void AudioMixer::stop(int32_t channel) {
@@ -184,12 +246,19 @@ void AudioMixer::render(int16_t *out, int32_t frame_count) {
                 if (ch.ticks_in_note >= ch.ticks_per_note) {
                     int32_t next = ch.note_index + 1;
                     if (next >= static_cast<int32_t>(ch.sound.notes.size())) {
-                        if (ch.loop) {
-                            next = 0;
-                        } else {
-                            ch.playing = false;
+                        const int32_t next_q = ch.queue_index + 1;
+                        if (next_q < static_cast<int32_t>(ch.sound_indices.size())) {
+                            ch.queue_index = next_q;
+                            start_sound_locked(ch);
                             continue;
                         }
+                        if (ch.loop) {
+                            ch.queue_index = 0;
+                            start_sound_locked(ch);
+                            continue;
+                        }
+                        ch.playing = false;
+                        continue;
                     }
                     ch.note_index = next;
                     start_note_locked(ch, next);

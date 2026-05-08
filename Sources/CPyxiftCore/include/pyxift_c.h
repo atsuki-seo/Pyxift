@@ -137,6 +137,23 @@ void pyxift_engine_stop_all(PyxiftEngine *engine);
 
 bool pyxift_engine_is_playing(const PyxiftEngine *engine, int32_t channel);
 
+void pyxift_engine_music_set(PyxiftEngine *engine,
+                             int32_t music_index,
+                             const int32_t *ch0, int32_t ch0_len,
+                             const int32_t *ch1, int32_t ch1_len,
+                             const int32_t *ch2, int32_t ch2_len,
+                             const int32_t *ch3, int32_t ch3_len);
+
+void pyxift_engine_play_music(PyxiftEngine *engine,
+                              int32_t music_index,
+                              bool loop);
+
+// Returns true and writes (sound_index, sec) when the channel is playing; returns false otherwise.
+bool pyxift_engine_play_pos(const PyxiftEngine *engine,
+                            int32_t channel,
+                            int32_t *out_sound_index,
+                            float *out_sec);
+
 #ifdef __cplusplus
 }
 #endif

@@ -7,7 +7,7 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 - v0.2.0 audio (in progress):
   - [x] M2a: synthesis core (Tone / Sound / AudioMixer / SDL_AudioStream adapter)
   - [x] M2b: Sound layer + Swift API (`Pyx.sound` / `Pyx.play` / `Pyx.stop` / `Pyx.isPlaying`) + tests + sample SE in PyxiftDemo
-  - [ ] M2c: Music API (`Pyx.music` / `Pyx.playMusic`) and `playPos` — required for the v0.2.0 tag
+  - [x] M2c: Music API (`Pyx.music` / `Pyx.playMusic`) and `Pyx.playPos`
   - [ ] (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — out of v0.2.0 scope
 
 ## Open questions

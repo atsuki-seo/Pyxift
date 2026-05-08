@@ -1,12 +1,16 @@
 #ifndef PYXIFT_CORE_AUDIO_MIXER_HPP
 #define PYXIFT_CORE_AUDIO_MIXER_HPP
 
+#include "Music.hpp"
 #include "Sound.hpp"
 #include "Tone.hpp"
 
 #include <array>
 #include <cstdint>
 #include <mutex>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace pyxift {
 
@@ -14,12 +18,15 @@ inline constexpr int32_t kAudioSampleRate = 22050;
 inline constexpr int32_t kNumChannels = 4;
 inline constexpr int32_t kNumTones = 4;
 inline constexpr int32_t kNumSounds = 64;
+inline constexpr int32_t kNumMusics = 8;
 inline constexpr int32_t kSoundTicksPerSecond = 120;
 inline constexpr float kMasterGain = 0.125f;
 
 struct ChannelState {
     bool playing = false;
     bool loop = false;
+    std::vector<int32_t> sound_indices{};
+    int32_t queue_index = 0;
     Sound sound{};
     int32_t note_index = -1;
     int32_t ticks_in_note = 0;
@@ -43,15 +50,24 @@ public:
     void set_sound(int32_t index, const Sound &sound);
     Sound get_sound(int32_t index) const;
 
+    void set_music(int32_t index, const Music &music);
+    Music get_music(int32_t index) const;
+
     void play(int32_t channel, int32_t sound_index, bool loop);
+    void play_seq(int32_t channel, const std::vector<int32_t> &sound_indices, bool loop);
+    void play_music(int32_t music_index, bool loop);
+
     void stop(int32_t channel);
     void stop_all();
 
     bool is_playing(int32_t channel) const;
 
+    std::optional<std::pair<int32_t, float>> play_pos(int32_t channel) const;
+
     void render(int16_t *out, int32_t frame_count);
 
 private:
+    void start_sound_locked(ChannelState &ch);
     void start_note_locked(ChannelState &ch, int32_t note_pos);
     float synth_sample_locked(ChannelState &ch);
     static float midi_freq(int32_t midi_note);
@@ -59,6 +75,7 @@ private:
     mutable std::mutex mutex_;
     std::array<Tone, kNumTones> tones_;
     std::array<Sound, kNumSounds> sounds_{};
+    std::array<Music, kNumMusics> musics_{};
     std::array<ChannelState, kNumChannels> channels_{};
     int32_t samples_per_tick_ = 0;
     uint32_t frame_counter_ = 0;
