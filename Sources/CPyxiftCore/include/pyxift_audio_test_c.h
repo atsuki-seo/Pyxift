@@ -14,10 +14,10 @@ extern "C" {
 // Pass out_buf=NULL with capacity=0 to query length only. Values that exceed the byte width
 // of the output (notes are int8, others uint8) are not produced by the parser.
 
-int32_t pyxift_sound_parse_notes(const char *s, int8_t *out_buf, int32_t capacity);
-int32_t pyxift_sound_parse_tones(const char *s, uint8_t *out_buf, int32_t capacity);
-int32_t pyxift_sound_parse_volumes(const char *s, uint8_t *out_buf, int32_t capacity);
-int32_t pyxift_sound_parse_effects(const char *s, uint8_t *out_buf, int32_t capacity);
+int32_t pyxift_audio_sound_parse_notes(const char *s, int8_t *out_buf, int32_t capacity);
+int32_t pyxift_audio_sound_parse_tones(const char *s, uint8_t *out_buf, int32_t capacity);
+int32_t pyxift_audio_sound_parse_volumes(const char *s, uint8_t *out_buf, int32_t capacity);
+int32_t pyxift_audio_sound_parse_effects(const char *s, uint8_t *out_buf, int32_t capacity);
 
 // Render an isolated AudioMixer for offline test (no SDL device needed).
 typedef struct PyxiftAudioMixerHandle PyxiftAudioMixerHandle;

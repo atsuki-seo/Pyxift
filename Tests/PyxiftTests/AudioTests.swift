@@ -2,30 +2,30 @@ import Testing
 import CPyxiftCore
 
 private func parseNotes(_ s: String) -> [Int8] {
-    let n = s.withCString { pyxift_sound_parse_notes($0, nil, 0) }
+    let n = s.withCString { pyxift_audio_sound_parse_notes($0, nil, 0) }
     var buf = [Int8](repeating: 0, count: Int(n))
-    _ = s.withCString { pyxift_sound_parse_notes($0, &buf, Int32(buf.count)) }
+    _ = s.withCString { pyxift_audio_sound_parse_notes($0, &buf, Int32(buf.count)) }
     return buf
 }
 
 private func parseTones(_ s: String) -> [UInt8] {
-    let n = s.withCString { pyxift_sound_parse_tones($0, nil, 0) }
+    let n = s.withCString { pyxift_audio_sound_parse_tones($0, nil, 0) }
     var buf = [UInt8](repeating: 0, count: Int(n))
-    _ = s.withCString { pyxift_sound_parse_tones($0, &buf, Int32(buf.count)) }
+    _ = s.withCString { pyxift_audio_sound_parse_tones($0, &buf, Int32(buf.count)) }
     return buf
 }
 
 private func parseVolumes(_ s: String) -> [UInt8] {
-    let n = s.withCString { pyxift_sound_parse_volumes($0, nil, 0) }
+    let n = s.withCString { pyxift_audio_sound_parse_volumes($0, nil, 0) }
     var buf = [UInt8](repeating: 0, count: Int(n))
-    _ = s.withCString { pyxift_sound_parse_volumes($0, &buf, Int32(buf.count)) }
+    _ = s.withCString { pyxift_audio_sound_parse_volumes($0, &buf, Int32(buf.count)) }
     return buf
 }
 
 private func parseEffects(_ s: String) -> [UInt8] {
-    let n = s.withCString { pyxift_sound_parse_effects($0, nil, 0) }
+    let n = s.withCString { pyxift_audio_sound_parse_effects($0, nil, 0) }
     var buf = [UInt8](repeating: 0, count: Int(n))
-    _ = s.withCString { pyxift_sound_parse_effects($0, &buf, Int32(buf.count)) }
+    _ = s.withCString { pyxift_audio_sound_parse_effects($0, &buf, Int32(buf.count)) }
     return buf
 }
 
@@ -62,19 +62,23 @@ private final class Mixer {
     let h: OpaquePointer
     init() { h = pyxift_audio_mixer_create()! }
     deinit { pyxift_audio_mixer_destroy(h) }
-}
 
-@Test func mixerProducesNonZeroPCMWhenPlaying() {
-    let m = Mixer()
-    "a2".withCString { n in
-        "t".withCString { t in
-            "7".withCString { v in
-                "n".withCString { e in
-                    pyxift_audio_mixer_set_sound(m.h, 0, n, t, v, e, 30)
+    func setSound(_ index: Int32, notes: String, tones: String, volumes: String, effects: String, speed: Int32) {
+        notes.withCString { n in
+            tones.withCString { t in
+                volumes.withCString { v in
+                    effects.withCString { e in
+                        pyxift_audio_mixer_set_sound(h, index, n, t, v, e, speed)
+                    }
                 }
             }
         }
     }
+}
+
+@Test func mixerProducesNonZeroPCMWhenPlaying() {
+    let m = Mixer()
+    m.setSound(0, notes: "a2", tones: "t", volumes: "7", effects: "n", speed: 30)
     pyxift_audio_mixer_play(m.h, 0, 0, false)
     #expect(pyxift_audio_mixer_is_playing(m.h, 0))
 
@@ -94,15 +98,7 @@ private final class Mixer {
 
 @Test func mixerStopSilencesChannel() {
     let m = Mixer()
-    "a2".withCString { n in
-        "t".withCString { t in
-            "7".withCString { v in
-                "n".withCString { e in
-                    pyxift_audio_mixer_set_sound(m.h, 0, n, t, v, e, 30)
-                }
-            }
-        }
-    }
+    m.setSound(0, notes: "a2", tones: "t", volumes: "7", effects: "n", speed: 30)
     pyxift_audio_mixer_play(m.h, 0, 0, true)
     pyxift_audio_mixer_stop(m.h, 0)
     #expect(!pyxift_audio_mixer_is_playing(m.h, 0))

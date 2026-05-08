@@ -67,26 +67,6 @@ void AudioMixer::play(int32_t channel, int32_t sound_index, bool loop) {
     start_note_locked(ch, 0);
 }
 
-void AudioMixer::play_inline(int32_t channel, const Sound &sound, bool loop) {
-    if (channel < 0 || channel >= kNumChannels) return;
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto &ch = channels_[channel];
-    ch.sound = sound;
-    if (ch.sound.empty()) {
-        ch.playing = false;
-        return;
-    }
-    ch.loop = loop;
-    ch.note_index = 0;
-    ch.ticks_in_note = 0;
-    ch.ticks_per_note = ch.sound.speed > 0 ? ch.sound.speed : 1;
-    ch.phase = 0.0f;
-    ch.lfsr = 0x0201;
-    ch.prev_note = kRestNote;
-    ch.playing = true;
-    start_note_locked(ch, 0);
-}
-
 void AudioMixer::stop(int32_t channel) {
     if (channel < 0 || channel >= kNumChannels) return;
     std::lock_guard<std::mutex> lock(mutex_);

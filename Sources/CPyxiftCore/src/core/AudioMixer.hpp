@@ -44,13 +44,11 @@ public:
     Sound get_sound(int32_t index) const;
 
     void play(int32_t channel, int32_t sound_index, bool loop);
-    void play_inline(int32_t channel, const Sound &sound, bool loop);
     void stop(int32_t channel);
     void stop_all();
 
     bool is_playing(int32_t channel) const;
 
-    // Renders `frame_count` frames of mono int16 PCM. Thread-safe (callable from the SDL audio thread).
     void render(int16_t *out, int32_t frame_count);
 
 private:

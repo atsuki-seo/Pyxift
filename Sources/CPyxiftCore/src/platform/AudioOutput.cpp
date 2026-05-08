@@ -43,6 +43,11 @@ bool AudioOutput::open(AudioMixer *mixer) {
 
 void AudioOutput::close() {
     if (stream_ != nullptr) {
+        // SDL3 does not formally specify that SDL_DestroyAudioStream waits for an in-progress
+        // callback to return, so pause the device first to keep `mixer_` alive across the destroy.
+        if (device_ != 0) {
+            SDL_PauseAudioDevice(device_);
+        }
         SDL_DestroyAudioStream(stream_);
         stream_ = nullptr;
     }

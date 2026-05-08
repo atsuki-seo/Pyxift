@@ -25,25 +25,25 @@ struct PyxiftAudioMixerHandle {
 
 extern "C" {
 
-int32_t pyxift_sound_parse_notes(const char *s, int8_t *out_buf, int32_t capacity) {
+int32_t pyxift_audio_sound_parse_notes(const char *s, int8_t *out_buf, int32_t capacity) {
     if (s == nullptr) return 0;
     const auto v = pyxift::Sound::parse_notes(s);
     return copy_to_buf(v, out_buf, capacity);
 }
 
-int32_t pyxift_sound_parse_tones(const char *s, uint8_t *out_buf, int32_t capacity) {
+int32_t pyxift_audio_sound_parse_tones(const char *s, uint8_t *out_buf, int32_t capacity) {
     if (s == nullptr) return 0;
     const auto v = pyxift::Sound::parse_tones(s);
     return copy_to_buf(v, out_buf, capacity);
 }
 
-int32_t pyxift_sound_parse_volumes(const char *s, uint8_t *out_buf, int32_t capacity) {
+int32_t pyxift_audio_sound_parse_volumes(const char *s, uint8_t *out_buf, int32_t capacity) {
     if (s == nullptr) return 0;
     const auto v = pyxift::Sound::parse_volumes(s);
     return copy_to_buf(v, out_buf, capacity);
 }
 
-int32_t pyxift_sound_parse_effects(const char *s, uint8_t *out_buf, int32_t capacity) {
+int32_t pyxift_audio_sound_parse_effects(const char *s, uint8_t *out_buf, int32_t capacity) {
     if (s == nullptr) return 0;
     const auto v = pyxift::Sound::parse_effects(s);
     return copy_to_buf(v, out_buf, capacity);

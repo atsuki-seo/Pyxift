@@ -37,11 +37,12 @@ std::vector<int8_t> Sound::parse_notes(const std::string &s) {
             else if (a == '-') { semitone -= 1; ++i; }
         }
         while (i < n && is_skippable(s[i])) ++i;
-        int octave = 0;
-        if (i < n && std::isdigit(static_cast<unsigned char>(s[i]))) {
-            octave = s[i] - '0';
-            ++i;
+        if (i >= n || !std::isdigit(static_cast<unsigned char>(s[i]))) {
+            out.push_back(kRestNote);
+            continue;
         }
+        const int octave = s[i] - '0';
+        ++i;
         const int note = octave * kNoteOctaveSpan + semitone;
         if (note >= 0 && note <= kMaxNote) {
             out.push_back(static_cast<int8_t>(note));
