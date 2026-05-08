@@ -4,7 +4,7 @@ namespace pyxift::platform {
 
 namespace {
 
-// 1 つの仮想ボタンに複数の SDL_Keycode を割り当てるため、配列で重複可とする。
+// One virtual button may map from multiple SDL_Keycodes, so duplicate entries are allowed.
 struct KeyMap {
     SDL_Keycode key;
     Button button;
@@ -93,7 +93,7 @@ void EventTranslator::release_player(SDL_JoystickID id) {
 }
 
 void EventTranslator::emit_key_button(InputState &state, SDL_Keycode key, bool down) {
-    // 本家 Pyxel 仕様: キーボード入力は常に player 0 のみに割り当てる。
+    // Upstream Pyxel behavior: keyboard input is always assigned to player 0 only.
     for (const auto &m : kKeyMap) {
         if (m.key == key) {
             push_button(state, m.button, 0, down);
@@ -134,7 +134,7 @@ void EventTranslator::emit_gamepad_axis(InputState &state, int32_t player, uint8
 }
 
 bool EventTranslator::translate(SDL_Event &ev, InputState &state) {
-    // SDL3 はウィンドウ実座標を返すため、ロジカル解像度に正規化してから配信する。
+    // SDL3 reports physical window coordinates; normalize them to the logical resolution before dispatch.
     if (renderer_ != nullptr) {
         SDL_ConvertEventToRenderCoordinates(renderer_, &ev);
     }

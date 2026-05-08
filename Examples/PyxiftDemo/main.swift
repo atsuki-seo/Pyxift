@@ -79,7 +79,7 @@ struct Demo: App {
 
     private mutating func spawnBalls() {
         let palette: [Color] = [.red, .yellow, .lime, .cyan, .pink, .orange, .lightBlue, .white]
-        // 起動ごとの再現性を担保するため、Foundation の乱数ではなく固定シードの線形合同法を使う。
+        // Use a fixed-seed LCG instead of Foundation's RNG so successive runs reproduce identical layouts.
         var seed: UInt32 = 0x9E37_79B9
         func next() -> Double {
             seed = seed &* 1_664_525 &+ 1_013_904_223

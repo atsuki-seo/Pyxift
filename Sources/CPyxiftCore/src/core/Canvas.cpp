@@ -22,7 +22,7 @@ Canvas::Canvas(int32_t width, int32_t height)
 
 void Canvas::set_clip(int32_t x, int32_t y, int32_t w, int32_t h) {
     if (w <= 0 || h <= 0) {
-        // 本家準拠: 空矩形は何も描けない状態（x2<x1）にする。
+        // Match upstream: an empty rect collapses to a "draws nothing" state (x2 < x1).
         clip_x1_ = 0;
         clip_y1_ = 0;
         clip_x2_ = -1;
@@ -74,7 +74,7 @@ void Canvas::put(int32_t x, int32_t y, uint8_t color) {
 }
 
 void Canvas::cls(uint8_t color) {
-    // 本家準拠: cls は clip/camera を無視して全画面を塗る。
+    // Match upstream: cls ignores clip and camera and fills the entire framebuffer.
     std::fill(pixels_.begin(), pixels_.end(), palette_[color & 0x0f]);
 }
 
@@ -83,7 +83,7 @@ void Canvas::pset(int32_t x, int32_t y, uint8_t color) {
 }
 
 uint8_t Canvas::pget(int32_t x, int32_t y) const {
-    // 本家準拠: pget は camera 適用、画面外は 0。clip は無視。
+    // Match upstream: pget applies the camera offset, returns 0 for out-of-screen reads, and ignores clip.
     const int32_t fx = x - camera_x_;
     const int32_t fy = y - camera_y_;
     if (fx < 0 || fy < 0 || fx >= width_ || fy >= height_) return 0;
@@ -269,7 +269,7 @@ void Canvas::blt(int32_t x, int32_t y, const Image &image,
     const int32_t dst_x = x - camera_x_;
     const int32_t dst_y = y - camera_y_;
 
-    // 負の u/v はソースの切り詰めではなく dst 側のオフセットとして扱う（本家準拠）。
+    // Match upstream: negative u/v shifts the destination rather than clipping the source.
     int32_t src_x = u;
     int32_t src_y = v;
     int32_t src_w = w;
@@ -294,7 +294,7 @@ void Canvas::blt(int32_t x, int32_t y, const Image &image,
             const int32_t dx = dst_x + shift_x + col;
             if (dx < clip_x1_ || dx > clip_x2_) continue;
             const uint8_t s = src_row[col];
-            // 透明判定はパレット差し替え前のソース色で行う（本家準拠）。
+            // Match upstream: the transparency test is against the pre-pal-swap source color.
             if (transparent >= 0 && s == static_cast<uint8_t>(transparent)) continue;
             dst_row[dx] = palette_[s & 0x0f];
         }

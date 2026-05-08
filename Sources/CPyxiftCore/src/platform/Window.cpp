@@ -7,8 +7,8 @@ namespace pyxift::platform {
 namespace {
 
 int32_t initial_scale(int32_t logical_w, int32_t logical_h) {
-    // レトロ向けの低ロジカル解像度を実画面で見やすくするため 4x を起点にし、
-    // ディスプレイの 9/10 に収まらない場合のみ段階的に縮める。
+    // Start from 4x so the low logical resolution stays readable on modern displays, and only
+    // step down when the scaled window would not fit within 9/10 of the display.
     SDL_DisplayID display = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
     int32_t scale = 4;

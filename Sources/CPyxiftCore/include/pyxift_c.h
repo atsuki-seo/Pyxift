@@ -73,7 +73,7 @@ void pyxift_engine_camera_reset(PyxiftEngine *engine);
 void pyxift_engine_pal(PyxiftEngine *engine, uint8_t from, uint8_t to);
 void pyxift_engine_pal_reset(PyxiftEngine *engine);
 
-// transparent は 0..15 の色インデックス、もしくは「透明色なし」を表す -1（本家 Pyxel API 仕様）。
+// `transparent` is a 0..15 color index, or -1 for "no transparent color" (matches upstream Pyxel API).
 void pyxift_engine_blt(PyxiftEngine *engine,
                        int32_t x, int32_t y,
                        int32_t image_bank,
@@ -102,7 +102,7 @@ void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
                                           int32_t tilemap_index,
                                           int32_t image_bank);
 
-// keycode 引数は SDL3 SDL_Keycode の int32 値をそのまま渡す（Swift 側の Key.rawValue と一致）。
+// `keycode` is passed as the raw SDL3 SDL_Keycode int32 value (matches Swift-side Key.rawValue).
 bool pyxift_engine_button(const PyxiftEngine *engine, uint8_t button, int32_t player);
 bool pyxift_engine_button_pressed(const PyxiftEngine *engine, uint8_t button, int32_t player);
 bool pyxift_engine_button_released(const PyxiftEngine *engine, uint8_t button, int32_t player);

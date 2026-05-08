@@ -74,7 +74,7 @@ private:
     std::array<uint16_t, kMaxPlayers> btn_pressed_{};
     std::array<uint16_t, kMaxPlayers> btn_released_{};
 
-    // SDL3 SDL_Keycode は値域が広く非連続のため、配列ではなくハッシュ集合で保持。
+    // SDL3 SDL_Keycode values span a wide, non-contiguous range, so we hold them in a hash set rather than an array.
     std::unordered_set<int32_t> key_state_;
     std::unordered_set<int32_t> key_pressed_;
     std::unordered_set<int32_t> key_released_;

@@ -1,4 +1,4 @@
-// rawValue は SDL3 SDL_Keycode の整数値そのもの（C 側にそのまま渡す前提）。
+// rawValue is the raw SDL3 SDL_Keycode integer; it is passed straight through to the C layer.
 public enum Key: Int32, Sendable {
     case escape = 0x0000001b
     case tab = 0x00000009

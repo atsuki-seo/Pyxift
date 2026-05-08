@@ -85,8 +85,8 @@ void PyxiftEngine::run(PyxiftUpdateFn update, PyxiftDrawFn draw, void *user) {
             ++catch_up;
         }
 
-        // 一時停止やブレーク後の連続フレーム消化を防ぐため、kMaxCatchUp を超えた遅延は
-        // 補正せず next_frame を現在時刻に揃えてリスタートする。
+        // After a pause or breakpoint, do not try to catch up beyond kMaxCatchUp frames; resync
+        // next_frame to "now" so the loop does not burn through a backlog of pending frames.
         if (catch_up == kMaxCatchUp && clock_t_::now() >= next_frame) {
             next_frame = clock_t_::now() + frame_duration;
         }

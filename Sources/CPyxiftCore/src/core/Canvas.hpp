@@ -30,7 +30,7 @@ public:
     void tri(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color);
     void trib(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint8_t color);
 
-    // transparent は 0..15 の色インデックス、-1 で透明色なし（本家 Pyxel の API 仕様）。
+    // `transparent` is a 0..15 color index, or -1 for "no transparent color" (matches upstream Pyxel API).
     void blt(int32_t x, int32_t y, const Image &image,
              int32_t u, int32_t v, int32_t w, int32_t h,
              int32_t transparent);

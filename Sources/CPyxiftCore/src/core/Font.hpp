@@ -17,7 +17,7 @@ constexpr int32_t kFontFirstChar = 0x20;
 constexpr int32_t kFontLastChar = 0x7f;
 constexpr int32_t kFontGlyphCount = kFontLastChar - kFontFirstChar + 1;
 
-// 各 u32 は上位ビット (0x0080_0000) から行優先で 24bit 詰め（本家 FONT_DATA の格納形式に準拠）。
+// Each u32 packs 24 bits in row-major order starting from the high bit (0x0080_0000), matching upstream FONT_DATA's storage layout.
 inline constexpr std::array<uint32_t, kFontGlyphCount> kFontData = {
     0x000000u, 0x444040u, 0xaa0000u, 0xaeaea0u, 0x6c6c40u, 0x824820u, 0x4a4ac0u, 0x440000u, 0x244420u,
     0x844480u, 0xa4e4a0u, 0x04e400u, 0x000480u, 0x00e000u, 0x000040u, 0x224880u, 0x6aaac0u, 0x4c4440u,

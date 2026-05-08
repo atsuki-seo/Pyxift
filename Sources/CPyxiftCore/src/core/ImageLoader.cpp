@@ -49,7 +49,7 @@ bool load_png_into_image(const std::string &path, Image &dest) {
     int width = 0;
     int height = 0;
     int channels = 0;
-    // 本家 Pyxel が α を扱わないため、stb に 3ch 強制させて α を破棄する。
+    // Upstream Pyxel does not handle alpha, so force stb to 3-channel output and discard alpha.
     unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 3);
     if (data == nullptr) return false;
 

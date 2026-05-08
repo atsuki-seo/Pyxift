@@ -17,7 +17,7 @@ public:
 
     void set_renderer(SDL_Renderer *renderer) { renderer_ = renderer; }
 
-    // 戻り値: 終了要求イベント（ウィンドウクローズ / ESC）を受信したら true。
+    // Returns true when a quit-request event (window close / ESC) is observed.
     bool translate(SDL_Event &ev, InputState &state);
 
 private:
@@ -38,8 +38,8 @@ private:
     void emit_gamepad_button(InputState &state, int32_t player, uint8_t button, bool down);
     void emit_gamepad_axis(InputState &state, int32_t player, uint8_t axis, int16_t value);
 
-    // アナログ軸を ButtonDown/Up のエッジに変換するため、方向ごとの押下中フラグを保持。
-    // dead zone を跨いだ瞬間にだけイベントを発火する。
+    // Tracks per-direction "currently pressed" flags so analog axis motion can be turned into
+    // ButtonDown/ButtonUp edges, firing an event only when the dead zone boundary is crossed.
     struct AxisDir {
         bool neg = false;
         bool pos = false;
