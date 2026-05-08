@@ -357,4 +357,44 @@ void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible) {
     pyxift::platform::Window::set_cursor_visible(visible);
 }
 
+void pyxift_engine_sound_set(PyxiftEngine *engine,
+                             int32_t sound_index,
+                             const char *notes,
+                             const char *tones,
+                             const char *volumes,
+                             const char *effects,
+                             int32_t speed) {
+    if (engine == nullptr) return;
+    pyxift::Sound s;
+    s.set(notes != nullptr ? notes : "",
+          tones != nullptr ? tones : "",
+          volumes != nullptr ? volumes : "",
+          effects != nullptr ? effects : "",
+          speed);
+    engine->audio_mixer().set_sound(sound_index, s);
+}
+
+void pyxift_engine_play(PyxiftEngine *engine,
+                        int32_t channel,
+                        int32_t sound_index,
+                        bool loop) {
+    if (engine == nullptr) return;
+    engine->audio_mixer().play(channel, sound_index, loop);
+}
+
+void pyxift_engine_stop(PyxiftEngine *engine, int32_t channel) {
+    if (engine == nullptr) return;
+    engine->audio_mixer().stop(channel);
+}
+
+void pyxift_engine_stop_all(PyxiftEngine *engine) {
+    if (engine == nullptr) return;
+    engine->audio_mixer().stop_all();
+}
+
+bool pyxift_engine_is_playing(const PyxiftEngine *engine, int32_t channel) {
+    if (engine == nullptr) return false;
+    return engine->audio_mixer().is_playing(channel);
+}
+
 } // extern "C"

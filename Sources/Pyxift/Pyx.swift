@@ -3,7 +3,7 @@ import CPyxiftCore
 public enum Pyx {}
 
 @MainActor
-private enum Runtime {
+enum Runtime {
     static var engine: OpaquePointer?
     static var appBox: AnyObject?
     static var updateThunk: (() -> Void)?

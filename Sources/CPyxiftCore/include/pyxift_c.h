@@ -119,6 +119,24 @@ bool pyxift_engine_mouse_button_released(const PyxiftEngine *engine, uint8_t but
 
 void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible);
 
+void pyxift_engine_sound_set(PyxiftEngine *engine,
+                             int32_t sound_index,
+                             const char *notes,
+                             const char *tones,
+                             const char *volumes,
+                             const char *effects,
+                             int32_t speed);
+
+void pyxift_engine_play(PyxiftEngine *engine,
+                        int32_t channel,
+                        int32_t sound_index,
+                        bool loop);
+
+void pyxift_engine_stop(PyxiftEngine *engine, int32_t channel);
+void pyxift_engine_stop_all(PyxiftEngine *engine);
+
+bool pyxift_engine_is_playing(const PyxiftEngine *engine, int32_t channel);
+
 #ifdef __cplusplus
 }
 #endif
