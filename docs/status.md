@@ -1,38 +1,37 @@
-# Pyxift ステータス
+# Pyxift Status
 
-未達タスクと未解決事項を管理する。完了済みは `git log --grep '^M[0-9]'` で参照。
+Tracks open tasks and open questions. Completed items are visible via `git log --grep '^M[0-9]'`.
 
-## 未達タスク
+## Open tasks
 
-（v0.1.0 タグ完了。次マイルストーン v0.2.0 着手時に追記）
+(The v0.1.0 tag is complete. New entries will be added when work on the next milestone, v0.2.0, begins.)
 
-## 未解決事項
+## Open questions
 
-- noise (Perlin) API: v0.1 では提供せず、必要時点で再検討。詳細は `decisions.md` の数学・乱数 API 節を参照
+- noise (Perlin) API: not provided in v0.1; revisit when actually needed. See the math / RNG API section of `decisions.md` for details.
 
-## v0.2 以降のロードマップ
+## Roadmap from v0.2 onward
 
-- v0.2.0: 音声合成（4ch・矩形/三角/パルス/ノイズ）
-- v0.3.0: アセットバンドル `.pyxift` 形式
+- v0.2.0: audio synthesis (4 channels: square / triangle / pulse / noise)
+- v0.3.0: asset bundle in the `.pyxift` format
 
-## リリースタグ前チェックリスト
+## Pre-release-tag checklist
 
-`git tag v*.*.*` を打つ前に必ず実行する（バージョン非依存・全リリース共通）。
-Claude 経由のタグ付けは `.claude/hooks/check-release-tag.sh` が機械的にブロックする。
+Run before every `git tag v*.*.*` (version-independent, applies to all releases).
+Tagging via Claude is mechanically blocked by `.claude/hooks/check-release-tag.sh`.
 
-- [ ] `/pyxel-sync` を実行し、Pyxel 本家との差分が解消済み（あるいは取り込まないと判断済み）
-- [ ] `docs/pyxel-reference.md` の Tracked SHA が `../pyxel` の `origin/main` HEAD と一致
-- [ ] `swift build -Xswiftc -warnings-as-errors` で警告ゼロ
+- [ ] `/pyxel-sync` has been run, and any diff against upstream Pyxel is resolved (or has been deliberately declined)
+- [ ] The Tracked SHA in `docs/pyxel-reference.md` matches the `origin/main` HEAD of `../pyxel`
+- [ ] `swift build -Xswiftc -warnings-as-errors` reports zero warnings
 
-各リリース固有の追加項目は、必要に応じて本ファイル内に別セクションで記載する。
+Release-specific extra items, when needed, go in a separate section within this file.
 
-## 将来検討事項
+## Future considerations
 
-### v0.1.0 タグ後: Pyxel API 双方向チェック (β) の再検討
+### After the v0.1.0 tag: revisit a bidirectional Pyxel API check (beta)
 
-v0.1 開発中は Pyxift 実装の API シグネチャが流動的なため、SSOT (`docs/pyxel-reference.md` および `../pyxel/python/pyxel/__init__.pyi`) との双方向照合は導入しない。
-v0.1.0 タグ完了後、API 表面が固まった段階で以下を再検討する:
+During v0.1 development, Pyxift's API signatures are still in flux, so a bidirectional cross-check against the SSOTs (`docs/pyxel-reference.md` and `../pyxel/python/pyxel/__init__.pyi`) is not introduced. Once the v0.1.0 tag is cut and the API surface stabilizes, revisit the following:
 
-- Swift 公開 API シグネチャを抽出するスクリプト
-- Pyxel `__init__.pyi` との機械的照合
-- `/pyxel-sync` への組込み or 独立 hook 化
+- A script that extracts the Swift public-API signatures
+- Mechanical cross-check against Pyxel's `__init__.pyi`
+- Either integrate into `/pyxel-sync` or split into an independent hook

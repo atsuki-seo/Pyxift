@@ -1,12 +1,12 @@
 # Pyxift
 
-**Pyxift** /pɪkswɪft/（ピクスイフト） — Pyxel + Swift。
+**Pyxift** /pɪkswɪft/ — Pyxel + Swift.
 
-Pyxel風のレトロ2Dゲームエンジン（Swift製・C++コア・SDL3バックエンド）。Linux と macOS が対象。
+A Pyxel-style retro 2D game engine (written in Swift, with a C++ core and SDL3 backend). Targets Linux and macOS.
 
 ## Getting Started
 
-事前に SDL3 をインストールしてから `swift build` する。
+Install SDL3 first, then run `swift build`.
 
 **macOS:**
 
@@ -20,7 +20,7 @@ brew install sdl3
 sudo apt install libsdl3-dev
 ```
 
-`libsdl3-dev` が見つからない場合は [SDL 公式リリース](https://github.com/libsdl-org/SDL/releases) からソースビルドする:
+If `libsdl3-dev` is not available, build from source via the [official SDL releases](https://github.com/libsdl-org/SDL/releases):
 
 ```sh
 git clone --depth 1 --branch release-3.2.x https://github.com/libsdl-org/SDL.git
@@ -30,9 +30,9 @@ sudo cmake --install SDL/build
 sudo ldconfig
 ```
 
-### 同梱サンプルを試す
+### Try the bundled sample
 
-リポジトリを clone して同梱サンプルを実行する:
+Clone the repository and run the included demo:
 
 ```sh
 git clone https://github.com/atsuki-seo/Pyxift.git
@@ -40,9 +40,9 @@ cd Pyxift
 swift run PyxiftDemo
 ```
 
-### SPM 依存として使う
+### Use as an SPM dependency
 
-自分の Swift パッケージから Pyxift を使うには、`Package.swift` に依存を追加する:
+To use Pyxift from your own Swift package, add it as a dependency in `Package.swift`:
 
 ```swift
 // swift-tools-version: 6.0
@@ -64,7 +64,7 @@ let package = Package(
 )
 ```
 
-最小のゲームコード:
+A minimal game:
 
 ```swift
 import Pyxift
@@ -86,16 +86,16 @@ struct Main {
 }
 ```
 
-`swift run` で起動する。
+Launch it with `swift run`.
 
-## ライセンス
+## License
 
-MIT License。詳細は [LICENSE](LICENSE) 参照。
+MIT License. See [LICENSE](LICENSE) for details.
 
-Pyxel（MIT License, Copyright (c) 2018-2026 Takashi Kitao）の数値仕様・既定パレット・内蔵フォントデータを流用している。流用箇所は該当ファイル冒頭に出典コメントを明記。
+Pyxift adopts numeric specifications, the default palette, and built-in font data from Pyxel (MIT License, Copyright (c) 2018-2026 Takashi Kitao). Each file containing such adopted material carries an attribution comment at its top.
 
-## ドキュメント
+## Documentation
 
-- [docs/decisions.md](docs/decisions.md) — 設計判断
-- [docs/status.md](docs/status.md) — 未達タスク・未解決事項・ロードマップ
-- [docs/pyxel-reference.md](docs/pyxel-reference.md) — Pyxel本家から流用する数値・データの一覧
+- [docs/decisions.md](docs/decisions.md) — design decisions
+- [docs/status.md](docs/status.md) — open tasks, open questions, and roadmap
+- [docs/pyxel-reference.md](docs/pyxel-reference.md) — list of numeric values and data adopted from upstream Pyxel
