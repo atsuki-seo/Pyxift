@@ -64,6 +64,14 @@ Score each candidate along three loose axes and pick the three that look stronge
 
 Top-3 is a default, not a rule — surface 2 if there are clearly only two reasonable options, or 4–5 if the field is genuinely flat. Each entry should fit in 3–5 lines: one-line summary, why it ranked, the rough cost class, and any notable risk or dependency.
 
+For each Top-N entry, also attach a **tentative version bump** (`patch` / `minor` / `major`) per the policy in `docs/decisions.md` → "Versioning policy". Mechanical rule of thumb:
+
+- Adds a new Pyxel-compatible public API or extends an existing one without breaking callers → `minor`.
+- Fixes / internal refactors / docs only → `patch`.
+- Breaks the existing public Swift surface, **or** the candidate is the agreed functional checkpoint that triggers `v1.0.0` → `major`. Note that `v0.x` does not absorb breaking changes into minor bumps; a breaking change cuts `v1.0.0` early.
+
+Compute the next concrete version against the latest release tag — `git tag --list 'v*' --sort=-v:refname | head -1` — so the proposal is e.g. `minor → v0.4.0` rather than just `minor`. This version is **tentative**: it informs scope discussion in step 4 and gets finalized through `/milestone-update` before the release-tagging commit. If the candidate is already on `docs/status.md`'s Roadmap with a target version, surface that version and flag any disagreement with the mechanical judgment instead of silently overriding it.
+
 ### Step 4 — Present and let the user pick
 
 Present to the user, in this order:
@@ -71,8 +79,8 @@ Present to the user, in this order:
 1. The synced upstream tag and date (one line).
 2. A one-paragraph framing of what the candidate pool looked like (e.g. "12 missing upstream APIs in the audio module, 3 status.md open tasks, 2 [todo] markers in pyxel-reference") so the user understands the shape of what was considered.
 3. A one-line "decisions.md filter" report: how many candidates were dropped and a brief pointer (e.g. "filtered out 13 items per `decisions.md` → Math and RNG APIs, full coverage of key-code constants"). Omit the line only when zero items were dropped.
-4. The Top-3 (or 2/4/5) with the reasoning sketch above.
-5. An explicit "which do you want to take, or none of the above?" prompt — and remind the user they can re-include a filtered item by overturning the underlying decision (which would route through `/milestone-update` against `decisions.md`).
+4. The Top-3 (or 2/4/5) with the reasoning sketch above. Each entry must include the tentative version bump and concrete version number (e.g. `minor → v0.4.0`) computed in step 3.
+5. An explicit "which do you want to take, or none of the above?" prompt — and remind the user they can re-include a filtered item by overturning the underlying decision (which would route through `/milestone-update` against `decisions.md`). The tentative version is open to revision in this step too; the user may push back ("this should be patch, not minor") before handoff.
 
 Wait for the user's pick. They may:
 

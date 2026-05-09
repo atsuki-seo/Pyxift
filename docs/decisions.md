@@ -106,3 +106,17 @@ This is the explicit "Swift side" branch of the principle: "user-facing ergonomi
 ### Full coverage of key-code constants
 
 Upstream defines 215 `KEY_*` constants. Pyxift's `enum Key` covers SDL3's `SDL_Keycode` (`SDLK_*`) one-to-one. Naming follows Swift conventions in lowerCamelCase, e.g. `case escape` / `case leftArrow`. Raw SDL3 keycode access remains available through `Key(rawValue:)`.
+
+## Versioning policy
+
+Pyxift versioning follows SemVer with one project-specific deviation about when `v1.0.0` is cut.
+
+- **Minor (`v0.x+1.0` / `vX.y+1.0`)**: a milestone that adds Pyxel-compatible APIs or extends an existing one without breaking callers.
+- **Patch (`vX.Y.z+1`)**: bug fixes, internal refactors, performance work, and documentation-only changes — no public API surface change.
+- **Major (`vX+1.0.0`)**: cut on **either** of the following (OR condition), whichever comes first:
+  1. A breaking change to Pyxift's public Swift API surface lands.
+  2. A defined functional milestone is reached — e.g. "Pyxel API coverage is sufficient for the project's goals." Full 100% Pyxel API coverage is not expected to be realistic, so `v1.0.0` is gated on a functional checkpoint rather than coverage parity.
+
+Implication for `v0.x`: a breaking change does not get folded into a minor bump to preserve `v0.y` semantics. If a breaking change is needed before the functional checkpoint, `v1.0.0` is cut early; the major number is not held back artificially.
+
+The decision of which bump applies to a given milestone is made by `/next-milestone` (proposes a tentative version with each candidate) and confirmed by `/milestone-update` (records the chosen version onto the Roadmap) before the release-tagging `M<n>: vX.Y.Z ...` commit per `CLAUDE.md`'s Milestone Conventions.

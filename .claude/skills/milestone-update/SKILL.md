@@ -50,10 +50,13 @@ For each piece of information the user wants recorded, decide which ledger it be
 | "We need to do W later" | `status.md` | Open tasks (with milestone tag if known) or Roadmap (if version-scoped) |
 | "Tag v0.x.0 needs an extra check" | `status.md` | Pre-release-tag checklist (or a release-specific section) |
 | "After v0.1.0 we should revisit ..." | `status.md` | Future considerations |
+| "The next milestone M\<n\> targets vX.Y.Z" (confirming a tentative version from `/next-milestone`, or revising one already on the Roadmap) | `status.md` | Roadmap (and the matching Open tasks entry's `target vX.Y.Z` tag) |
 
 When the same finding has both a settled-decision part and a leftover-task part, split it: one entry in `decisions.md` and a separate one in `status.md` referencing it. This keeps each ledger answering its own question ("what's pending?" vs. "what's settled?").
 
 If classification is genuinely ambiguous, present both options to the user with the trade-off and let them pick.
+
+When recording or revising a milestone's target version, apply the rules in `docs/decisions.md` → "Versioning policy" (patch / minor / major; `v0.x` does not absorb breaking changes into minor bumps). If the proposed version conflicts with that policy, flag the conflict in the proposal rather than silently writing it.
 
 ### Step 3 — Draft the proposal
 
@@ -96,7 +99,7 @@ If the new entry references another (e.g. an Open task points at a Decisions ent
 
 - Match the existing voice: short prose paragraphs, parenthetical milestone tags like `(M7, target v0.4.0)`, no emoji, no first person.
 - Prefer extending an existing section to creating a new heading. New top-level sections in either file are rare and should usually prompt a confirmation question on their own.
-- Roadmap entries belong in the existing "Roadmap from vX.Y onward" list and follow its `vX.Y.Z: <one-line summary>` shape.
+- Roadmap entries belong in the existing "Roadmap from vX.Y onward" list and follow its established shape: `vX.Y.Z: <one-line summary> (M<n>)` — version first, milestone tag in parentheses at the end. Do not invert the order.
 - Open questions are framed as questions or as "revisit when ..." notes — they are explicitly things still un-decided.
 
 ## Out of scope
