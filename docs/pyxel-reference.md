@@ -37,6 +37,8 @@ Values for the "Status" column:
 | (not implemented) | python/pyxel/__init__.pyi | Public API surface | ○ | pending |
 | Sources/CPyxiftCore/src/core/Palette.hpp<br>Sources/CPyxiftCore/src/core/Font.hpp<br>Sources/CPyxiftCore/src/core/Tone.hpp | crates/pyxel-core/src/settings.rs | Numeric constants (DEFAULT_COLORS / FONT_DATA / DEFAULT_TONE_*) | ○ | implemented |
 | (not implemented) | crates/pyxel-core/src/canvas.rs | Reference for drawing logic | ○ | pending |
+| Sources/CPyxiftCore/src/core/AssetBundle.cpp | crates/pyxel-core/src/resource_data.rs | Asset bundle JSON schema (images / tilemaps / sounds / musics) | ○ | implemented |
+| Sources/CPyxiftCore/src/core/AssetBundle.cpp | crates/pyxel-core/src/utils.rs | compress_vec1 / compress_vec2 trailing-zero compaction | ○ | implemented |
 | THIRD_PARTY_LICENSES/pyxel-MIT.txt | LICENSE | Copyright year range and full MIT text | × | implemented |
 <!-- pyxel-tracked-files:end -->
 

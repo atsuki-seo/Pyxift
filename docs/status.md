@@ -5,6 +5,7 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 ## Open tasks
 
 - (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — was out of v0.2.0 scope
+- (M7, target v0.4.0) Expose `Pyx.save(path:exclude*)` as a public Swift API. v0.3.0 already implements `pyxift_engine_save_bundle` in C++ for round-trip testing, but the Swift wrapper is intentionally withheld until external authoring tooling is decided.
 
 ## Open questions
 
