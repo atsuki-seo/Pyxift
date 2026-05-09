@@ -11,10 +11,9 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 - noise (Perlin) API: not provided in v0.1; revisit when actually needed. See the math / RNG API section of `decisions.md` for details.
 
-## Roadmap from v0.2 onward
+## Roadmap from v0.4 onward
 
-- v0.2.0: audio synthesis (4 channels: triangle / square / pulse / noise) — Sound + Music; MML mode is deferred
-- v0.3.0: asset bundle in the `.pyxift` format
+- v0.4.0: expose `Pyx.save(path:exclude*)` as public Swift API (see Open tasks)
 
 ## Pre-release-tag checklist
 
