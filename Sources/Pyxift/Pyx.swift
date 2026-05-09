@@ -312,6 +312,27 @@ extension Pyx {
 
 extension Pyx {
     @MainActor
+    public static func load(_ path: String,
+                            excludeImages: Bool = false,
+                            excludeTilemaps: Bool = false,
+                            excludeSounds: Bool = false,
+                            excludeMusics: Bool = false) {
+        guard let engine = Runtime.engine else {
+            fatalError("Pyx.load called before Pyx.run")
+        }
+        let ok = path.withCString { c in
+            pyxift_engine_load_bundle(engine, c,
+                                      excludeImages, excludeTilemaps,
+                                      excludeSounds, excludeMusics)
+        }
+        if !ok {
+            fatalError("Pyx.load failed: \(path)")
+        }
+    }
+}
+
+extension Pyx {
+    @MainActor
     public static func loadImage(_ path: String, into bank: Int = 0) {
         guard let engine = Runtime.engine else {
             fatalError("Pyx.loadImage called before Pyx.run")
