@@ -300,9 +300,10 @@ bool pyxift_engine_button(const PyxiftEngine *engine, uint8_t button, int32_t pl
     return engine->input().button(static_cast<pyxift::Button>(button), player);
 }
 
-bool pyxift_engine_button_pressed(const PyxiftEngine *engine, uint8_t button, int32_t player) {
+bool pyxift_engine_button_pressed(const PyxiftEngine *engine, uint8_t button, int32_t player,
+                                  int32_t hold, int32_t repeat) {
     if (engine == nullptr) return false;
-    return engine->input().button_pressed(static_cast<pyxift::Button>(button), player);
+    return engine->input().button_pressed(static_cast<pyxift::Button>(button), player, hold, repeat);
 }
 
 bool pyxift_engine_button_released(const PyxiftEngine *engine, uint8_t button, int32_t player) {
@@ -315,14 +316,20 @@ bool pyxift_engine_key(const PyxiftEngine *engine, int32_t keycode) {
     return engine->input().key(keycode);
 }
 
-bool pyxift_engine_key_pressed(const PyxiftEngine *engine, int32_t keycode) {
+bool pyxift_engine_key_pressed(const PyxiftEngine *engine, int32_t keycode,
+                               int32_t hold, int32_t repeat) {
     if (engine == nullptr) return false;
-    return engine->input().key_pressed(keycode);
+    return engine->input().key_pressed(keycode, hold, repeat);
 }
 
 bool pyxift_engine_key_released(const PyxiftEngine *engine, int32_t keycode) {
     if (engine == nullptr) return false;
     return engine->input().key_released(keycode);
+}
+
+float pyxift_engine_gamepad_axis(const PyxiftEngine *engine, int32_t player, uint8_t axis) {
+    if (engine == nullptr) return 0.0f;
+    return engine->input().gamepad_axis(player, static_cast<pyxift::GamepadAxis>(axis));
 }
 
 void pyxift_engine_mouse(const PyxiftEngine *engine, int32_t *out_x, int32_t *out_y) {

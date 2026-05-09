@@ -241,9 +241,11 @@ extension Pyx {
     }
 
     @MainActor
-    public static func buttonPressed(_ b: Button, player: Int = 0) -> Bool {
+    public static func buttonPressed(_ b: Button, player: Int = 0,
+                                     hold: Int = 0, `repeat`: Int = 0) -> Bool {
         guard let engine = Runtime.engine else { return false }
-        return pyxift_engine_button_pressed(engine, b.rawValue, Int32(player))
+        return pyxift_engine_button_pressed(engine, b.rawValue, Int32(player),
+                                            Int32(hold), Int32(`repeat`))
     }
 
     @MainActor
@@ -253,15 +255,22 @@ extension Pyx {
     }
 
     @MainActor
+    public static func gamepadAxis(_ axis: GamepadAxis, player: Int = 0) -> Float {
+        guard let engine = Runtime.engine else { return 0 }
+        return pyxift_engine_gamepad_axis(engine, Int32(player), axis.rawValue)
+    }
+
+    @MainActor
     public static func key(_ k: Key) -> Bool {
         guard let engine = Runtime.engine else { return false }
         return pyxift_engine_key(engine, k.rawValue)
     }
 
     @MainActor
-    public static func keyPressed(_ k: Key) -> Bool {
+    public static func keyPressed(_ k: Key, hold: Int = 0, `repeat`: Int = 0) -> Bool {
         guard let engine = Runtime.engine else { return false }
-        return pyxift_engine_key_pressed(engine, k.rawValue)
+        return pyxift_engine_key_pressed(engine, k.rawValue,
+                                         Int32(hold), Int32(`repeat`))
     }
 
     @MainActor

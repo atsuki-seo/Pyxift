@@ -104,12 +104,16 @@ void pyxift_engine_tilemap_set_image_bank(PyxiftEngine *engine,
 
 // `keycode` is passed as the raw SDL3 SDL_Keycode int32 value (matches Swift-side Key.rawValue).
 bool pyxift_engine_button(const PyxiftEngine *engine, uint8_t button, int32_t player);
-bool pyxift_engine_button_pressed(const PyxiftEngine *engine, uint8_t button, int32_t player);
+bool pyxift_engine_button_pressed(const PyxiftEngine *engine, uint8_t button, int32_t player,
+                                  int32_t hold, int32_t repeat);
 bool pyxift_engine_button_released(const PyxiftEngine *engine, uint8_t button, int32_t player);
 
 bool pyxift_engine_key(const PyxiftEngine *engine, int32_t keycode);
-bool pyxift_engine_key_pressed(const PyxiftEngine *engine, int32_t keycode);
+bool pyxift_engine_key_pressed(const PyxiftEngine *engine, int32_t keycode,
+                               int32_t hold, int32_t repeat);
 bool pyxift_engine_key_released(const PyxiftEngine *engine, int32_t keycode);
+
+float pyxift_engine_gamepad_axis(const PyxiftEngine *engine, int32_t player, uint8_t axis);
 
 void pyxift_engine_mouse(const PyxiftEngine *engine, int32_t *out_x, int32_t *out_y);
 int32_t pyxift_engine_mouse_wheel(const PyxiftEngine *engine);
