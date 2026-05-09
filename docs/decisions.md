@@ -45,6 +45,7 @@ All numeric values match Pyxel's defaults. The concrete values (resolution, colo
 - A single bundle file `.pyxift` (a zip + JSON + PNG structure)
 - One load API: `Pyx.load("mygame.pyxift")`
 - v0.1 only ships a simple API for loading raw PNGs via `Pyx.loadImage("hero.png")`
+- v0.4.0 promotes `Pyx.save(_:excludeImages:excludeTilemaps:excludeSounds:excludeMusics:)` to a public API. The earlier "withhold until external authoring tooling is decided" stance was overturned: round-trip parity with `Pyx.load` is the primary use case (e.g. runtime-generated bundles for tests, debugging, or save-state snapshots), and this is independent of any future authoring tool. A separate authoring tool, if added later, can be designed without rolling back this surface.
 
 ## Text
 

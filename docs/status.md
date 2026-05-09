@@ -5,7 +5,6 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 ## Open tasks
 
 - (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — was out of v0.2.0 scope
-- (M7, target v0.4.0) Expose `Pyx.save(path:exclude*)` as a public Swift API. v0.3.0 already implements `pyxift_engine_save_bundle` in C++ for round-trip testing, but the Swift wrapper is intentionally withheld until external authoring tooling is decided.
 - (M8, target v0.5.0) Input extensions: `btnp` `hold`/`repeat` parameters, analog gamepad axis access (`btnv`), `set_mouse_pos`, text input (`input_text`/`input_keys`), and dropped-file events (`dropped_files`). Spec details to be captured by `/pyxel-research` before implementation.
 - (M9, target v0.6.0) Drawing extensions: `blt`/`bltm` `rotate`/`scale` parameters, ellipse (`elli`/`ellib`), flood fill (`fill`), and dithering (`dither`). Spec details (rotation pivot, sampling, dither pattern) to be captured by `/pyxel-research`.
 - (M10, target v0.7.0) Window/system APIs: `fullscreen`, `resize`, `screen_mode`, `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `screencast`/`reset_screencast`, `Pyx.reset`, `show`, `flip`, and a public `VERSION` constant.
@@ -22,7 +21,6 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 ## Roadmap from v0.4 onward
 
-- v0.4.0: expose `Pyx.save(path:exclude*)` as public Swift API (M7; see Open tasks)
 - v0.5.0: input extensions — `btnp(hold:repeat:)`, analog axis (`btnv`), `set_mouse_pos`, `input_text`/`input_keys`/`dropped_files` (M8)
 - v0.6.0: drawing extensions — `blt(rotate:scale:)`, `bltm(rotate:scale:)`, `elli`/`ellib`, `fill` (flood fill), `dither(alpha:)` (M9)
 - v0.7.0: window/system — `fullscreen`, `resize`, `screen_mode`, `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `screencast`, `reset_screencast`, `Pyx.reset`, `show`, `flip`, `VERSION` (M10)
