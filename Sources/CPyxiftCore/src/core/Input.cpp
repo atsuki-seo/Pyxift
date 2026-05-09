@@ -95,6 +95,25 @@ void InputState::push(const VirtualEvent &ev) {
     }
 }
 
+void InputState::push_text(const char *utf8) {
+    if (utf8 == nullptr) return;
+    input_text_.append(utf8);
+}
+
+void InputState::push_input_key(int32_t keycode) {
+    input_keys_.push_back(keycode);
+}
+
+void InputState::push_dropped_file(const char *path) {
+    if (path == nullptr) return;
+    dropped_files_.emplace_back(path);
+}
+
+void InputState::set_mouse_pos(int32_t x, int32_t y) {
+    mouse_x_ = x;
+    mouse_y_ = y;
+}
+
 void InputState::end_frame() {
     for (int32_t p = 0; p < kMaxPlayers; ++p) {
         btn_pressed_[p] = 0;
@@ -105,6 +124,9 @@ void InputState::end_frame() {
     mb_pressed_ = 0;
     mb_released_ = 0;
     mouse_wheel_ = 0;
+    input_text_.clear();
+    input_keys_.clear();
+    dropped_files_.clear();
     ++frame_count_;
 }
 
