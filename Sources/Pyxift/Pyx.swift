@@ -329,6 +329,24 @@ extension Pyx {
             fatalError("Pyx.load failed: \(path)")
         }
     }
+
+    // _saveBundle is the SPI the round-trip demo and v0.4 work-in-progress
+    // tooling use. Promoted to public Pyx.save in a later milestone; until
+    // then, the @_spi gate keeps the symbol from escaping into the v0.3
+    // public surface.
+    @_spi(Internal)
+    @MainActor
+    public static func _saveBundle(_ path: String) {
+        guard let engine = Runtime.engine else {
+            fatalError("Pyx._saveBundle called before Pyx.run")
+        }
+        let ok = path.withCString { c in
+            pyxift_engine_save_bundle(engine, c)
+        }
+        if !ok {
+            fatalError("Pyx._saveBundle failed: \(path)")
+        }
+    }
 }
 
 extension Pyx {

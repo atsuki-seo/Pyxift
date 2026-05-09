@@ -1,4 +1,4 @@
-import Pyxift
+@_spi(Internal) import Pyxift
 import Foundation
 
 enum Scene: Int {
@@ -7,6 +7,7 @@ enum Scene: Int {
     case assets = 2
     case bouncing = 3
     case music = 4
+    case bundle = 5
 
     var next: Scene {
         switch self {
@@ -14,7 +15,8 @@ enum Scene: Int {
         case .input:    return .assets
         case .assets:   return .bouncing
         case .bouncing: return .music
-        case .music:    return .drawing
+        case .music:    return .bundle
+        case .bundle:   return .drawing
         }
     }
 }
@@ -38,6 +40,8 @@ struct Demo: App {
     var lastMouseWheel: Int = 0
 
     var balls: [Ball] = []
+    var bundlePath: String = ""
+    var bundleStatus: String = "(not yet)"
 
     mutating func update() {
         if !initialized {
@@ -45,6 +49,7 @@ struct Demo: App {
             buildSounds()
             buildMusic()
             spawnBalls()
+            performBundleRoundTrip()
             initialized = true
         }
         if scene == .music {
@@ -94,7 +99,34 @@ struct Demo: App {
         case .assets:   drawAssetsScene()
         case .bouncing: drawBouncingScene()
         case .music:    drawMusicScene()
+        case .bundle:   drawBundleScene()
         }
+    }
+
+    private mutating func performBundleRoundTrip() {
+        let path = NSTemporaryDirectory() + "pyxift-demo-bundle.pyxift"
+        bundlePath = path
+        Pyx._saveBundle(path)
+        for x in 0..<16 {
+            for y in 0..<16 {
+                Pyx.imagePset(bank: 0, x: x, y: y, color: .black)
+            }
+        }
+        Pyx.load(path, excludeTilemaps: true, excludeSounds: true, excludeMusics: true)
+        bundleStatus = "OK"
+    }
+
+    private func drawBundleScene() {
+        Pyx.text(x: 4, y: 4, "M6 ASSET BUNDLE", color: .yellow)
+        Pyx.text(x: 4, y: 14, ".PYXIFT ROUND TRIP", color: .gray)
+        Pyx.text(x: 4, y: 26, "STATUS: \(bundleStatus)", color: bundleStatus == "OK" ? .lime : .red)
+        Pyx.text(x: 4, y: 36, "BANK 0 (RELOADED):", color: .gray)
+        Pyx.blt(x: 4, y: 46, image: 0, u: 0, v: 0, w: 16, h: 16, transparent: nil)
+        Pyx.text(x: 4, y: 70, "TILEMAP 0 (RELOADED):", color: .gray)
+        Pyx.bltm(x: 4, y: 80, tilemap: 0, u: 0, v: 0, w: 3, h: 2, transparent: nil)
+        Pyx.text(x: 4, y: Pyx.height - 18, "FILE:", color: .gray)
+        Pyx.text(x: 4, y: Pyx.height - 10,
+                 String(bundlePath.suffix(34)), color: .lightBlue)
     }
 
     private mutating func spawnBalls() {
