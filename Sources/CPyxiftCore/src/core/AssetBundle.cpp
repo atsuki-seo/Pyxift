@@ -240,33 +240,41 @@ bool load_asset_bundle(const std::string &path,
     if (!opts.exclude_images && doc.contains("images") && doc["images"].is_array() &&
         slots.images != nullptr) {
         const auto &arr = doc["images"];
-        for (size_t i = 0; i < arr.size() && static_cast<int32_t>(i) < slots.image_count; ++i) {
-            decode_image(arr[i], slots.images[i]);
+        const json empty = json::object();
+        for (int32_t i = 0; i < slots.image_count; ++i) {
+            const json &src = (static_cast<size_t>(i) < arr.size()) ? arr[i] : empty;
+            decode_image(src, slots.images[i]);
         }
     }
     if (!opts.exclude_tilemaps && doc.contains("tilemaps") && doc["tilemaps"].is_array() &&
         slots.tilemaps != nullptr) {
         const auto &arr = doc["tilemaps"];
-        for (size_t i = 0; i < arr.size() && static_cast<int32_t>(i) < slots.tilemap_count; ++i) {
-            decode_tilemap(arr[i], slots.tilemaps[i]);
+        const json empty = json::object();
+        for (int32_t i = 0; i < slots.tilemap_count; ++i) {
+            const json &src = (static_cast<size_t>(i) < arr.size()) ? arr[i] : empty;
+            decode_tilemap(src, slots.tilemaps[i]);
         }
     }
     if (!opts.exclude_sounds && doc.contains("sounds") && doc["sounds"].is_array() &&
         slots.audio_mixer != nullptr) {
         const auto &arr = doc["sounds"];
-        for (size_t i = 0; i < arr.size() && static_cast<int32_t>(i) < kNumSounds; ++i) {
+        const json empty = json::object();
+        for (int32_t i = 0; i < kNumSounds; ++i) {
             Sound s;
-            decode_sound(arr[i], s);
-            slots.audio_mixer->set_sound(static_cast<int32_t>(i), s);
+            const json &src = (static_cast<size_t>(i) < arr.size()) ? arr[i] : empty;
+            decode_sound(src, s);
+            slots.audio_mixer->set_sound(i, s);
         }
     }
     if (!opts.exclude_musics && doc.contains("musics") && doc["musics"].is_array() &&
         slots.audio_mixer != nullptr) {
         const auto &arr = doc["musics"];
-        for (size_t i = 0; i < arr.size() && static_cast<int32_t>(i) < kNumMusics; ++i) {
+        const json empty = json::object();
+        for (int32_t i = 0; i < kNumMusics; ++i) {
             Music m;
-            decode_music(arr[i], m);
-            slots.audio_mixer->set_music(static_cast<int32_t>(i), m);
+            const json &src = (static_cast<size_t>(i) < arr.size()) ? arr[i] : empty;
+            decode_music(src, m);
+            slots.audio_mixer->set_music(i, m);
         }
     }
     return true;
