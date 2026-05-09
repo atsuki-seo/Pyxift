@@ -108,4 +108,4 @@ Copyright-year synchronization is delegated to the `copyright-sync` skill. Invok
 - Full license text: `THIRD_PARTY_LICENSES/pyxel-MIT.txt`
 - Pre-release-tag checklist: `docs/status.md`
 - Attribution-comment hook: `.claude/hooks/check-source-comment.sh`
-- Pre-tag check hook: `.claude/hooks/check-release-tag.sh`
+- Release-tag workflow: `.github/workflows/release-tag.yml`

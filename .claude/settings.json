@@ -21,15 +21,6 @@
             "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/check-english-only.sh"
           }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/check-release-tag.sh"
-          }
-        ]
       }
     ],
     "Stop": [

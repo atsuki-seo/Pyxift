@@ -96,7 +96,7 @@ If the new entry references another (e.g. an Open task points at a Decisions ent
 
 - Match the existing voice: short prose paragraphs, parenthetical milestone tags like `(M7, target v0.4.0)`, no emoji, no first person.
 - Prefer extending an existing section to creating a new heading. New top-level sections in either file are rare and should usually prompt a confirmation question on their own.
-- Roadmap entries belong in the existing "Roadmap from v0.2 onward" list and follow its `vX.Y.Z: <one-line summary>` shape.
+- Roadmap entries belong in the existing "Roadmap from vX.Y onward" list and follow its `vX.Y.Z: <one-line summary>` shape.
 - Open questions are framed as questions or as "revisit when ..." notes — they are explicitly things still un-decided.
 
 ## Out of scope
