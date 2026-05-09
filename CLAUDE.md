@@ -33,10 +33,10 @@ Use `git log --grep '^M[0-9]'` to review completed milestones.
 ## Referencing the Upstream Pyxel Repository
 
 The upstream code is expected to live in `../pyxel/` — the **parent directory** of the Pyxift repo (Pyxel itself is **written in Rust**).
-The `/pyxel-sync` skill checks for it on launch, clones it if missing, and otherwise syncs via `git fetch && git reset --hard origin/main`.
+The `/pyxel-ref-update` skill is the single primitive that prepares this checkout: it clones `../pyxel/` if missing, otherwise force-syncs the existing checkout to the latest stable release tag of kitao/pyxel (full checkout, `--depth=1`, no sparse-checkout). `/pyxel-sync` calls `/pyxel-ref-update` internally before doing any drift detection.
 
-The "tracked-files table" in `docs/pyxel-reference.md` is the SSOT for which upstream paths are referenced by which Pyxift files. Whenever you add an implementation that draws on upstream code, you must register an entry in that table (`.claude/hooks/check-source-comment.sh` mechanically verifies that any file carrying an attribution comment is listed in the table).
-The tracked SHA and last-sync date live in the "upstream sync status" block of the same file, which is the SSOT for those values.
+The "tracked-files table" in `docs/pyxel-reference.md` is the SSOT for which upstream paths are referenced by which Pyxift files. Whenever you add an implementation that draws on upstream code, you must register an entry in that table (`.claude/hooks/check-source-comment.sh` mechanically verifies that any file carrying an attribution comment is listed in the table). The table now functions purely as a **drift-detection filter** for `/pyxel-sync` — the diffs it surfaces are restricted to the paths it lists.
+The tracked release tag and last-sync date live in the "upstream sync status" block of the same file, which is the SSOT for those values.
 
 API compatibility and numeric-spec upstream sync are consolidated in the `/pyxel-sync` skill (`.claude/skills/pyxel-sync/SKILL.md`).
 

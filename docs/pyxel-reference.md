@@ -10,8 +10,8 @@ The full license text lives in [`THIRD_PARTY_LICENSES/pyxel-MIT.txt`](../THIRD_P
 
 The tracking ledger maintained by the `/pyxel-sync` skill. Do not edit by hand; let the skill update it.
 
-- **Source**: `../pyxel/` in the parent directory (a clone of kitao/pyxel). On skill startup it is force-synced with `git fetch && git reset --hard origin/main`
-- **Tracked SHA**: `84c674966f0cab0e47cf43a0d39111976b5932f5`
+- **Source**: `../pyxel/` in the parent directory (a clone of kitao/pyxel). The `/pyxel-ref-update` skill force-syncs it to the latest stable release tag (full checkout, `--depth=1`) before each `/pyxel-sync` run
+- **Tracked tag**: `(to be filled by the next /pyxel-ref-update)`
 - **Last synced**: 2026-05-08
 - **Tracked files**: see the "Tracked-files table" below (SSOT)
 
@@ -21,6 +21,8 @@ For the diff-handling workflow, see `.claude/skills/pyxel-sync/SKILL.md`.
 ## Tracked-files table
 
 `/pyxel-sync` and `.claude/hooks/check-source-comment.sh` parse this table mechanically. Do not remove the surrounding `pyxel-tracked-files` markers.
+
+The table acts as a **drift-detection filter** for `/pyxel-sync`: only paths listed here are diffed between the previously-recorded `Tracked tag` and the current upstream release tag. It does not drive sparse-checkout — `../pyxel/` is a full checkout managed by `/pyxel-ref-update`.
 
 The "upstream" column is the primary key, so each row is one upstream file. When the Pyxift side spans multiple files, list them separated by `<br>`.
 
