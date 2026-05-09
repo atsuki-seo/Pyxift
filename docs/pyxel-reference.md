@@ -11,8 +11,8 @@ The full license text lives in [`THIRD_PARTY_LICENSES/pyxel-MIT.txt`](../THIRD_P
 The tracking ledger maintained by the `/pyxel-sync` skill. Do not edit by hand; let the skill update it.
 
 - **Source**: `../pyxel/` in the parent directory (a clone of kitao/pyxel). The `/pyxel-ref-update` skill force-syncs it to the latest stable release tag (full checkout, `--depth=1`) before each `/pyxel-sync` run
-- **Tracked tag**: `(to be filled by the next /pyxel-ref-update)`
-- **Last synced**: 2026-05-08
+- **Tracked tag**: `v2.9.5`
+- **Last synced**: 2026-05-09
 - **Tracked files**: see the "Tracked-files table" below (SSOT)
 
 For the diff-handling workflow, see `.claude/skills/pyxel-sync/SKILL.md`.
