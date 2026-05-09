@@ -317,6 +317,67 @@ extension Pyx {
         guard let engine = Runtime.engine else { return }
         pyxift_engine_mouse_cursor(engine, visible)
     }
+
+    @MainActor
+    public static func setMousePos(x: Int, y: Int) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_set_mouse_pos(engine, Int32(x), Int32(y))
+    }
+
+    @MainActor
+    public static func inputText() -> String {
+        guard let engine = Runtime.engine else { return "" }
+        let len = Int(pyxift_engine_input_text(engine, nil, 0))
+        if len == 0 { return "" }
+        var buf = [UInt8](repeating: 0, count: len + 1)
+        buf.withUnsafeMutableBufferPointer { p in
+            _ = p.baseAddress?.withMemoryRebound(to: CChar.self, capacity: len + 1) { cp in
+                pyxift_engine_input_text(engine, cp, Int32(len + 1))
+            }
+        }
+        buf.removeLast()
+        return String(decoding: buf, as: UTF8.self)
+    }
+
+    @MainActor
+    public static func inputKeys() -> [Key] {
+        guard let engine = Runtime.engine else { return [] }
+        let count = Int(pyxift_engine_input_keys_count(engine))
+        var keys: [Key] = []
+        keys.reserveCapacity(count)
+        for i in 0..<count {
+            let raw = pyxift_engine_input_keys_at(engine, Int32(i))
+            if let k = Key(rawValue: raw) {
+                keys.append(k)
+            }
+        }
+        return keys
+    }
+
+    @MainActor
+    public static func droppedFiles() -> [String] {
+        guard let engine = Runtime.engine else { return [] }
+        let count = Int(pyxift_engine_dropped_files_count(engine))
+        var paths: [String] = []
+        paths.reserveCapacity(count)
+        for i in 0..<count {
+            let len = Int(pyxift_engine_dropped_files_at(engine, Int32(i), nil, 0))
+            if len < 0 { continue }
+            if len == 0 {
+                paths.append("")
+                continue
+            }
+            var buf = [UInt8](repeating: 0, count: len + 1)
+            buf.withUnsafeMutableBufferPointer { p in
+                _ = p.baseAddress?.withMemoryRebound(to: CChar.self, capacity: len + 1) { cp in
+                    pyxift_engine_dropped_files_at(engine, Int32(i), cp, Int32(len + 1))
+                }
+            }
+            buf.removeLast()
+            paths.append(String(decoding: buf, as: UTF8.self))
+        }
+        return paths
+    }
 }
 
 extension Pyx {
