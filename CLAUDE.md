@@ -15,12 +15,17 @@ All artifacts committed to this repository must be written in English. See `.cla
 
 Steps to take when a milestone is complete:
 
-1. Mark completion with an empty commit:
-   ```
-   git commit --allow-empty -m "M1: vertical-slice complete"
-   ```
-   The commit message must always start with `M<number>: ` (for example `M1:`, `M2a:`, `M13:`).
-2. Tag only official releases with `git tag`; do not create intermediate tags. Before tagging, complete the "pre-release-tag checklist" in `docs/status.md` (`.claude/hooks/check-release-tag.sh` enforces it mechanically).
+1. Mark completion with an empty commit. The commit message must start with `M<number>[<suffix>]: ` (for example `M1:`, `M2a:`, `M13:`). Two forms exist:
+   - **Release-tagging milestone** (commit will trigger an automatic version tag): include the version after `M<n>: `, e.g.
+     ```
+     git commit --allow-empty -m "M6: v0.3.0 asset bundle complete"
+     ```
+     Pattern: `^M[0-9]+[a-z]?: v[0-9]+\.[0-9]+\.[0-9]+ `.
+   - **Intermediate milestone** (no tag): omit the version, e.g.
+     ```
+     git commit --allow-empty -m "M2a: input plumbing complete"
+     ```
+2. Do **not** run `git tag` manually. Pushing a release-tagging M-commit to `main` triggers `.github/workflows/release-tag.yml`, which runs the build with warnings-as-errors on macOS+Linux and creates the `vX.Y.Z` tag on success. `git tag` invocations from a developer machine are out of band.
 
 Use `git log --grep '^M[0-9]'` to review completed milestones.
 

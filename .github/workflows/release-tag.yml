@@ -1,0 +1,106 @@
+name: Release tag
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  detect:
+    name: Detect release-tagging M-commit
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Parse HEAD commit message
+        id: parse
+        run: |
+          set -eu
+          subject=$(git log -1 --format=%s)
+          echo "subject: $subject"
+          if [[ "$subject" =~ ^M[0-9]+[a-z]?:[[:space:]]+v([0-9]+\.[0-9]+\.[0-9]+)[[:space:]] ]]; then
+            version="v${BASH_REMATCH[1]}"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "Will release: $version"
+          else
+            echo "Not a release-tagging M-commit; skipping."
+          fi
+
+  build:
+    name: swift build (${{ matrix.os }})
+    needs: detect
+    if: needs.detect.outputs.version != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SDL3 (macOS)
+        if: runner.os == 'macOS'
+        run: brew install sdl3
+
+      - name: Install SDL3 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          set -eux
+          sudo apt-get update
+          if ! sudo apt-get install -y libsdl3-dev pkg-config; then
+            sudo apt-get install -y \
+              build-essential cmake pkg-config git \
+              libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+              libwayland-dev libxkbcommon-dev libgbm-dev libdrm-dev \
+              libasound2-dev libpulse-dev
+            git clone --depth 1 --branch release-3.2.x https://github.com/libsdl-org/SDL.git /tmp/SDL
+            cmake -S /tmp/SDL -B /tmp/SDL/build -DCMAKE_BUILD_TYPE=Release
+            cmake --build /tmp/SDL/build -j
+            sudo cmake --install /tmp/SDL/build
+            sudo ldconfig
+          fi
+
+      - name: Setup Swift (Linux)
+        if: runner.os == 'Linux'
+        uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: "6.0"
+
+      - name: swift build (warnings-as-errors)
+        run: swift build -Xswiftc -warnings-as-errors
+
+      - name: swift test
+        run: swift test
+
+  tag:
+    name: Create tag ${{ needs.detect.outputs.version }}
+    needs: [detect, build]
+    if: needs.detect.outputs.version != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag does not already exist
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -eu
+          if git rev-parse --verify "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "ERROR: tag $VERSION already exists." >&2
+            exit 1
+          fi
+
+      - name: Create and push tag
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -eu
+          git tag "$VERSION"
+          git push origin "$VERSION"
