@@ -330,17 +330,22 @@ extension Pyx {
         }
     }
 
-    @_spi(Internal)
     @MainActor
-    public static func _saveBundle(_ path: String) {
+    public static func save(_ path: String,
+                            excludeImages: Bool = false,
+                            excludeTilemaps: Bool = false,
+                            excludeSounds: Bool = false,
+                            excludeMusics: Bool = false) {
         guard let engine = Runtime.engine else {
-            fatalError("Pyx._saveBundle called before Pyx.run")
+            fatalError("Pyx.save called before Pyx.run")
         }
         let ok = path.withCString { c in
-            pyxift_engine_save_bundle(engine, c)
+            pyxift_engine_save_bundle(engine, c,
+                                      excludeImages, excludeTilemaps,
+                                      excludeSounds, excludeMusics)
         }
         if !ok {
-            fatalError("Pyx._saveBundle failed: \(path)")
+            fatalError("Pyx.save failed: \(path)")
         }
     }
 }

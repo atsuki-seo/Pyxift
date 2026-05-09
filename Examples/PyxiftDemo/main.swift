@@ -106,7 +106,7 @@ struct Demo: App {
     private mutating func performBundleRoundTrip() {
         let path = NSTemporaryDirectory() + "pyxift-demo-bundle.pyxift"
         bundlePath = path
-        Pyx._saveBundle(path)
+        Pyx.save(path, excludeSounds: true, excludeMusics: true)
         Pyx.load(path, excludeTilemaps: true, excludeSounds: true, excludeMusics: true)
         bundleStatus = "OK"
     }
