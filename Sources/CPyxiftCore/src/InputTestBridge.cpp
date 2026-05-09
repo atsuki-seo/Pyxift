@@ -66,12 +66,26 @@ void pyxift_input_state_push_mouse_wheel(PyxiftInputStateHandle *h, int32_t delt
     h->state.push(ev);
 }
 
+void pyxift_input_state_push_gamepad_axis(PyxiftInputStateHandle *h,
+                                          int32_t player, uint8_t axis, int32_t raw_value) {
+    if (h == nullptr) return;
+    pyxift::VirtualEvent ev{};
+    ev.type = pyxift::VirtualEvent::Type::GamepadAxis;
+    ev.a = player;
+    ev.b = axis;
+    ev.c = raw_value;
+    h->state.push(ev);
+}
+
 bool pyxift_input_state_button(const PyxiftInputStateHandle *h, uint8_t button, int32_t player) {
     return h != nullptr && h->state.button(static_cast<pyxift::Button>(button), player);
 }
 
-bool pyxift_input_state_button_pressed(const PyxiftInputStateHandle *h, uint8_t button, int32_t player) {
-    return h != nullptr && h->state.button_pressed(static_cast<pyxift::Button>(button), player);
+bool pyxift_input_state_button_pressed(const PyxiftInputStateHandle *h,
+                                       uint8_t button, int32_t player,
+                                       int32_t hold, int32_t repeat) {
+    return h != nullptr && h->state.button_pressed(
+        static_cast<pyxift::Button>(button), player, hold, repeat);
 }
 
 bool pyxift_input_state_button_released(const PyxiftInputStateHandle *h, uint8_t button, int32_t player) {
@@ -82,8 +96,9 @@ bool pyxift_input_state_key(const PyxiftInputStateHandle *h, int32_t keycode) {
     return h != nullptr && h->state.key(keycode);
 }
 
-bool pyxift_input_state_key_pressed(const PyxiftInputStateHandle *h, int32_t keycode) {
-    return h != nullptr && h->state.key_pressed(keycode);
+bool pyxift_input_state_key_pressed(const PyxiftInputStateHandle *h, int32_t keycode,
+                                    int32_t hold, int32_t repeat) {
+    return h != nullptr && h->state.key_pressed(keycode, hold, repeat);
 }
 
 bool pyxift_input_state_key_released(const PyxiftInputStateHandle *h, int32_t keycode) {
@@ -108,6 +123,11 @@ int32_t pyxift_input_state_mouse_y(const PyxiftInputStateHandle *h) {
 
 int32_t pyxift_input_state_mouse_wheel(const PyxiftInputStateHandle *h) {
     return h != nullptr ? h->state.mouse_wheel() : 0;
+}
+
+float pyxift_input_state_gamepad_axis(const PyxiftInputStateHandle *h, int32_t player, uint8_t axis) {
+    if (h == nullptr) return 0.0f;
+    return h->state.gamepad_axis(player, static_cast<pyxift::GamepadAxis>(axis));
 }
 
 } // extern "C"
