@@ -38,6 +38,9 @@ struct PyxiftEngine {
     pyxift::Image *image(int32_t bank);
     pyxift::Tilemap *tilemap(int32_t index);
 
+    pyxift::Image *images_data() { return images_.data(); }
+    pyxift::Tilemap *tilemaps_data() { return tilemaps_.data(); }
+
     pyxift::InputState &input() { return input_; }
     const pyxift::InputState &input() const { return input_; }
 

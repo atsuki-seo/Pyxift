@@ -1,5 +1,6 @@
 #include "Engine.hpp"
 
+#include "core/AssetBundle.hpp"
 #include "core/ImageLoader.hpp"
 #include "core/Palette.hpp"
 
@@ -7,6 +8,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <memory>
 #include <thread>
 
 namespace {
@@ -434,6 +436,97 @@ bool pyxift_engine_play_pos(const PyxiftEngine *engine,
     if (out_sound_index != nullptr) *out_sound_index = pos->first;
     if (out_sec != nullptr) *out_sec = pos->second;
     return true;
+}
+
+static pyxift::AssetBundleSlots make_slots(PyxiftEngine *engine) {
+    pyxift::AssetBundleSlots slots;
+    slots.images = engine->images_data();
+    slots.image_count = PyxiftEngine::kImageBankCount;
+    slots.tilemaps = engine->tilemaps_data();
+    slots.tilemap_count = PyxiftEngine::kTilemapCount;
+    slots.audio_mixer = &engine->audio_mixer();
+    return slots;
+}
+
+bool pyxift_engine_load_bundle(PyxiftEngine *engine,
+                               const char *path,
+                               bool exclude_images,
+                               bool exclude_tilemaps,
+                               bool exclude_sounds,
+                               bool exclude_musics) {
+    if (engine == nullptr || path == nullptr) return false;
+    pyxift::AssetBundleOptions opts;
+    opts.exclude_images = exclude_images;
+    opts.exclude_tilemaps = exclude_tilemaps;
+    opts.exclude_sounds = exclude_sounds;
+    opts.exclude_musics = exclude_musics;
+    return pyxift::load_asset_bundle(std::string(path), make_slots(engine), opts);
+}
+
+bool pyxift_engine_save_bundle(PyxiftEngine *engine, const char *path) {
+    if (engine == nullptr || path == nullptr) return false;
+    return pyxift::save_asset_bundle(std::string(path), make_slots(engine));
+}
+
+int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
+                                     int32_t img_x, int32_t img_y, uint8_t img_color,
+                                     int32_t cx, int32_t cy,
+                                     uint8_t tx, uint8_t ty, int32_t imgsrc,
+                                     int8_t note, int32_t speed,
+                                     int32_t music_value,
+                                     uint8_t *out_color,
+                                     uint8_t *out_tx, uint8_t *out_ty,
+                                     int32_t *out_imgsrc,
+                                     int8_t *out_note, int32_t *out_speed,
+                                     int32_t *out_music_value) {
+    if (tmp_path == nullptr) return 0;
+
+    pyxift::Image src_img;
+    src_img.pset(img_x, img_y, img_color);
+    pyxift::Tilemap src_tm;
+    src_tm.set_image_bank(imgsrc);
+    src_tm.set_cell(cx, cy, tx, ty);
+    auto src_mixer = std::make_unique<pyxift::AudioMixer>();
+    pyxift::Sound s;
+    s.notes.push_back(note);
+    s.speed = speed;
+    src_mixer->set_sound(0, s);
+    pyxift::Music m;
+    m.seqs[0].push_back(music_value);
+    src_mixer->set_music(0, m);
+
+    pyxift::AssetBundleSlots src_slots;
+    src_slots.images = &src_img;
+    src_slots.image_count = 1;
+    src_slots.tilemaps = &src_tm;
+    src_slots.tilemap_count = 1;
+    src_slots.audio_mixer = src_mixer.get();
+    if (!pyxift::save_asset_bundle(std::string(tmp_path), src_slots)) return 0;
+
+    pyxift::Image dst_img;
+    pyxift::Tilemap dst_tm;
+    auto dst_mixer = std::make_unique<pyxift::AudioMixer>();
+    pyxift::AssetBundleSlots dst_slots;
+    dst_slots.images = &dst_img;
+    dst_slots.image_count = 1;
+    dst_slots.tilemaps = &dst_tm;
+    dst_slots.tilemap_count = 1;
+    dst_slots.audio_mixer = dst_mixer.get();
+    pyxift::AssetBundleOptions opts;
+    if (!pyxift::load_asset_bundle(std::string(tmp_path), dst_slots, opts)) return 0;
+
+    if (out_color != nullptr) *out_color = dst_img.pget(img_x, img_y);
+    uint8_t rt = 0, ry = 0;
+    dst_tm.get_cell(cx, cy, rt, ry);
+    if (out_tx != nullptr) *out_tx = rt;
+    if (out_ty != nullptr) *out_ty = ry;
+    if (out_imgsrc != nullptr) *out_imgsrc = dst_tm.image_bank();
+    auto rs = dst_mixer->get_sound(0);
+    if (out_note != nullptr) *out_note = rs.notes.empty() ? -127 : rs.notes[0];
+    if (out_speed != nullptr) *out_speed = rs.speed;
+    auto rm = dst_mixer->get_music(0);
+    if (out_music_value != nullptr) *out_music_value = rm.seqs[0].empty() ? -1 : rm.seqs[0][0];
+    return 1;
 }
 
 } // extern "C"
