@@ -4,7 +4,6 @@ namespace pyxift::platform {
 
 namespace {
 
-// One virtual button may map from multiple SDL_Keycodes, so duplicate entries are allowed.
 struct KeyMap {
     SDL_Keycode key;
     Button button;
@@ -108,12 +107,30 @@ void EventTranslator::emit_gamepad_button(InputState &state, int32_t player, uin
 }
 
 void EventTranslator::emit_gamepad_axis(InputState &state, int32_t player, uint8_t axis, int16_t value) {
+    GamepadAxis ga = GamepadAxis::Count;
+    switch (axis) {
+        case SDL_GAMEPAD_AXIS_LEFTX:         ga = GamepadAxis::LeftX;         break;
+        case SDL_GAMEPAD_AXIS_LEFTY:         ga = GamepadAxis::LeftY;         break;
+        case SDL_GAMEPAD_AXIS_RIGHTX:        ga = GamepadAxis::RightX;        break;
+        case SDL_GAMEPAD_AXIS_RIGHTY:        ga = GamepadAxis::RightY;        break;
+        case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:  ga = GamepadAxis::LeftTrigger;   break;
+        case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER: ga = GamepadAxis::RightTrigger;  break;
+        default:                             return;
+    }
+
+    VirtualEvent ev{};
+    ev.type = VirtualEvent::Type::GamepadAxis;
+    ev.a = player;
+    ev.b = static_cast<int32_t>(ga);
+    ev.c = static_cast<int32_t>(value);
+    state.push(ev);
+
     int32_t idx = -1;
     Button neg_btn = Button::Count;
     Button pos_btn = Button::Count;
-    if (axis == SDL_GAMEPAD_AXIS_LEFTX) {
+    if (ga == GamepadAxis::LeftX) {
         idx = 0; neg_btn = Button::Left; pos_btn = Button::Right;
-    } else if (axis == SDL_GAMEPAD_AXIS_LEFTY) {
+    } else if (ga == GamepadAxis::LeftY) {
         idx = 1; neg_btn = Button::Up; pos_btn = Button::Down;
     } else {
         return;
