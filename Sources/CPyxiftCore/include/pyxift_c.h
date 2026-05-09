@@ -161,7 +161,12 @@ bool pyxift_engine_load_bundle(PyxiftEngine *engine,
                                bool exclude_sounds,
                                bool exclude_musics);
 
-bool pyxift_engine_save_bundle(PyxiftEngine *engine, const char *path);
+bool pyxift_engine_save_bundle(PyxiftEngine *engine,
+                               const char *path,
+                               bool exclude_images,
+                               bool exclude_tilemaps,
+                               bool exclude_sounds,
+                               bool exclude_musics);
 
 // Test-only fixture: writes a bundle whose image bank 0 has a single colored
 // pixel, tilemap 0 has one cell at (cx, cy)=(tx, ty) with imgsrc=imgsrc,
@@ -184,6 +189,26 @@ int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
                                      int32_t *out_imgsrc,
                                      int8_t *out_note, int32_t *out_speed,
                                      int32_t *out_music_value);
+
+// Test-only fixture mirroring pyxift_test_bundle_roundtrip, but the exclude_*
+// flags are applied at SAVE time (load is unfiltered). Destination slots are
+// pre-seeded with sentinels so categories excluded at save show up as their
+// pre-seeded sentinels on the load side. Returns 1 on success, 0 on failure.
+int32_t pyxift_test_bundle_save_exclude_roundtrip(const char *tmp_path,
+                                                  int32_t img_x, int32_t img_y, uint8_t img_color,
+                                                  int32_t cx, int32_t cy,
+                                                  uint8_t tx, uint8_t ty, int32_t imgsrc,
+                                                  int8_t note, int32_t speed,
+                                                  int32_t music_value,
+                                                  bool exclude_images,
+                                                  bool exclude_tilemaps,
+                                                  bool exclude_sounds,
+                                                  bool exclude_musics,
+                                                  uint8_t *out_color,
+                                                  uint8_t *out_tx, uint8_t *out_ty,
+                                                  int32_t *out_imgsrc,
+                                                  int8_t *out_note, int32_t *out_speed,
+                                                  int32_t *out_music_value);
 
 #ifdef __cplusplus
 }

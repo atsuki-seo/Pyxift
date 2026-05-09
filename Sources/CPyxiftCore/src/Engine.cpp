@@ -463,35 +463,45 @@ bool pyxift_engine_load_bundle(PyxiftEngine *engine,
     return pyxift::load_asset_bundle(std::string(path), make_slots(engine), opts);
 }
 
-bool pyxift_engine_save_bundle(PyxiftEngine *engine, const char *path) {
+bool pyxift_engine_save_bundle(PyxiftEngine *engine,
+                               const char *path,
+                               bool exclude_images,
+                               bool exclude_tilemaps,
+                               bool exclude_sounds,
+                               bool exclude_musics) {
     if (engine == nullptr || path == nullptr) return false;
-    return pyxift::save_asset_bundle(std::string(path), make_slots(engine));
+    pyxift::AssetBundleOptions opts;
+    opts.exclude_images = exclude_images;
+    opts.exclude_tilemaps = exclude_tilemaps;
+    opts.exclude_sounds = exclude_sounds;
+    opts.exclude_musics = exclude_musics;
+    return pyxift::save_asset_bundle(std::string(path), make_slots(engine), opts);
 }
 
-int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
-                                     int32_t img_x, int32_t img_y, uint8_t img_color,
-                                     int32_t cx, int32_t cy,
-                                     uint8_t tx, uint8_t ty, int32_t imgsrc,
-                                     int8_t note, int32_t speed,
-                                     int32_t music_value,
-                                     bool exclude_images,
-                                     bool exclude_tilemaps,
-                                     bool exclude_sounds,
-                                     bool exclude_musics,
-                                     uint8_t *out_color,
-                                     uint8_t *out_tx, uint8_t *out_ty,
-                                     int32_t *out_imgsrc,
-                                     int8_t *out_note, int32_t *out_speed,
-                                     int32_t *out_music_value) {
-    if (tmp_path == nullptr) return 0;
+namespace {
 
-    constexpr uint8_t kImageSentinel = 14;
-    constexpr uint8_t kTileSentinelX = 200;
-    constexpr uint8_t kTileSentinelY = 201;
-    constexpr int32_t kImgsrcSentinel = -42;
-    constexpr int8_t kNoteSentinel = -100;
-    constexpr int32_t kSpeedSentinel = -7;
-    constexpr int32_t kMusicSentinel = -55;
+constexpr uint8_t kImageSentinel = 14;
+constexpr uint8_t kTileSentinelX = 200;
+constexpr uint8_t kTileSentinelY = 201;
+constexpr int32_t kImgsrcSentinel = -42;
+constexpr int8_t kNoteSentinel = -100;
+constexpr int32_t kSpeedSentinel = -7;
+constexpr int32_t kMusicSentinel = -55;
+
+int32_t bundle_roundtrip_impl(const char *tmp_path,
+                              int32_t img_x, int32_t img_y, uint8_t img_color,
+                              int32_t cx, int32_t cy,
+                              uint8_t tx, uint8_t ty, int32_t imgsrc,
+                              int8_t note, int32_t speed,
+                              int32_t music_value,
+                              const pyxift::AssetBundleOptions &save_opts,
+                              const pyxift::AssetBundleOptions &load_opts,
+                              uint8_t *out_color,
+                              uint8_t *out_tx, uint8_t *out_ty,
+                              int32_t *out_imgsrc,
+                              int8_t *out_note, int32_t *out_speed,
+                              int32_t *out_music_value) {
+    if (tmp_path == nullptr) return 0;
 
     pyxift::Image src_img;
     src_img.pset(img_x, img_y, img_color);
@@ -513,7 +523,7 @@ int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
     src_slots.tilemaps = &src_tm;
     src_slots.tilemap_count = 1;
     src_slots.audio_mixer = src_mixer.get();
-    if (!pyxift::save_asset_bundle(std::string(tmp_path), src_slots)) return 0;
+    if (!pyxift::save_asset_bundle(std::string(tmp_path), src_slots, save_opts)) return 0;
 
     pyxift::Image dst_img;
     dst_img.pset(img_x, img_y, kImageSentinel);
@@ -535,12 +545,7 @@ int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
     dst_slots.tilemaps = &dst_tm;
     dst_slots.tilemap_count = 1;
     dst_slots.audio_mixer = dst_mixer.get();
-    pyxift::AssetBundleOptions opts;
-    opts.exclude_images = exclude_images;
-    opts.exclude_tilemaps = exclude_tilemaps;
-    opts.exclude_sounds = exclude_sounds;
-    opts.exclude_musics = exclude_musics;
-    if (!pyxift::load_asset_bundle(std::string(tmp_path), dst_slots, opts)) return 0;
+    if (!pyxift::load_asset_bundle(std::string(tmp_path), dst_slots, load_opts)) return 0;
 
     if (out_color != nullptr) *out_color = dst_img.pget(img_x, img_y);
     uint8_t rt = 0, ry = 0;
@@ -554,6 +559,62 @@ int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
     auto rm = dst_mixer->get_music(0);
     if (out_music_value != nullptr) *out_music_value = rm.seqs[0].empty() ? -1 : rm.seqs[0][0];
     return 1;
+}
+
+} // namespace
+
+int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
+                                     int32_t img_x, int32_t img_y, uint8_t img_color,
+                                     int32_t cx, int32_t cy,
+                                     uint8_t tx, uint8_t ty, int32_t imgsrc,
+                                     int8_t note, int32_t speed,
+                                     int32_t music_value,
+                                     bool exclude_images,
+                                     bool exclude_tilemaps,
+                                     bool exclude_sounds,
+                                     bool exclude_musics,
+                                     uint8_t *out_color,
+                                     uint8_t *out_tx, uint8_t *out_ty,
+                                     int32_t *out_imgsrc,
+                                     int8_t *out_note, int32_t *out_speed,
+                                     int32_t *out_music_value) {
+    pyxift::AssetBundleOptions load_opts;
+    load_opts.exclude_images = exclude_images;
+    load_opts.exclude_tilemaps = exclude_tilemaps;
+    load_opts.exclude_sounds = exclude_sounds;
+    load_opts.exclude_musics = exclude_musics;
+    return bundle_roundtrip_impl(tmp_path, img_x, img_y, img_color,
+                                 cx, cy, tx, ty, imgsrc, note, speed, music_value,
+                                 pyxift::AssetBundleOptions{}, load_opts,
+                                 out_color, out_tx, out_ty, out_imgsrc,
+                                 out_note, out_speed, out_music_value);
+}
+
+int32_t pyxift_test_bundle_save_exclude_roundtrip(const char *tmp_path,
+                                                  int32_t img_x, int32_t img_y, uint8_t img_color,
+                                                  int32_t cx, int32_t cy,
+                                                  uint8_t tx, uint8_t ty, int32_t imgsrc,
+                                                  int8_t note, int32_t speed,
+                                                  int32_t music_value,
+                                                  bool exclude_images,
+                                                  bool exclude_tilemaps,
+                                                  bool exclude_sounds,
+                                                  bool exclude_musics,
+                                                  uint8_t *out_color,
+                                                  uint8_t *out_tx, uint8_t *out_ty,
+                                                  int32_t *out_imgsrc,
+                                                  int8_t *out_note, int32_t *out_speed,
+                                                  int32_t *out_music_value) {
+    pyxift::AssetBundleOptions save_opts;
+    save_opts.exclude_images = exclude_images;
+    save_opts.exclude_tilemaps = exclude_tilemaps;
+    save_opts.exclude_sounds = exclude_sounds;
+    save_opts.exclude_musics = exclude_musics;
+    return bundle_roundtrip_impl(tmp_path, img_x, img_y, img_color,
+                                 cx, cy, tx, ty, imgsrc, note, speed, music_value,
+                                 save_opts, pyxift::AssetBundleOptions{},
+                                 out_color, out_tx, out_ty, out_imgsrc,
+                                 out_note, out_speed, out_music_value);
 }
 
 } // extern "C"

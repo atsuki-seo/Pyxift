@@ -29,7 +29,8 @@ bool load_asset_bundle(const std::string &path,
                        const AssetBundleOptions &opts);
 
 bool save_asset_bundle(const std::string &path,
-                       const AssetBundleSlots &slots);
+                       const AssetBundleSlots &slots,
+                       const AssetBundleOptions &opts);
 
 } // namespace pyxift
 

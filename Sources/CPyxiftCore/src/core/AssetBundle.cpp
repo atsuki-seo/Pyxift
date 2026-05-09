@@ -281,27 +281,32 @@ bool load_asset_bundle(const std::string &path,
 }
 
 bool save_asset_bundle(const std::string &path,
-                       const AssetBundleSlots &slots) {
+                       const AssetBundleSlots &slots,
+                       const AssetBundleOptions &opts) {
     json doc;
     doc["format_version"] = kFormatVersion;
 
-    if (slots.images != nullptr) {
+    if (!opts.exclude_images && slots.images != nullptr) {
         json arr = json::array();
         for (int32_t i = 0; i < slots.image_count; ++i) arr.push_back(encode_image(slots.images[i]));
         doc["images"] = arr;
     }
-    if (slots.tilemaps != nullptr) {
+    if (!opts.exclude_tilemaps && slots.tilemaps != nullptr) {
         json arr = json::array();
         for (int32_t i = 0; i < slots.tilemap_count; ++i) arr.push_back(encode_tilemap(slots.tilemaps[i]));
         doc["tilemaps"] = arr;
     }
     if (slots.audio_mixer != nullptr) {
-        json sounds = json::array();
-        for (int32_t i = 0; i < kNumSounds; ++i) sounds.push_back(encode_sound(slots.audio_mixer->get_sound(i)));
-        doc["sounds"] = sounds;
-        json musics = json::array();
-        for (int32_t i = 0; i < kNumMusics; ++i) musics.push_back(encode_music(slots.audio_mixer->get_music(i)));
-        doc["musics"] = musics;
+        if (!opts.exclude_sounds) {
+            json sounds = json::array();
+            for (int32_t i = 0; i < kNumSounds; ++i) sounds.push_back(encode_sound(slots.audio_mixer->get_sound(i)));
+            doc["sounds"] = sounds;
+        }
+        if (!opts.exclude_musics) {
+            json musics = json::array();
+            for (int32_t i = 0; i < kNumMusics; ++i) musics.push_back(encode_music(slots.audio_mixer->get_music(i)));
+            doc["musics"] = musics;
+        }
     }
 
     std::string text = doc.dump();
