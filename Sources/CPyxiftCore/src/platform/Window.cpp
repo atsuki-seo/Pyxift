@@ -50,6 +50,9 @@ Window::Window(int32_t logical_width, int32_t logical_height, const std::string 
     if (texture_ != nullptr) {
         SDL_SetTextureScaleMode(texture_, SDL_SCALEMODE_NEAREST);
     }
+
+    // SDL3 stops delivering SDL_EVENT_TEXT_INPUT until the window opts in (SDL2 default was on).
+    SDL_StartTextInput(window_);
 }
 
 Window::~Window() {
@@ -69,6 +72,16 @@ void Window::set_cursor_visible(bool visible) {
 void Window::set_title(const std::string &title) {
     if (window_ == nullptr) return;
     SDL_SetWindowTitle(window_, title.c_str());
+}
+
+void Window::warp_mouse(int32_t logical_x, int32_t logical_y) {
+    if (window_ == nullptr) return;
+    float wx = static_cast<float>(logical_x);
+    float wy = static_cast<float>(logical_y);
+    if (renderer_ != nullptr) {
+        SDL_RenderCoordinatesToWindow(renderer_, wx, wy, &wx, &wy);
+    }
+    SDL_WarpMouseInWindow(window_, wx, wy);
 }
 
 void Window::present(const uint8_t *index_buffer, const uint32_t *palette) {

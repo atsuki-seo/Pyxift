@@ -166,6 +166,7 @@ bool EventTranslator::translate(SDL_Event &ev, InputState &state) {
                 ve.type = VirtualEvent::Type::KeyDown;
                 ve.a = static_cast<int32_t>(ev.key.key);
                 state.push(ve);
+                state.push_input_key(static_cast<int32_t>(ev.key.key));
                 emit_key_button(state, ev.key.key, true);
             }
             break;
@@ -223,6 +224,14 @@ bool EventTranslator::translate(SDL_Event &ev, InputState &state) {
             const int32_t player = player_for(ev.gaxis.which);
             if (player < 0) break;
             emit_gamepad_axis(state, player, ev.gaxis.axis, ev.gaxis.value);
+            break;
+        }
+        case SDL_EVENT_TEXT_INPUT: {
+            state.push_text(ev.text.text);
+            break;
+        }
+        case SDL_EVENT_DROP_FILE: {
+            state.push_dropped_file(ev.drop.data);
             break;
         }
         default:

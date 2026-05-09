@@ -20,6 +20,8 @@ public:
 
     void set_title(const std::string &title);
 
+    void warp_mouse(int32_t logical_x, int32_t logical_y);
+
     void present(const uint8_t *index_buffer, const uint32_t *palette);
 
     SDL_Renderer *renderer() { return renderer_; }
