@@ -26,6 +26,16 @@ enum class MouseButton : uint8_t {
     Count,
 };
 
+enum class GamepadAxis : uint8_t {
+    LeftX = 0,
+    LeftY,
+    RightX,
+    RightY,
+    LeftTrigger,
+    RightTrigger,
+    Count,
+};
+
 struct VirtualEvent {
     enum class Type : uint8_t {
         KeyDown,
@@ -38,6 +48,7 @@ struct VirtualEvent {
         MouseWheel,
         GamepadConnected,
         GamepadDisconnected,
+        GamepadAxis,
     };
 
     Type type;
@@ -49,6 +60,7 @@ struct VirtualEvent {
 class InputState {
 public:
     static constexpr int32_t kMaxPlayers = 4;
+    static constexpr int32_t kAxisCount = static_cast<int32_t>(GamepadAxis::Count);
 
     void push(const VirtualEvent &ev);
 
@@ -56,10 +68,12 @@ public:
 
     bool button(Button b, int32_t player) const;
     bool button_pressed(Button b, int32_t player) const;
+    bool button_pressed(Button b, int32_t player, int32_t hold, int32_t repeat) const;
     bool button_released(Button b, int32_t player) const;
 
     bool key(int32_t keycode) const;
     bool key_pressed(int32_t keycode) const;
+    bool key_pressed(int32_t keycode, int32_t hold, int32_t repeat) const;
     bool key_released(int32_t keycode) const;
 
     int32_t mouse_x() const { return mouse_x_; }
@@ -69,15 +83,21 @@ public:
     bool mouse_button_pressed(MouseButton b) const;
     bool mouse_button_released(MouseButton b) const;
 
+    float gamepad_axis(int32_t player, GamepadAxis axis) const;
+
+    uint64_t frame_count() const { return frame_count_; }
+
 private:
     std::array<uint16_t, kMaxPlayers> btn_state_{};
     std::array<uint16_t, kMaxPlayers> btn_pressed_{};
     std::array<uint16_t, kMaxPlayers> btn_released_{};
+    std::array<std::array<uint64_t, static_cast<int32_t>(Button::Count)>, kMaxPlayers> btn_press_frame_{};
 
     // SDL3 SDL_Keycode values span a wide, non-contiguous range, so we hold them in a hash set rather than an array.
     std::unordered_set<int32_t> key_state_;
     std::unordered_set<int32_t> key_pressed_;
     std::unordered_set<int32_t> key_released_;
+    std::unordered_map<int32_t, uint64_t> key_press_frame_;
 
     int32_t mouse_x_ = 0;
     int32_t mouse_y_ = 0;
@@ -85,6 +105,12 @@ private:
     uint8_t mb_state_ = 0;
     uint8_t mb_pressed_ = 0;
     uint8_t mb_released_ = 0;
+
+    std::array<std::array<int16_t, kAxisCount>, kMaxPlayers> axis_value_{};
+
+    uint64_t frame_count_ = 0;
+
+    bool repeat_match(uint64_t press_frame, int32_t hold, int32_t repeat) const;
 
     static uint16_t mask(Button b) {
         return static_cast<uint16_t>(1u << static_cast<uint8_t>(b));
