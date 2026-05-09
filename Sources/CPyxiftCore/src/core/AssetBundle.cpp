@@ -17,6 +17,7 @@
 #include "../../vendor/miniz.h"
 #include "../../vendor/json.hpp"
 
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -209,10 +210,12 @@ bool write_string_to_zip(const std::string &path, const char *entry,
                                     MZ_DEFAULT_COMPRESSION);
     if (!ok) {
         mz_zip_writer_end(&zip);
+        std::remove(path.c_str());
         return false;
     }
     if (!mz_zip_writer_finalize_archive(&zip)) ok = false;
     mz_zip_writer_end(&zip);
+    if (!ok) std::remove(path.c_str());
     return ok;
 }
 
