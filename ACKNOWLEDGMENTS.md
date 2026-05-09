@@ -17,3 +17,10 @@ Pyxel is a retro 2D game engine by Takashi Kitao, released under the MIT License
 - For the upstream sync policy, see [`docs/pyxel-reference.md`](./docs/pyxel-reference.md)
 
 We are deeply grateful to Takashi Kitao for creating such a wonderful engine and for openly publishing its API design.
+
+## Bundled third-party libraries
+
+Pyxift vendors the following single-/dual-file libraries under `Sources/CPyxiftCore/vendor/`. Each is unmodified and redistributed under its original license.
+
+- [miniz](https://github.com/richgel999/miniz) by Rich Geldreich (MIT, full text in [`THIRD_PARTY_LICENSES/miniz-MIT.txt`](./THIRD_PARTY_LICENSES/miniz-MIT.txt)) — used for ZIP read/write in the `.pyxift` asset bundle loader
+- [JSON for Modern C++](https://github.com/nlohmann/json) by Niels Lohmann (MIT, full text in [`THIRD_PARTY_LICENSES/nlohmann-json-MIT.txt`](./THIRD_PARTY_LICENSES/nlohmann-json-MIT.txt)) — used for the `.pyxift` bundle JSON schema parser
