@@ -107,11 +107,6 @@ struct Demo: App {
         let path = NSTemporaryDirectory() + "pyxift-demo-bundle.pyxift"
         bundlePath = path
         Pyx._saveBundle(path)
-        for x in 0..<16 {
-            for y in 0..<16 {
-                Pyx.imagePset(bank: 2, x: x, y: y, color: .black)
-            }
-        }
         Pyx.load(path, excludeTilemaps: true, excludeSounds: true, excludeMusics: true)
         bundleStatus = "OK"
     }
