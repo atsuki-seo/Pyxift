@@ -161,20 +161,24 @@ bool pyxift_engine_load_bundle(PyxiftEngine *engine,
                                bool exclude_sounds,
                                bool exclude_musics);
 
-// Internal-only in v0.3; public Swift Pyx.save(...) is deferred to v0.4 (see docs/status.md).
 bool pyxift_engine_save_bundle(PyxiftEngine *engine, const char *path);
 
 // Test-only fixture: writes a bundle whose image bank 0 has a single colored
 // pixel, tilemap 0 has one cell at (cx, cy)=(tx, ty) with imgsrc=imgsrc,
 // sound 0 has notes/speed and music 0 has ch0=[music_value]. Then loads the
-// bundle back into fresh in-memory containers and reports the recovered
-// values via the out* pointers. Returns 1 on success, 0 on failure.
+// bundle back into fresh in-memory containers, honoring the exclude_* flags
+// against pre-seeded sentinel values, and reports the recovered values via
+// the out* pointers. Returns 1 on success, 0 on failure.
 int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
                                      int32_t img_x, int32_t img_y, uint8_t img_color,
                                      int32_t cx, int32_t cy,
                                      uint8_t tx, uint8_t ty, int32_t imgsrc,
                                      int8_t note, int32_t speed,
                                      int32_t music_value,
+                                     bool exclude_images,
+                                     bool exclude_tilemaps,
+                                     bool exclude_sounds,
+                                     bool exclude_musics,
                                      uint8_t *out_color,
                                      uint8_t *out_tx, uint8_t *out_ty,
                                      int32_t *out_imgsrc,

@@ -17,8 +17,6 @@
 #include "../../vendor/miniz.h"
 #include "../../vendor/json.hpp"
 
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -31,13 +29,6 @@ constexpr int32_t kFormatVersion = 1;
 constexpr const char *kArchiveEntryName = "pyxift_resource.json";
 
 using json = nlohmann::json;
-
-[[noreturn]] void fatal(const char *fmt, const std::string &arg) {
-    std::fprintf(stderr, "[pyxift] asset bundle: ");
-    std::fprintf(stderr, fmt, arg.c_str());
-    std::fprintf(stderr, "\n");
-    std::abort();
-}
 
 json encode_image(const Image &img) {
     int32_t last_row = -1;
@@ -63,6 +54,9 @@ json encode_image(const Image &img) {
 }
 
 void decode_image(const json &j, Image &img) {
+    for (int32_t y = 0; y < img.height(); ++y) {
+        for (int32_t x = 0; x < img.width(); ++x) img.pset(x, y, 0);
+    }
     if (!j.contains("data") || !j["data"].is_array()) return;
     const auto &rows = j["data"];
     for (size_t y = 0; y < rows.size() && static_cast<int32_t>(y) < img.height(); ++y) {
@@ -99,6 +93,10 @@ json encode_tilemap(const Tilemap &tm) {
 }
 
 void decode_tilemap(const json &j, Tilemap &tm) {
+    tm.set_image_bank(0);
+    for (int32_t y = 0; y < tm.height(); ++y) {
+        for (int32_t x = 0; x < tm.width(); ++x) tm.set_cell(x, y, 0, 0);
+    }
     if (j.contains("imgsrc") && j["imgsrc"].is_number_integer()) {
         tm.set_image_bank(j["imgsrc"].get<int32_t>());
     }
@@ -224,18 +222,16 @@ bool load_asset_bundle(const std::string &path,
                        const AssetBundleSlots &slots,
                        const AssetBundleOptions &opts) {
     std::string raw;
-    if (!read_zip_entry_to_string(path, kArchiveEntryName, raw)) {
-        fatal("failed to open '%s' or missing pyxift_resource.json", path);
-    }
+    if (!read_zip_entry_to_string(path, kArchiveEntryName, raw)) return false;
     json doc;
     try {
         doc = json::parse(raw);
     } catch (const std::exception &) {
-        fatal("malformed JSON in '%s'", path);
+        return false;
     }
     if (!doc.contains("format_version") ||
         doc["format_version"].get<int>() > kFormatVersion) {
-        fatal("unsupported format_version in '%s'", path);
+        return false;
     }
 
     if (!opts.exclude_images && doc.contains("images") && doc["images"].is_array() &&

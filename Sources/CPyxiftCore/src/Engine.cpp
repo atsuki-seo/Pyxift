@@ -474,12 +474,24 @@ int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
                                      uint8_t tx, uint8_t ty, int32_t imgsrc,
                                      int8_t note, int32_t speed,
                                      int32_t music_value,
+                                     bool exclude_images,
+                                     bool exclude_tilemaps,
+                                     bool exclude_sounds,
+                                     bool exclude_musics,
                                      uint8_t *out_color,
                                      uint8_t *out_tx, uint8_t *out_ty,
                                      int32_t *out_imgsrc,
                                      int8_t *out_note, int32_t *out_speed,
                                      int32_t *out_music_value) {
     if (tmp_path == nullptr) return 0;
+
+    constexpr uint8_t kImageSentinel = 14;
+    constexpr uint8_t kTileSentinelX = 200;
+    constexpr uint8_t kTileSentinelY = 201;
+    constexpr int32_t kImgsrcSentinel = -42;
+    constexpr int8_t kNoteSentinel = -100;
+    constexpr int32_t kSpeedSentinel = -7;
+    constexpr int32_t kMusicSentinel = -55;
 
     pyxift::Image src_img;
     src_img.pset(img_x, img_y, img_color);
@@ -504,8 +516,19 @@ int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
     if (!pyxift::save_asset_bundle(std::string(tmp_path), src_slots)) return 0;
 
     pyxift::Image dst_img;
+    dst_img.pset(img_x, img_y, kImageSentinel);
     pyxift::Tilemap dst_tm;
+    dst_tm.set_image_bank(kImgsrcSentinel);
+    dst_tm.set_cell(cx, cy, kTileSentinelX, kTileSentinelY);
     auto dst_mixer = std::make_unique<pyxift::AudioMixer>();
+    pyxift::Sound dst_sound;
+    dst_sound.notes.push_back(kNoteSentinel);
+    dst_sound.speed = kSpeedSentinel;
+    dst_mixer->set_sound(0, dst_sound);
+    pyxift::Music dst_music;
+    dst_music.seqs[0].push_back(kMusicSentinel);
+    dst_mixer->set_music(0, dst_music);
+
     pyxift::AssetBundleSlots dst_slots;
     dst_slots.images = &dst_img;
     dst_slots.image_count = 1;
@@ -513,6 +536,10 @@ int32_t pyxift_test_bundle_roundtrip(const char *tmp_path,
     dst_slots.tilemap_count = 1;
     dst_slots.audio_mixer = dst_mixer.get();
     pyxift::AssetBundleOptions opts;
+    opts.exclude_images = exclude_images;
+    opts.exclude_tilemaps = exclude_tilemaps;
+    opts.exclude_sounds = exclude_sounds;
+    opts.exclude_musics = exclude_musics;
     if (!pyxift::load_asset_bundle(std::string(tmp_path), dst_slots, opts)) return 0;
 
     if (out_color != nullptr) *out_color = dst_img.pget(img_x, img_y);
