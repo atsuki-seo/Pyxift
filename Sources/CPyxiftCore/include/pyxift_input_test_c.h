@@ -22,6 +22,17 @@ void pyxift_input_state_push_mouse_move(PyxiftInputStateHandle *h, int32_t x, in
 void pyxift_input_state_push_mouse_wheel(PyxiftInputStateHandle *h, int32_t delta);
 void pyxift_input_state_push_gamepad_axis(PyxiftInputStateHandle *h,
                                           int32_t player, uint8_t axis, int32_t raw_value);
+void pyxift_input_state_push_text(PyxiftInputStateHandle *h, const char *utf8);
+void pyxift_input_state_push_input_key(PyxiftInputStateHandle *h, int32_t keycode);
+void pyxift_input_state_push_dropped_file(PyxiftInputStateHandle *h, const char *path);
+void pyxift_input_state_set_mouse_pos(PyxiftInputStateHandle *h, int32_t x, int32_t y);
+
+int32_t pyxift_input_state_input_text(const PyxiftInputStateHandle *h, char *buf, int32_t buf_size);
+int32_t pyxift_input_state_input_keys_count(const PyxiftInputStateHandle *h);
+int32_t pyxift_input_state_input_keys_at(const PyxiftInputStateHandle *h, int32_t index);
+int32_t pyxift_input_state_dropped_files_count(const PyxiftInputStateHandle *h);
+int32_t pyxift_input_state_dropped_files_at(const PyxiftInputStateHandle *h, int32_t index,
+                                            char *buf, int32_t buf_size);
 
 bool pyxift_input_state_button(const PyxiftInputStateHandle *h, uint8_t button, int32_t player);
 bool pyxift_input_state_button_pressed(const PyxiftInputStateHandle *h,

@@ -2,6 +2,8 @@
 
 #include "core/Input.hpp"
 
+#include <cstring>
+
 struct PyxiftInputStateHandle {
     pyxift::InputState state;
 };
@@ -128,6 +130,69 @@ int32_t pyxift_input_state_mouse_wheel(const PyxiftInputStateHandle *h) {
 float pyxift_input_state_gamepad_axis(const PyxiftInputStateHandle *h, int32_t player, uint8_t axis) {
     if (h == nullptr) return 0.0f;
     return h->state.gamepad_axis(player, static_cast<pyxift::GamepadAxis>(axis));
+}
+
+void pyxift_input_state_push_text(PyxiftInputStateHandle *h, const char *utf8) {
+    if (h != nullptr) h->state.push_text(utf8);
+}
+
+void pyxift_input_state_push_input_key(PyxiftInputStateHandle *h, int32_t keycode) {
+    if (h != nullptr) h->state.push_input_key(keycode);
+}
+
+void pyxift_input_state_push_dropped_file(PyxiftInputStateHandle *h, const char *path) {
+    if (h != nullptr) h->state.push_dropped_file(path);
+}
+
+void pyxift_input_state_set_mouse_pos(PyxiftInputStateHandle *h, int32_t x, int32_t y) {
+    if (h != nullptr) h->state.set_mouse_pos(x, y);
+}
+
+static int32_t copy_string_to_buf(const std::string &s, char *buf, int32_t buf_size) {
+    const int32_t len = static_cast<int32_t>(s.size());
+    if (buf != nullptr && buf_size > 0) {
+        const int32_t copy = len < buf_size - 1 ? len : buf_size - 1;
+        std::memcpy(buf, s.data(), static_cast<size_t>(copy));
+        buf[copy] = '\0';
+    }
+    return len;
+}
+
+int32_t pyxift_input_state_input_text(const PyxiftInputStateHandle *h, char *buf, int32_t buf_size) {
+    if (h == nullptr) {
+        if (buf != nullptr && buf_size > 0) buf[0] = '\0';
+        return 0;
+    }
+    return copy_string_to_buf(h->state.input_text(), buf, buf_size);
+}
+
+int32_t pyxift_input_state_input_keys_count(const PyxiftInputStateHandle *h) {
+    return h != nullptr ? static_cast<int32_t>(h->state.input_keys().size()) : 0;
+}
+
+int32_t pyxift_input_state_input_keys_at(const PyxiftInputStateHandle *h, int32_t index) {
+    if (h == nullptr) return 0;
+    const auto &keys = h->state.input_keys();
+    if (index < 0 || static_cast<size_t>(index) >= keys.size()) return 0;
+    return keys[static_cast<size_t>(index)];
+}
+
+int32_t pyxift_input_state_dropped_files_count(const PyxiftInputStateHandle *h) {
+    return h != nullptr ? static_cast<int32_t>(h->state.dropped_files().size()) : 0;
+}
+
+int32_t pyxift_input_state_dropped_files_at(const PyxiftInputStateHandle *h, int32_t index,
+                                            char *buf, int32_t buf_size) {
+    if (h == nullptr) {
+        if (buf != nullptr && buf_size > 0) buf[0] = '\0';
+        return -1;
+    }
+    const auto &files = h->state.dropped_files();
+    if (index < 0 || static_cast<size_t>(index) >= files.size()) {
+        if (buf != nullptr && buf_size > 0) buf[0] = '\0';
+        return -1;
+    }
+    return copy_string_to_buf(files[static_cast<size_t>(index)], buf, buf_size);
 }
 
 } // extern "C"

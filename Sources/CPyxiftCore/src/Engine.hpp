@@ -27,6 +27,7 @@ struct PyxiftEngine {
     void run(PyxiftUpdateFn update, PyxiftDrawFn draw, void *user);
     void quit();
     void set_title(const std::string &title);
+    void set_mouse_pos(int32_t x, int32_t y);
 
     int32_t width() const { return canvas_.width(); }
     int32_t height() const { return canvas_.height(); }

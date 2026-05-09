@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <memory>
 #include <thread>
 
@@ -54,6 +55,11 @@ void PyxiftEngine::set_title(const std::string &title) {
 
 void PyxiftEngine::quit() {
     quit_requested_ = true;
+}
+
+void PyxiftEngine::set_mouse_pos(int32_t x, int32_t y) {
+    input_.set_mouse_pos(x, y);
+    window_.warp_mouse(x, y);
 }
 
 void PyxiftEngine::pump_events() {
@@ -364,6 +370,59 @@ bool pyxift_engine_mouse_button_released(const PyxiftEngine *engine, uint8_t but
 void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible) {
     (void)engine;
     pyxift::platform::Window::set_cursor_visible(visible);
+}
+
+void pyxift_engine_set_mouse_pos(PyxiftEngine *engine, int32_t x, int32_t y) {
+    if (engine != nullptr) engine->set_mouse_pos(x, y);
+}
+
+static int32_t copy_string_to_buf(const std::string &s, char *buf, int32_t buf_size) {
+    const int32_t len = static_cast<int32_t>(s.size());
+    if (buf != nullptr && buf_size > 0) {
+        const int32_t copy = len < buf_size - 1 ? len : buf_size - 1;
+        std::memcpy(buf, s.data(), static_cast<size_t>(copy));
+        buf[copy] = '\0';
+    }
+    return len;
+}
+
+int32_t pyxift_engine_input_text(const PyxiftEngine *engine, char *buf, int32_t buf_size) {
+    if (engine == nullptr) {
+        if (buf != nullptr && buf_size > 0) buf[0] = '\0';
+        return 0;
+    }
+    return copy_string_to_buf(engine->input().input_text(), buf, buf_size);
+}
+
+int32_t pyxift_engine_input_keys_count(const PyxiftEngine *engine) {
+    if (engine == nullptr) return 0;
+    return static_cast<int32_t>(engine->input().input_keys().size());
+}
+
+int32_t pyxift_engine_input_keys_at(const PyxiftEngine *engine, int32_t index) {
+    if (engine == nullptr) return 0;
+    const auto &keys = engine->input().input_keys();
+    if (index < 0 || static_cast<size_t>(index) >= keys.size()) return 0;
+    return keys[static_cast<size_t>(index)];
+}
+
+int32_t pyxift_engine_dropped_files_count(const PyxiftEngine *engine) {
+    if (engine == nullptr) return 0;
+    return static_cast<int32_t>(engine->input().dropped_files().size());
+}
+
+int32_t pyxift_engine_dropped_files_at(const PyxiftEngine *engine, int32_t index,
+                                       char *buf, int32_t buf_size) {
+    if (engine == nullptr) {
+        if (buf != nullptr && buf_size > 0) buf[0] = '\0';
+        return -1;
+    }
+    const auto &files = engine->input().dropped_files();
+    if (index < 0 || static_cast<size_t>(index) >= files.size()) {
+        if (buf != nullptr && buf_size > 0) buf[0] = '\0';
+        return -1;
+    }
+    return copy_string_to_buf(files[static_cast<size_t>(index)], buf, buf_size);
 }
 
 void pyxift_engine_sound_set(PyxiftEngine *engine,

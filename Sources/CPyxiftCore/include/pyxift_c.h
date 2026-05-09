@@ -122,6 +122,22 @@ bool pyxift_engine_mouse_button_pressed(const PyxiftEngine *engine, uint8_t butt
 bool pyxift_engine_mouse_button_released(const PyxiftEngine *engine, uint8_t button);
 
 void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible);
+void pyxift_engine_set_mouse_pos(PyxiftEngine *engine, int32_t x, int32_t y);
+
+// Copies up to (buf_size - 1) bytes of the current frame's accumulated input text
+// into `buf` and NUL-terminates it. Returns the byte length of the full input
+// text (which may exceed buf_size - 1, in which case the copy is truncated).
+// Pass buf=NULL, buf_size=0 to query the required size.
+int32_t pyxift_engine_input_text(const PyxiftEngine *engine, char *buf, int32_t buf_size);
+
+int32_t pyxift_engine_input_keys_count(const PyxiftEngine *engine);
+int32_t pyxift_engine_input_keys_at(const PyxiftEngine *engine, int32_t index);
+
+int32_t pyxift_engine_dropped_files_count(const PyxiftEngine *engine);
+// Same convention as pyxift_engine_input_text. Returns the byte length of the
+// path at `index`, or -1 if `index` is out of range.
+int32_t pyxift_engine_dropped_files_at(const PyxiftEngine *engine, int32_t index,
+                                       char *buf, int32_t buf_size);
 
 void pyxift_engine_sound_set(PyxiftEngine *engine,
                              int32_t sound_index,
