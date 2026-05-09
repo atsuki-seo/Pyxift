@@ -17,12 +17,17 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 ## Pre-release-tag checklist
 
-Run before every `git tag v*.*.*` (version-independent, applies to all releases).
-Tagging via Claude is mechanically blocked by `.claude/hooks/check-release-tag.sh`.
+Tagging is automated by `.github/workflows/release-tag.yml`: pushing a release-tagging
+M-commit (subject matching `^M[0-9]+[a-z]?: v[0-9]+\.[0-9]+\.[0-9]+ `) to `main` runs
+`swift build -Xswiftc -warnings-as-errors` and `swift test` on macOS+Linux, and on
+success the workflow creates and pushes the `vX.Y.Z` tag. Do not run `git tag` by hand.
+
+Items that are **not** mechanically enforced and are the author's responsibility before
+pushing the release-tagging M-commit:
 
 - [ ] `/pyxel-sync` has been run, and any diff against upstream Pyxel is resolved (or has been deliberately declined)
-- [ ] The Tracked SHA in `docs/pyxel-reference.md` matches the `origin/main` HEAD of `../pyxel`
-- [ ] `swift build -Xswiftc -warnings-as-errors` reports zero warnings
+- [ ] The Tracked tag in `docs/pyxel-reference.md` reflects that run
+- [ ] `docs/status.md` Open tasks / Roadmap reflects what this release ships and what defers
 
 Release-specific extra items, when needed, go in a separate section within this file.
 
