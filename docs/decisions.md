@@ -93,6 +93,8 @@ Functions present in upstream Pyxel that Pyxift renames:
 
 Editor-integration features will never be adopted.
 
+Watch/reload-related environment-variable constants (`BASE_DIR`, `WINDOW_STATE_ENV`, `WATCH_STATE_FILE_ENV`, `WATCH_RESET_EXIT_CODE`) are not provided. Consistent with the "Hot reload — not supported" decision, the surrounding watch/reload mechanism that gives these constants meaning is out of scope.
+
 ### Math and RNG APIs: prefer Swift idioms over Pyxel's spec
 
 The Pyxel public APIs `ceil` / `floor` / `clamp` / `sgn` / `sqrt` / `sin` / `cos` / `atan2` / `rseed` / `rndi` / `rndf` / `nseed` / `noise` are **not provided in Pyxift**.
