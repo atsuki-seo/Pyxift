@@ -109,7 +109,7 @@ struct Demo: App {
         Pyx._saveBundle(path)
         for x in 0..<16 {
             for y in 0..<16 {
-                Pyx.imagePset(bank: 0, x: x, y: y, color: .black)
+                Pyx.imagePset(bank: 2, x: x, y: y, color: .black)
             }
         }
         Pyx.load(path, excludeTilemaps: true, excludeSounds: true, excludeMusics: true)
@@ -117,13 +117,11 @@ struct Demo: App {
     }
 
     private func drawBundleScene() {
-        Pyx.text(x: 4, y: 4, "M6 ASSET BUNDLE", color: .yellow)
+        Pyx.text(x: 4, y: 4, "ASSET BUNDLE", color: .yellow)
         Pyx.text(x: 4, y: 14, ".PYXIFT ROUND TRIP", color: .gray)
         Pyx.text(x: 4, y: 26, "STATUS: \(bundleStatus)", color: bundleStatus == "OK" ? .lime : .red)
-        Pyx.text(x: 4, y: 36, "BANK 0 (RELOADED):", color: .gray)
-        Pyx.blt(x: 4, y: 46, image: 0, u: 0, v: 0, w: 16, h: 16, transparent: nil)
-        Pyx.text(x: 4, y: 70, "TILEMAP 0 (RELOADED):", color: .gray)
-        Pyx.bltm(x: 4, y: 80, tilemap: 0, u: 0, v: 0, w: 3, h: 2, transparent: nil)
+        Pyx.text(x: 4, y: 36, "BANK 2 (RELOADED):", color: .gray)
+        Pyx.blt(x: 4, y: 46, image: 2, u: 0, v: 0, w: 16, h: 16, transparent: nil)
         Pyx.text(x: 4, y: Pyx.height - 18, "FILE:", color: .gray)
         Pyx.text(x: 4, y: Pyx.height - 10,
                  String(bundlePath.suffix(34)), color: .lightBlue)
@@ -415,6 +413,22 @@ struct Demo: App {
         }
         if let url = Bundle.module.url(forResource: "sample", withExtension: "png", subdirectory: "assets") {
             Pyx.loadImage(url.path, into: 1)
+        }
+
+        for x in 0..<16 {
+            for y in 0..<16 {
+                let onDiag = (x == y) || (x + y == 15)
+                let onBorder = (x == 0 || y == 0 || x == 15 || y == 15)
+                let color: Color
+                if onBorder {
+                    color = .cyan
+                } else if onDiag {
+                    color = .yellow
+                } else {
+                    color = .navy
+                }
+                Pyx.imagePset(bank: 2, x: x, y: y, color: color)
+            }
         }
 
         Pyx.tilemapSetImageBank(tilemap: 0, bank: 0)
