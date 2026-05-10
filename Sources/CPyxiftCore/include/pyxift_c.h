@@ -33,6 +33,8 @@ int32_t pyxift_engine_width(const PyxiftEngine *engine);
 int32_t pyxift_engine_height(const PyxiftEngine *engine);
 int32_t pyxift_engine_frame_count(const PyxiftEngine *engine);
 
+uint32_t pyxift_default_palette(uint8_t index);
+
 void pyxift_engine_cls(PyxiftEngine *engine, uint8_t color);
 void pyxift_engine_pset(PyxiftEngine *engine, int32_t x, int32_t y, uint8_t color);
 uint8_t pyxift_engine_pget(const PyxiftEngine *engine, int32_t x, int32_t y);
@@ -132,6 +134,29 @@ int32_t pyxift_engine_mouse_wheel(const PyxiftEngine *engine);
 bool pyxift_engine_mouse_button(const PyxiftEngine *engine, uint8_t button);
 bool pyxift_engine_mouse_button_pressed(const PyxiftEngine *engine, uint8_t button);
 bool pyxift_engine_mouse_button_released(const PyxiftEngine *engine, uint8_t button);
+
+void pyxift_engine_set_fullscreen(PyxiftEngine *engine, bool enabled);
+bool pyxift_engine_fullscreen(const PyxiftEngine *engine);
+
+void pyxift_engine_resize(PyxiftEngine *engine, int32_t width, int32_t height);
+
+void pyxift_engine_set_screen_mode(PyxiftEngine *engine, int32_t mode);
+int32_t pyxift_engine_screen_mode(const PyxiftEngine *engine);
+
+void pyxift_engine_set_integer_scale(PyxiftEngine *engine, bool enabled);
+bool pyxift_engine_integer_scale(const PyxiftEngine *engine);
+
+void pyxift_engine_set_perf_monitor(PyxiftEngine *engine, bool enabled);
+bool pyxift_engine_perf_monitor(const PyxiftEngine *engine);
+
+// `rgba` points to width*height*4 bytes in row-major RGBA32 order. The buffer is consumed
+// synchronously by the call (copied into an SDL surface) and may be freed after return.
+void pyxift_engine_set_icon(PyxiftEngine *engine,
+                            const uint8_t *rgba, int32_t width, int32_t height);
+
+bool pyxift_engine_screenshot(PyxiftEngine *engine, const char *path, int32_t scale);
+
+void pyxift_engine_show(PyxiftEngine *engine);
 
 void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible);
 void pyxift_engine_set_mouse_pos(PyxiftEngine *engine, int32_t x, int32_t y);

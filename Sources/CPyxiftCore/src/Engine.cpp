@@ -1,13 +1,16 @@
 #include "Engine.hpp"
 
 #include "core/AssetBundle.hpp"
+#include "core/Font.hpp"
 #include "core/ImageLoader.hpp"
 #include "core/Palette.hpp"
+#include "core/PngWriter.hpp"
 
 #include <SDL3/SDL.h>
 
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <thread>
@@ -62,6 +65,46 @@ void PyxiftEngine::set_mouse_pos(int32_t x, int32_t y) {
     window_.warp_mouse(x, y);
 }
 
+void PyxiftEngine::set_fullscreen(bool enabled) {
+    window_.set_fullscreen(enabled);
+}
+
+void PyxiftEngine::resize(int32_t width, int32_t height) {
+    if (width <= 0 || height <= 0) return;
+    canvas_.resize(width, height);
+    window_.resize_logical(width, height);
+    // resize_logical recreates the texture and resets it to NEAREST, so smooth/retro modes
+    // would silently revert without re-applying the filter here.
+    window_.set_linear_filtering(screen_mode_ != 0);
+}
+
+void PyxiftEngine::set_screen_mode(int32_t mode) {
+    if (mode < 0 || mode > 2) return;
+    screen_mode_ = mode;
+    // Pyxift's SDL_Renderer backend lacks the GLSL shader pipeline that upstream uses for the
+    // smooth/retro modes; mode 1 falls back to a linear texture filter as a coarse approximation,
+    // mode 2 (CRT) currently aliases to mode 1 until a shader path is introduced.
+    window_.set_linear_filtering(mode != 0);
+}
+
+void PyxiftEngine::set_integer_scale(bool enabled) {
+    window_.set_integer_scale(enabled);
+}
+
+bool PyxiftEngine::screenshot(const std::string &path, int32_t scale) {
+    if (scale < 1) scale = 1;
+    return pyxift::save_indexed_png(path,
+                                    canvas_.pixels(),
+                                    canvas_.width(),
+                                    canvas_.height(),
+                                    pyxift::kDefaultPalette.data(),
+                                    scale);
+}
+
+void PyxiftEngine::show() {
+    show_mode_ = true;
+}
+
 void PyxiftEngine::pump_events() {
     input_.end_frame();
 
@@ -73,6 +116,32 @@ void PyxiftEngine::pump_events() {
     }
 }
 
+namespace {
+
+void draw_perf_overlay(pyxift::Canvas &canvas, double fps, double upd_ms, double draw_ms) {
+    const auto saved = canvas.save_state();
+    canvas.reset_clip();
+    canvas.reset_camera();
+    canvas.reset_pal();
+    canvas.set_dither(1.0);
+
+    char line[32];
+    std::snprintf(line, sizeof(line), "%.2f", fps);
+    canvas.text(1, 0, line, 7);
+    std::snprintf(line, sizeof(line), "%.2f", upd_ms);
+    canvas.text(1, 6, line, 7);
+    std::snprintf(line, sizeof(line), "%.2f", draw_ms);
+    canvas.text(1, 12, line, 7);
+
+    canvas.restore_state(saved);
+}
+
+double ms_between(clock_t_::time_point a, clock_t_::time_point b) {
+    return std::chrono::duration<double, std::milli>(b - a).count();
+}
+
+} // namespace
+
 void PyxiftEngine::run(PyxiftUpdateFn update, PyxiftDrawFn draw, void *user) {
     if (!window_.valid()) {
         return;
@@ -80,16 +149,24 @@ void PyxiftEngine::run(PyxiftUpdateFn update, PyxiftDrawFn draw, void *user) {
 
     const ns_t_ frame_duration = ns_t_(1'000'000'000LL / fps_);
     auto next_frame = clock_t_::now();
+    auto last_present = clock_t_::now();
     constexpr int kMaxCatchUp = 2;
+    constexpr double kEmaAlpha = 0.1;
 
     while (!quit_requested_) {
         const auto now = clock_t_::now();
 
         int catch_up = 0;
+        double last_update_ms = avg_update_ms_;
         while (now >= next_frame && catch_up < kMaxCatchUp && !quit_requested_) {
             pump_events();
             if (quit_requested_) break;
-            if (update != nullptr) update(user);
+
+            const auto upd_start = clock_t_::now();
+            if (update != nullptr && !show_mode_) update(user);
+            const auto upd_end = clock_t_::now();
+            last_update_ms = ms_between(upd_start, upd_end);
+
             ++frame_count_;
             next_frame += frame_duration;
             ++catch_up;
@@ -103,7 +180,25 @@ void PyxiftEngine::run(PyxiftUpdateFn update, PyxiftDrawFn draw, void *user) {
 
         if (quit_requested_) break;
 
-        if (draw != nullptr) draw(user);
+        const auto draw_start = clock_t_::now();
+        if (draw != nullptr && !show_mode_) draw(user);
+        const auto draw_end = clock_t_::now();
+        const double last_draw_ms = ms_between(draw_start, draw_end);
+
+        if (catch_up > 0) {
+            avg_update_ms_ = avg_update_ms_ * (1.0 - kEmaAlpha) + last_update_ms * kEmaAlpha;
+        }
+        avg_draw_ms_ = avg_draw_ms_ * (1.0 - kEmaAlpha) + last_draw_ms * kEmaAlpha;
+
+        const auto present_now = clock_t_::now();
+        const double inst_fps = 1000.0 / std::max(1e-3, ms_between(last_present, present_now));
+        avg_fps_ = avg_fps_ * (1.0 - kEmaAlpha) + inst_fps * kEmaAlpha;
+        last_present = present_now;
+
+        if (perf_monitor_enabled_) {
+            draw_perf_overlay(canvas_, avg_fps_, avg_update_ms_, avg_draw_ms_);
+        }
+
         window_.present(canvas_.pixels(), pyxift::kDefaultPalette.data());
 
         const auto sleep_until = next_frame;
@@ -150,6 +245,10 @@ int32_t pyxift_engine_height(const PyxiftEngine *engine) {
 
 int32_t pyxift_engine_frame_count(const PyxiftEngine *engine) {
     return engine != nullptr ? engine->frame_count() : 0;
+}
+
+uint32_t pyxift_default_palette(uint8_t index) {
+    return pyxift::kDefaultPalette[index & 0x0f];
 }
 
 void pyxift_engine_cls(PyxiftEngine *engine, uint8_t color) {
@@ -393,6 +492,56 @@ bool pyxift_engine_mouse_button_released(const PyxiftEngine *engine, uint8_t but
 void pyxift_engine_mouse_cursor(PyxiftEngine *engine, bool visible) {
     (void)engine;
     pyxift::platform::Window::set_cursor_visible(visible);
+}
+
+void pyxift_engine_set_fullscreen(PyxiftEngine *engine, bool enabled) {
+    if (engine != nullptr) engine->set_fullscreen(enabled);
+}
+
+bool pyxift_engine_fullscreen(const PyxiftEngine *engine) {
+    return engine != nullptr ? engine->fullscreen() : false;
+}
+
+void pyxift_engine_resize(PyxiftEngine *engine, int32_t width, int32_t height) {
+    if (engine != nullptr) engine->resize(width, height);
+}
+
+void pyxift_engine_set_screen_mode(PyxiftEngine *engine, int32_t mode) {
+    if (engine != nullptr) engine->set_screen_mode(mode);
+}
+
+int32_t pyxift_engine_screen_mode(const PyxiftEngine *engine) {
+    return engine != nullptr ? engine->screen_mode() : 0;
+}
+
+void pyxift_engine_set_integer_scale(PyxiftEngine *engine, bool enabled) {
+    if (engine != nullptr) engine->set_integer_scale(enabled);
+}
+
+bool pyxift_engine_integer_scale(const PyxiftEngine *engine) {
+    return engine != nullptr ? engine->integer_scale() : false;
+}
+
+void pyxift_engine_set_perf_monitor(PyxiftEngine *engine, bool enabled) {
+    if (engine != nullptr) engine->set_perf_monitor(enabled);
+}
+
+bool pyxift_engine_perf_monitor(const PyxiftEngine *engine) {
+    return engine != nullptr ? engine->perf_monitor() : false;
+}
+
+void pyxift_engine_set_icon(PyxiftEngine *engine,
+                            const uint8_t *rgba, int32_t width, int32_t height) {
+    if (engine != nullptr) engine->set_icon(rgba, width, height);
+}
+
+bool pyxift_engine_screenshot(PyxiftEngine *engine, const char *path, int32_t scale) {
+    if (engine == nullptr || path == nullptr) return false;
+    return engine->screenshot(std::string(path), scale);
+}
+
+void pyxift_engine_show(PyxiftEngine *engine) {
+    if (engine != nullptr) engine->show();
 }
 
 void pyxift_engine_set_mouse_pos(PyxiftEngine *engine, int32_t x, int32_t y) {

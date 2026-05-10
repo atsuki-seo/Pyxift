@@ -29,6 +29,26 @@ struct PyxiftEngine {
     void set_title(const std::string &title);
     void set_mouse_pos(int32_t x, int32_t y);
 
+    void set_fullscreen(bool enabled);
+    bool fullscreen() const { return window_.fullscreen(); }
+
+    void resize(int32_t width, int32_t height);
+
+    void set_screen_mode(int32_t mode);
+    int32_t screen_mode() const { return screen_mode_; }
+
+    void set_integer_scale(bool enabled);
+    bool integer_scale() const { return window_.integer_scale(); }
+
+    void set_perf_monitor(bool enabled) { perf_monitor_enabled_ = enabled; }
+    bool perf_monitor() const { return perf_monitor_enabled_; }
+
+    void set_icon(const uint8_t *rgba, int32_t w, int32_t h) { window_.set_icon(rgba, w, h); }
+
+    bool screenshot(const std::string &path, int32_t scale);
+
+    void show();
+
     int32_t width() const { return canvas_.width(); }
     int32_t height() const { return canvas_.height(); }
     int32_t frame_count() const { return frame_count_; }
@@ -59,6 +79,13 @@ private:
     int32_t frame_count_ = 0;
     bool quit_requested_ = false;
     bool sdl_initialized_ = false;
+    bool perf_monitor_enabled_ = false;
+    bool show_mode_ = false;
+    int32_t screen_mode_ = 0;
+
+    double avg_update_ms_ = 0.0;
+    double avg_draw_ms_ = 0.0;
+    double avg_fps_ = 0.0;
 
     std::array<pyxift::Image, kImageBankCount> images_{};
     std::array<pyxift::Tilemap, kTilemapCount> tilemaps_{};
