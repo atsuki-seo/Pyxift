@@ -6,26 +6,25 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 - (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — was out of v0.2.0 scope
 - (M10, target v0.7.0) Window/system APIs: `fullscreen`, `resize`, `screen_mode`, `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `screencast`/`reset_screencast`, `Pyx.reset`, `show`, `flip`, and a public `VERSION` constant.
-- (M13, target v0.8.0) Custom font support: `Font(filename:font_size:)`, `Font.text_width`, a `font` parameter on `Pyx.text`, and public `FONT_WIDTH`/`FONT_HEIGHT` constants.
-- (M14, target v0.9.0) 3D blit: `blt3d` and `bltm3d`. Spec details (perspective parameters) to be captured by `/pyxel-research`.
-- (M15, target TBD) Headless / test-injection hooks: `headless` startup option, `set_btn`, `set_btnv`, `set_input_text`, `set_dropped_files`, `user_data_dir`. Version not yet assigned — depends on whether Pyxift adopts an automated test-harness path.
-- (M16, target v0.10.0) Bidirectional Pyxel API cross-check (beta) — see "Future considerations" for the original sketch.
-- (milestone number TBD, target version TBD) Distribution packaging: `pyxift-package` CLI that emits `dist/<os>/` trees for macOS / Windows / Linux, Windows native CI build on `windows-latest`, SDL3 VC prebuilt fetch for Windows, `.app` template for macOS, and `LD_LIBRARY_PATH` launcher script for Linux. Scope and policy are settled in `decisions.md` → "Distribution packaging"; the milestone number and target version will be assigned via `/next-milestone` when this work is ranked against the other open milestones.
+- (M11, target v1.0.0) Object-style resource and audio API surface — promote `Image` / `Tilemap` (and accompanying `Sound` / `Music` / `Channel` / `Tone`) to public types with per-instance methods, replacing the current fixed-bank API (`Pyx.imagePset(bank:...)`, `Pyx.tilemapSetCell(tilemap:...)`, etc.). This is a breaking change to Pyxift's public Swift surface and per `decisions.md` → "Versioning policy" cuts v1.0.0. Resolves the two Open questions about resource/audio object APIs that previously sat in this file.
+- (M12, target v1.0.0) Distribution packaging: `pyxift-package` CLI that emits `dist/<os>/` trees for macOS / Windows / Linux, Windows native CI build on `windows-latest`, SDL3 VC prebuilt fetch for Windows, `.app` template for macOS, and `LD_LIBRARY_PATH` launcher script for Linux. Scope and policy are settled in `decisions.md` → "Distribution packaging". Paired with M11 as the second v1.0.0 driver — together they form the "minimum-viable game development and cross-OS distribution" checkpoint that anchors v1.0.0.
+- (M13, target v1.1.0) Custom font support: `Font(filename:font_size:)`, `Font.text_width`, a `font` parameter on `Pyx.text`, and public `FONT_WIDTH`/`FONT_HEIGHT` constants. Deferred past v1.0.0 because the built-in bitmap font is sufficient for minimum-viable game development.
+- (M14, target v1.2.0) 3D blit: `blt3d` and `bltm3d`. Spec details (perspective parameters) to be captured by `/pyxel-research`. Deferred past v1.0.0 as a niche extension.
+- (M15, target TBD) Headless / test-injection hooks: `headless` startup option, `set_btn`, `set_btnv`, `set_input_text`, `set_dropped_files`, `user_data_dir`. Version not yet assigned — depends on whether Pyxift adopts an automated test-harness path. Deferred past v1.0.0 because this targets Pyxift's own testing rather than user-facing game development.
+- (M16, target TBD, v1.x) Bidirectional Pyxel API cross-check (beta) — see "Future considerations" for the original sketch. Deferred past v1.0.0 as an internal maintenance tool.
 
 ## Open questions
 
 - noise (Perlin) API: not provided in v0.1; revisit when actually needed. See the math / RNG API section of `decisions.md` for details.
-- Object-style resource APIs (`Image` / `Tilemap` as public types with per-instance `clip`/`camera`/`pal`/`pset`/`pget`/drawing methods, `Image.load`/`save`, `Tilemap.from_tmx`, `load_pal`/`save_pal`, `Tilemap.cls`/`collide`): adopting these would substantially rework the current fixed-bank surface (`Pyx.imagePset(bank:...)`, `Pyx.tilemapSetCell(tilemap:...)`). Decide whether Pyxift follows upstream's object API or keeps the fixed-bank model before scheduling this work as a milestone.
-- Object-style audio APIs (`Sound` / `Music` / `Channel` / `Tone` as public types with mutable properties — `Sound.notes`/`tones`/`volumes`/`effects`/`speed`, `Channel.gain`/`detune`, etc. — plus `Sound.mml(_:)` string mode (already deferred), `play(sec:resume:)`, `playm(sec:)`, `Sound.pcm`, `Sound.save`, `Sound.total_sec`, `gen_bgm`): same trade-off as the resource-object question above. Resolve the API-shape decision before scheduling.
 - macOS `Info.plist` minimum key set for `pyxift-package`'s `.app` template: which keys Pyxift fills in by default (`CFBundlePackageType`, `LSMinimumSystemVersion`, ...) and which the user must supply (`CFBundleIdentifier`, version strings, ...). Defer to implementation time when the `.app` can actually be launched and tested.
 
-## Roadmap from v0.4 onward
+## Roadmap from v0.7 onward
 
-- v0.6.0: drawing extensions — `blt`/`bltm` rotate/scale, `elli`/`ellib`, `fill`, `dither` (M9)
 - v0.7.0: window/system — `fullscreen`, `resize`, `screen_mode`, `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `screencast`, `reset_screencast`, `Pyx.reset`, `show`, `flip`, `VERSION` (M10)
-- v0.8.0: custom font support — `Font(filename:font_size:)`, `Font.text_width`, `text(font:)`, expose `FONT_WIDTH`/`FONT_HEIGHT` (M13)
-- v0.9.0: 3D blit — `blt3d`, `bltm3d` (M14)
-- v0.10.0: bidirectional Pyxel API cross-check (beta) — extract Swift public-API signatures and mechanically compare against `__init__.pyi` (M16; see Future considerations)
+- v1.0.0: object-style resource/audio API surface (M11) and distribution packaging (M12) — the minimum-viable game development and cross-OS distribution checkpoint. M11 is the breaking change that triggers v1.0.0 per the versioning policy; M12 is the functional checkpoint that justifies cutting v1.0.0 here rather than later.
+- v1.1.0: custom font support — `Font(filename:font_size:)`, `Font.text_width`, `text(font:)`, expose `FONT_WIDTH`/`FONT_HEIGHT` (M13)
+- v1.2.0: 3D blit — `blt3d`, `bltm3d` (M14)
+- v1.x (target TBD): bidirectional Pyxel API cross-check (beta) — extract Swift public-API signatures and mechanically compare against `__init__.pyi` (M16; see Future considerations)
 
 ## Pre-release-tag checklist
 

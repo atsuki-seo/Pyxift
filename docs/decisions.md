@@ -10,7 +10,26 @@ Additional notes were added during the upstream (kitao/pyxel) code cross-check s
 - **Dependencies**: SDL3 (Homebrew on macOS, apt or a manual build on Linux). Referenced via a `SystemLibrary` target
 - **License**: MIT
 - **Publication**: GitHub Public, referenced directly via SPM Git URL. Swift Package Index registration happens after the v0.1.0 tag
-- **Target OSes**: Linux and macOS (Windows, iOS, and Android are out of scope)
+- **Target OSes**: Linux and macOS as **development hosts** (where `swift build` / `swift test` are supported and CI runs the full matrix). Windows is supported as a **runtime / distribution target only** — games built via Pyxift's packaging CLI run natively on Windows, but Pyxift itself is not expected to build on a Windows development machine. iOS and Android are out of scope
+
+## Distribution packaging
+
+Decided during the `grill-me` session on 2026-05-10, scoping how a game written against Pyxift becomes something that end users on macOS, Windows, and Linux can install and run.
+
+- **Packaging CLI**: Pyxift ships an executable `pyxift-package` (`swift run pyxift-package`) that, for the current development host's OS, produces a self-contained directory tree under `dist/<os>/<TargetName>/` containing the game executable, the SDL3 runtime, and any assets. The same CLI runs on each OS in CI to assemble all three OS trees.
+  - **Local builds produce only the host OS's tree**. Cross-compilation is not supported. Developers who need all three OS trees push to GitHub and download the per-OS artifacts produced by CI.
+  - **Convention over configuration**: no config file in v0.1. The executable name is taken from the `Package.swift` executable target name; assets are copied verbatim from a top-level `Assets/` directory in the user's package. Per-OS overrides (e.g. `--name`, `--os`) are exposed as CLI flags as needed.
+  - **macOS**: emits a `.app` bundle with a templated `Info.plist`. App icon is taken from `Assets/Icon.icns` if present, otherwise a Pyxift default. The exact minimum set of `Info.plist` keys is to be settled at implementation time (tracked in `status.md` Open questions).
+  - **Windows**: emits the `.exe` with `SDL3.dll` placed alongside it. Windows binaries are built natively on a `windows-latest` GitHub Actions runner — Linux→Windows cross-compilation is rejected as too brittle once C++ and SDL3 are in the mix.
+  - **Linux**: emits the executable with `libSDL3.so` and a launcher shell script that sets `LD_LIBRARY_PATH` (or equivalent rpath wiring) so the bundled SDL3 is preferred over any system copy.
+
+- **SDL3 acquisition for Windows**: CI fetches the official prebuilt VC bundle (`SDL3-devel-X.Y.Z-VC.zip`) from `libsdl-org/SDL` releases by URL+hash pin. Linux and macOS continue to use `SystemLibrary` against apt / Homebrew as before — only Windows uses the prebuilt bundle, since neither vcpkg nor MSYS2 is a clean fit for an SPM-only package.
+
+- **Distribution level**: zip-distribution level only. The output of `pyxift-package` is intended to be zipped (or `tar.gz`'d on Linux) and uploaded to itch.io, GitHub Releases, a personal site, or Steam. **Code signing and notarization are out of scope** — the user supplies their own certificates if they need them. This means macOS direct-download distribution will trigger Gatekeeper and Windows direct-download will trigger SmartScreen; Steam-mediated installs bypass both.
+
+- **Steam compatibility**: the `dist/<os>/` trees produced by `pyxift-package` are designed to be uploaded as-is via `steamcmd` depots — Pyxift does not need to know anything Steam-specific for this to work. **The Steamworks SDK (achievements, cloud saves, friends, etc.) is not bundled**: it is closed-source, requires a Valve distribution agreement, and its callback-style C++ API doesn't fit Pyxift's shape. If Steamworks integration becomes desirable, it will live in a separate package (`pyxift-steamworks` or similar), not in the core. Generation of Steamworks VDF templates is also out of scope for v0.1 (tracked under Future considerations).
+
+- **HTML / WebAssembly distribution is not adopted.** Upstream Pyxel's `app2html` is its most popular distribution path, but Swift on WebAssembly plus an SDL3 WASM port is not yet practical, and the implementation cost dwarfs the benefit at this scale. This is a deliberate "won't build", not a deferred consideration.
 
 ## Constraints (full Pyxel compliance)
 
