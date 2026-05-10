@@ -239,24 +239,47 @@ void pyxift_engine_blt(PyxiftEngine *engine,
                        int32_t x, int32_t y,
                        int32_t image_bank,
                        int32_t u, int32_t v, int32_t w, int32_t h,
-                       int32_t transparent) {
+                       int32_t transparent,
+                       double rotate_deg, double scale) {
     if (engine == nullptr) return;
     auto *img = engine->image(image_bank);
     if (img == nullptr) return;
-    engine->canvas().blt(x, y, *img, u, v, w, h, transparent);
+    engine->canvas().blt(x, y, *img, u, v, w, h, transparent, rotate_deg, scale);
 }
 
 void pyxift_engine_bltm(PyxiftEngine *engine,
                         int32_t x, int32_t y,
                         int32_t tilemap_index,
                         int32_t u, int32_t v, int32_t w, int32_t h,
-                        int32_t transparent) {
+                        int32_t transparent,
+                        double rotate_deg, double scale) {
     if (engine == nullptr) return;
     auto *tm = engine->tilemap(tilemap_index);
     if (tm == nullptr) return;
     auto *img = engine->image(tm->image_bank());
     if (img == nullptr) return;
-    engine->canvas().bltm(x, y, *tm, *img, u, v, w, h, transparent);
+    engine->canvas().bltm(x, y, *tm, *img, u, v, w, h, transparent, rotate_deg, scale);
+}
+
+void pyxift_engine_elli(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t w, int32_t h,
+                        uint8_t color) {
+    if (engine != nullptr) engine->canvas().elli(x, y, w, h, color);
+}
+
+void pyxift_engine_ellib(PyxiftEngine *engine,
+                         int32_t x, int32_t y, int32_t w, int32_t h,
+                         uint8_t color) {
+    if (engine != nullptr) engine->canvas().ellib(x, y, w, h, color);
+}
+
+void pyxift_engine_fill(PyxiftEngine *engine,
+                        int32_t x, int32_t y, uint8_t color) {
+    if (engine != nullptr) engine->canvas().fill(x, y, color);
+}
+
+void pyxift_engine_dither(PyxiftEngine *engine, double alpha) {
+    if (engine != nullptr) engine->canvas().set_dither(alpha);
 }
 
 void pyxift_engine_text(PyxiftEngine *engine,

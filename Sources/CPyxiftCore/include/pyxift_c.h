@@ -73,17 +73,29 @@ void pyxift_engine_camera_reset(PyxiftEngine *engine);
 void pyxift_engine_pal(PyxiftEngine *engine, uint8_t from, uint8_t to);
 void pyxift_engine_pal_reset(PyxiftEngine *engine);
 
-// `transparent` is a 0..15 color index, or -1 for "no transparent color" (matches upstream Pyxel API).
 void pyxift_engine_blt(PyxiftEngine *engine,
                        int32_t x, int32_t y,
                        int32_t image_bank,
                        int32_t u, int32_t v, int32_t w, int32_t h,
-                       int32_t transparent);
+                       int32_t transparent,
+                       double rotate_deg, double scale);
 void pyxift_engine_bltm(PyxiftEngine *engine,
                         int32_t x, int32_t y,
                         int32_t tilemap_index,
                         int32_t u, int32_t v, int32_t w, int32_t h,
-                        int32_t transparent);
+                        int32_t transparent,
+                        double rotate_deg, double scale);
+
+void pyxift_engine_elli(PyxiftEngine *engine,
+                        int32_t x, int32_t y, int32_t w, int32_t h,
+                        uint8_t color);
+void pyxift_engine_ellib(PyxiftEngine *engine,
+                         int32_t x, int32_t y, int32_t w, int32_t h,
+                         uint8_t color);
+void pyxift_engine_fill(PyxiftEngine *engine,
+                        int32_t x, int32_t y, uint8_t color);
+void pyxift_engine_dither(PyxiftEngine *engine, double alpha);
+
 void pyxift_engine_text(PyxiftEngine *engine,
                         int32_t x, int32_t y, const char *s, uint8_t color);
 
