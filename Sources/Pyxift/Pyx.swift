@@ -448,6 +448,158 @@ extension Pyx {
     }
 }
 
+public enum ScreenMode: Int32 {
+    case crisp = 0
+    case smooth = 1
+    case retro = 2
+}
+
+extension Pyx {
+    public static let VERSION: String = "0.7.0"
+
+    @MainActor
+    public static func fullscreen(_ enabled: Bool) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_set_fullscreen(engine, enabled)
+    }
+
+    @MainActor
+    public static var isFullscreen: Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_fullscreen(engine)
+    }
+
+    @MainActor
+    public static func resize(width: Int, height: Int) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_resize(engine, Int32(width), Int32(height))
+    }
+
+    @MainActor
+    public static func screenMode(_ mode: ScreenMode) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_set_screen_mode(engine, mode.rawValue)
+    }
+
+    @MainActor
+    public static var currentScreenMode: ScreenMode {
+        guard let engine = Runtime.engine else { return .crisp }
+        return ScreenMode(rawValue: pyxift_engine_screen_mode(engine)) ?? .crisp
+    }
+
+    @MainActor
+    public static func integerScale(_ enabled: Bool) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_set_integer_scale(engine, enabled)
+    }
+
+    @MainActor
+    public static var isIntegerScale: Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_integer_scale(engine)
+    }
+
+    @MainActor
+    public static func perfMonitor(_ enabled: Bool) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_set_perf_monitor(engine, enabled)
+    }
+
+    @MainActor
+    public static var isPerfMonitor: Bool {
+        guard let engine = Runtime.engine else { return false }
+        return pyxift_engine_perf_monitor(engine)
+    }
+
+    @MainActor
+    public static func icon(data: [String], scale: Int = 1, colorKey: Color? = nil) {
+        guard let engine = Runtime.engine else { return }
+        let h = data.count
+        guard h > 0, let firstRow = data.first else { return }
+        let w = firstRow.count
+        guard w > 0, scale >= 1 else { return }
+        let outW = w * scale
+        let outH = h * scale
+        var rgba = [UInt8](repeating: 0, count: outW * outH * 4)
+        for (y, row) in data.enumerated() {
+            let chars = Array(row)
+            guard chars.count == w else { return }
+            for x in 0..<w {
+                let cidx = hexDigitToColorIndex(chars[x])
+                let isTransparent = (colorKey?.index ?? 0xff) == cidx
+                let rgb = paletteRGB(at: Int(cidx))
+                let r = UInt8((rgb >> 16) & 0xff)
+                let g = UInt8((rgb >> 8) & 0xff)
+                let b = UInt8(rgb & 0xff)
+                let a: UInt8 = isTransparent ? 0 : 0xff
+                for dy in 0..<scale {
+                    let py = y * scale + dy
+                    for dx in 0..<scale {
+                        let px = x * scale + dx
+                        let off = (py * outW + px) * 4
+                        rgba[off + 0] = r
+                        rgba[off + 1] = g
+                        rgba[off + 2] = b
+                        rgba[off + 3] = a
+                    }
+                }
+            }
+        }
+        rgba.withUnsafeBufferPointer { buf in
+            pyxift_engine_set_icon(engine, buf.baseAddress, Int32(outW), Int32(outH))
+        }
+    }
+
+    @MainActor
+    public static func screenshot(scale: Int = 2, filename: String? = nil) {
+        guard let engine = Runtime.engine else { return }
+        let path = filename ?? defaultCapturePath(extension: "png")
+        _ = path.withCString { c in
+            pyxift_engine_screenshot(engine, c, Int32(scale))
+        }
+    }
+
+    @MainActor
+    public static func show() {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_show(engine)
+    }
+}
+
+@MainActor
+private func hexDigitToColorIndex(_ ch: Character) -> UInt8 {
+    if let d = ch.hexDigitValue {
+        return UInt8(d & 0x0f)
+    }
+    return 0
+}
+
+@MainActor
+private func paletteRGB(at index: Int) -> UInt32 {
+    return pyxift_default_palette(UInt8(index & 0x0f))
+}
+
+#if canImport(Foundation)
+import Foundation
+
+@MainActor
+private func defaultCapturePath(extension ext: String) -> String {
+    let now = Date()
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyyMMdd-HHmmss"
+    let stamp = formatter.string(from: now)
+    let basename = "pyxift-\(stamp).\(ext)"
+    let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+        ?? URL(fileURLWithPath: NSHomeDirectory())
+    return dir.appendingPathComponent(basename).path
+}
+#else
+@MainActor
+private func defaultCapturePath(extension ext: String) -> String {
+    return "pyxift.\(ext)"
+}
+#endif
+
 extension Pyx {
     @MainActor
     public static func loadImage(_ path: String, into bank: Int = 0) {
