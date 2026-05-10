@@ -19,7 +19,18 @@ If the conversation already picks a target before this skill runs (e.g. the user
 
 ## Workflow
 
-The skill runs as a **sync → enumerate → rank → confirm → handoff** loop. Steps 1–2 do read-only work; step 3 is where Claude takes a position; step 4 is the human decision point; step 5 hands off to other skills. Do not skip the human decision in step 4 — the point of this skill is that the human signs off on the target before any further work begins.
+The skill runs as a **state-check → sync → enumerate → rank → confirm → handoff** loop. Steps 0–2 do read-only work; step 3 is where Claude takes a position; step 4 is the human decision point; step 5 hands off to other skills. Do not skip the human decision in step 4 — the point of this skill is that the human signs off on the target before any further work begins.
+
+### Step 0 — Inspect the milestone-and-release state
+
+Invoke `milestone-state` (no arguments) via the Skill tool. It returns a fixed four-line block: `Last M-commit:`, `Local tags:`, `Origin tags:`, `Status:`. Surface this block verbatim in the framing presented to the user in Step 4 so the proposal is anchored to the actual repo state.
+
+Two outcomes affect downstream behavior:
+
+- **`Status: M<n> pushed but origin tag missing`** — the most recent release-form M-commit has not been tagged on origin yet, which usually means CI is still running or has just failed. Pause and ask the user whether to wait for CI to finish (recommended when the next-milestone decision depends on the just-shipped version actually landing) or to proceed regardless (fine when the user is just sketching the next target). Do not silently continue; the discrepancy is the kind of state this skill exists to surface.
+- **`Status: local-only check`** — origin was not reachable. Note this in the framing and proceed with local tags as the basis for the version-bump computation in Step 3.
+
+The latest release tag captured here (newest entry of `Origin tags:` when reachable, otherwise `Local tags:`) becomes the basis for the version-bump calculation in Step 3 — do not recompute it later by re-running `git tag` from scratch.
 
 ### Step 1 — Sync the upstream checkout
 
@@ -115,4 +126,5 @@ Summarize the suggested follow-up commands in 1–2 lines so the user can copy t
 - Upstream sync primitive: `.claude/skills/pyxel-ref-update/SKILL.md`
 - Upstream area research: `.claude/skills/pyxel-research/SKILL.md`
 - Ledger updater: `.claude/skills/milestone-update/SKILL.md`
+- State primitive: `.claude/skills/milestone-state/SKILL.md` — invoked at Step 0
 - Milestone conventions: `CLAUDE.md` ("Milestone Conventions")

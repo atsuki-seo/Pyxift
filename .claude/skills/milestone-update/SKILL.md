@@ -29,6 +29,15 @@ In either case, if the conversation context is insufficient (skill invoked in a 
 
 ## Workflow
 
+### Step 0 — Inspect the milestone-and-release state
+
+Invoke `milestone-state` (no arguments) via the Skill tool. It returns a fixed four-line block: `Last M-commit:`, `Local tags:`, `Origin tags:`, `Status:`. Use the result for two purposes only — recording the milestone-completion event itself is intentionally not in scope (per the skill description).
+
+1. **Version-number sanity check.** When the user is recording a Roadmap entry that pins a `vX.Y.Z` (e.g. "the next milestone M11 targets v1.0.0"), compare that version against the latest release tag captured here. If the proposed version is not a valid successor under `decisions.md` → "Versioning policy" (e.g. naming `v0.9.0` while the latest tag is already `v0.9.0`, or skipping over a patch level without justification), surface the discrepancy in the Step 3 proposal and ask the user to confirm or revise. Do not silently rewrite the version.
+2. **Stale Open-tasks detection.** Cross-check `git log --grep '^M[0-9]'` (already captured by `milestone-state` as `Last M-commit`, but pull the full list if needed) against `docs/status.md` Open tasks. If any Open-tasks entry tagged `(M<n>, ...)` corresponds to an already-completed `M<n>:` commit, mention it as a side-note in the Step 3 proposal so the user can choose to remove the stale entry. Do not auto-remove — table this as a separate proposed edit and let the user approve it.
+
+If `Status: M<n> pushed but origin tag missing`, mention it in Step 3 but do not block — the milestone-update flow does not depend on origin reaching a settled state. If `Status: local-only check`, treat the latest local tag as the basis for the version-number check and note the offline state inline.
+
 ### Step 1 — Read the current ledger state
 
 Always start by reading both files end-to-end:
@@ -117,3 +126,4 @@ If the new entry references another (e.g. an Open task points at a Decisions ent
 - `CLAUDE.md` — "Files to Read Before Starting Work" lists both ledgers as session-startup reading
 - `.claude/rules/language-policy.md` — entries must be written in English
 - `.claude/skills/pyxel-sync/SKILL.md` — adjacent skill that may produce decisions this skill then records
+- `.claude/skills/milestone-state/SKILL.md` — read-only state primitive invoked at Step 0
