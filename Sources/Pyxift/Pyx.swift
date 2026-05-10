@@ -200,28 +200,56 @@ extension Pyx {
     public static func blt(x: Int, y: Int,
                            image: Int,
                            u: Int, v: Int, w: Int, h: Int,
-                           transparent: Color? = nil) {
+                           transparent: Color? = nil,
+                           rotate: Double = 0,
+                           scale: Double = 1) {
         guard let engine = Runtime.engine else { return }
         let t = transparent.map { Int32($0.index) } ?? Int32(-1)
         pyxift_engine_blt(engine,
                           Int32(x), Int32(y),
                           Int32(image),
                           Int32(u), Int32(v), Int32(w), Int32(h),
-                          t)
+                          t, rotate, scale)
     }
 
     @MainActor
     public static func bltm(x: Int, y: Int,
                             tilemap: Int,
                             u: Int, v: Int, w: Int, h: Int,
-                            transparent: Color? = nil) {
+                            transparent: Color? = nil,
+                            rotate: Double = 0,
+                            scale: Double = 1) {
         guard let engine = Runtime.engine else { return }
         let t = transparent.map { Int32($0.index) } ?? Int32(-1)
         pyxift_engine_bltm(engine,
                            Int32(x), Int32(y),
                            Int32(tilemap),
                            Int32(u), Int32(v), Int32(w), Int32(h),
-                           t)
+                           t, rotate, scale)
+    }
+
+    @MainActor
+    public static func elli(x: Int, y: Int, w: Int, h: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_elli(engine, Int32(x), Int32(y), Int32(w), Int32(h), color.index)
+    }
+
+    @MainActor
+    public static func ellib(x: Int, y: Int, w: Int, h: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_ellib(engine, Int32(x), Int32(y), Int32(w), Int32(h), color.index)
+    }
+
+    @MainActor
+    public static func fill(x: Int, y: Int, color: Color) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_fill(engine, Int32(x), Int32(y), color.index)
+    }
+
+    @MainActor
+    public static func dither(_ alpha: Double) {
+        guard let engine = Runtime.engine else { return }
+        pyxift_engine_dither(engine, alpha)
     }
 
     @MainActor
