@@ -2,6 +2,8 @@
 
 #include "core/Canvas.hpp"
 #include "core/Image.hpp"
+#include "core/Palette.hpp"
+#include "core/PngWriter.hpp"
 #include "core/Tilemap.hpp"
 
 struct PyxiftCanvasHandle {
@@ -32,6 +34,21 @@ int32_t pyxift_canvas_test_width(const PyxiftCanvasHandle *h) {
 
 int32_t pyxift_canvas_test_height(const PyxiftCanvasHandle *h) {
     return h != nullptr ? h->canvas.height() : 0;
+}
+
+void pyxift_canvas_test_resize(PyxiftCanvasHandle *h, int32_t width, int32_t height) {
+    if (h != nullptr) h->canvas.resize(width, height);
+}
+
+int32_t pyxift_canvas_test_save_png(const PyxiftCanvasHandle *h, const char *path, int32_t scale) {
+    if (h == nullptr || path == nullptr) return 0;
+    const bool ok = pyxift::save_indexed_png(std::string(path),
+                                             h->canvas.pixels(),
+                                             h->canvas.width(),
+                                             h->canvas.height(),
+                                             pyxift::kDefaultPalette.data(),
+                                             scale);
+    return ok ? 1 : 0;
 }
 
 void pyxift_canvas_test_cls(PyxiftCanvasHandle *h, uint8_t color) {

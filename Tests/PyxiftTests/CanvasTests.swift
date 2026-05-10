@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 import CPyxiftCore
 
 private final class Canvas {
@@ -261,4 +262,58 @@ private final class Tilemap {
     #expect(c.pget(7, 3) == 11)
     pyxift_canvas_test_camera_reset(c.raw)
     #expect(c.pget(2, 3) == 11)
+}
+
+@Test func resizeChangesDimensionsAndClearsPixels() {
+    let c = Canvas(width: 16, height: 16)
+    pyxift_canvas_test_pset(c.raw, 5, 5, 9)
+    pyxift_canvas_test_resize(c.raw, 32, 24)
+    #expect(pyxift_canvas_test_width(c.raw) == 32)
+    #expect(pyxift_canvas_test_height(c.raw) == 24)
+    #expect(c.pget(5, 5) == 0)
+    #expect(c.pget(31, 23) == 0)
+}
+
+@Test func resizeRejectsNonPositiveDimensions() {
+    let c = Canvas(width: 16, height: 16)
+    pyxift_canvas_test_resize(c.raw, 0, 10)
+    #expect(pyxift_canvas_test_width(c.raw) == 16)
+    #expect(pyxift_canvas_test_height(c.raw) == 16)
+    pyxift_canvas_test_resize(c.raw, -3, -3)
+    #expect(pyxift_canvas_test_width(c.raw) == 16)
+}
+
+@Test func resizeResetsClipAndCamera() {
+    let c = Canvas(width: 16, height: 16)
+    pyxift_canvas_test_clip(c.raw, 2, 2, 4, 4)
+    pyxift_canvas_test_camera(c.raw, 3, 3)
+    pyxift_canvas_test_resize(c.raw, 24, 24)
+    pyxift_canvas_test_pset(c.raw, 0, 0, 7)
+    pyxift_canvas_test_pset(c.raw, 23, 23, 8)
+    #expect(c.pget(0, 0) == 7)
+    #expect(c.pget(23, 23) == 8)
+}
+
+@Test func savePngWritesValidFile() {
+    let c = Canvas(width: 4, height: 3)
+    pyxift_canvas_test_cls(c.raw, 5)
+    pyxift_canvas_test_pset(c.raw, 0, 0, 8)
+    let dir = FileManager.default.temporaryDirectory
+    let path = dir.appendingPathComponent("pyxift-test-\(UUID().uuidString).png").path
+    defer { try? FileManager.default.removeItem(atPath: path) }
+    let ok = path.withCString { pyxift_canvas_test_save_png(c.raw, $0, 2) }
+    #expect(ok == 1)
+    let data = try? Data(contentsOf: URL(fileURLWithPath: path))
+    #expect(data != nil)
+    if let d = data {
+        #expect(d.count > 8)
+        let sig: [UInt8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+        #expect(Array(d.prefix(8)) == sig)
+    }
+}
+
+@Test func savePngRejectsNullPath() {
+    let c = Canvas(width: 4, height: 4)
+    let ok = pyxift_canvas_test_save_png(c.raw, nil, 1)
+    #expect(ok == 0)
 }

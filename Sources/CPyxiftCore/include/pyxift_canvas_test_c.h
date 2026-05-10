@@ -17,6 +17,9 @@ void pyxift_canvas_test_destroy(PyxiftCanvasHandle *h);
 int32_t pyxift_canvas_test_width(const PyxiftCanvasHandle *h);
 int32_t pyxift_canvas_test_height(const PyxiftCanvasHandle *h);
 
+void pyxift_canvas_test_resize(PyxiftCanvasHandle *h, int32_t width, int32_t height);
+int32_t pyxift_canvas_test_save_png(const PyxiftCanvasHandle *h, const char *path, int32_t scale);
+
 void pyxift_canvas_test_cls(PyxiftCanvasHandle *h, uint8_t color);
 void pyxift_canvas_test_pset(PyxiftCanvasHandle *h, int32_t x, int32_t y, uint8_t color);
 uint8_t pyxift_canvas_test_pget(const PyxiftCanvasHandle *h, int32_t x, int32_t y);
