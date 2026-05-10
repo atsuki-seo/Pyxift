@@ -38,7 +38,7 @@ Values for the "Status" column:
 | --- | --- | --- | --- | --- |
 | (not implemented) | python/pyxel/__init__.pyi | Public API surface | ○ | pending |
 | Sources/CPyxiftCore/src/core/Palette.hpp<br>Sources/CPyxiftCore/src/core/Font.hpp<br>Sources/CPyxiftCore/src/core/Tone.hpp | crates/pyxel-core/src/settings.rs | Numeric constants (DEFAULT_COLORS / FONT_DATA / DEFAULT_TONE_*) | ○ | implemented |
-| (not implemented) | crates/pyxel-core/src/canvas.rs | Reference for drawing logic | ○ | pending |
+| Sources/CPyxiftCore/src/core/Canvas.cpp | crates/pyxel-core/src/canvas.rs | Reference for drawing logic; DITHERING_MATRIX and ELLIPSE_ROUNDING_BIAS adopted byte-for-byte | ○ | implemented |
 | Sources/CPyxiftCore/src/core/AssetBundle.cpp | crates/pyxel-core/src/resource_data.rs | Asset bundle JSON schema (images / tilemaps / sounds / musics) | ○ | implemented |
 | Sources/CPyxiftCore/src/core/AssetBundle.cpp | crates/pyxel-core/src/utils.rs | compress_vec1 / compress_vec2 trailing-zero compaction | ○ | implemented |
 | THIRD_PARTY_LICENSES/pyxel-MIT.txt | LICENSE | Copyright year range and full MIT text | × | implemented |
@@ -97,6 +97,54 @@ Implementation note: 4×6 = 24 bits are filled from the most significant bit, in
 ## Background color
 
 `BACKGROUND_COLOR = 0x202224` (outside the palette, used for the window's letterbox area)
+
+## Drawing extensions (M9 reference)
+
+Upstream specs for the drawing extensions shipped in Pyxift M9 (v0.6.0). Facts below are extracted from `crates/pyxel-core/src/canvas.rs` and `crates/pyxel-core/src/image.rs` at the synced tag.
+
+### `blt` / `bltm` `rotate` / `scale`
+
+[confirmed] `rotate` is in degrees, clockwise positive — the implementation flips the sin sign (`sin = -sin(rad)`).
+
+[confirmed] `scale < f32::EPSILON` (effectively `<= 0`) is a no-op. Negative scale is not used for flips; horizontal/vertical flips are expressed by negative `w`/`h`.
+
+[confirmed] Pivot is the source-rect center, computed as `(half_width, half_height) = ((w - 1) / 2.0, (h - 1) / 2.0)`. For odd-sized rects the pivot lands on a half-pixel.
+
+[confirmed] Sampling is nearest-neighbor via inverse mapping: each output pixel computes `(sx, sy) = src_center + (Δx · cos/scale - Δy · sin/scale, Δx · sin/scale + Δy · cos/scale)` and rounds to the nearest source pixel; the source-rect bounds are checked before reading.
+
+[confirmed] `bltm(rotate, scale)` rasterizes the requested tile region into a same-size scratch image, then runs the standard `blit_with_transform` path on it.
+
+### `elli(x, y, w, h, col)` / `ellib(x, y, w, h, col)`
+
+[confirmed] `(x, y)` is the bounding-box top-left corner; `cx = x + (w-1)/2.0`, `cy = y + (h-1)/2.0`.
+
+[confirmed] Rasterized via direct evaluation of the ellipse equation `dy = rb · sqrt(1 - dx²/ra²)` (and the symmetric `dx` form). Upstream uses a two-pass scan (vertical strips for the left/right halves plus horizontal scans for the top/bottom halves) so corner pixels are not lost; Pyxift mirrors this two-pass structure.
+
+[confirmed] An `ELLIPSE_ROUNDING_BIAS = 0.01` is added before rounding so half-pixel ties bias outward and the resulting ellipse stays symmetric.
+
+[confirmed] `ellib` reuses the same scan but only writes the four extremal pixels of each strip (the equivalent of the four ellipse-arc endpoints at that scan position).
+
+### `fill(x, y, col)`
+
+[confirmed] Scanline span flood fill, 4-neighbor, stack-based (no recursion). Reads the seed color at `(x, y)`, returns immediately if the seed equals the new color, then fills runs along each row and seeds the row above and below at each gap-end.
+
+[confirmed] Run extents are clamped to the active clip rectangle.
+
+[confirmed] When `dither` is active (`alpha < 1.0`), the row write goes through the same Bayer mask as other primitives, so unwritten pixels remain at the seed color and the algorithm still terminates (the next-row probe still sees the seed color and stops).
+
+### `dither(alpha)`
+
+[confirmed] Adopted byte-for-byte: 4×4 Bayer matrix `DITHERING_MATRIX[y][x]` with the threshold values `{1, 9, 3, 11, 13, 5, 15, 7, 3, 11, 1, 9, 15, 7, 13, 5} / 16` in row-major order.
+
+[confirmed] Write predicate is strict greater-than: `should_write(x, y) = alpha > matrix[y mod 4][x mod 4]`. `alpha >= 1.0` is a fast-path that bypasses the Bayer test entirely; `alpha <= 0.0` writes nothing.
+
+[confirmed] Applies to every drawing primitive (`pset`/`line`/`rect`/`circ`/`tri`/`elli`/`fill`/`blt`/`bltm`) except `cls`, which always overwrites the entire framebuffer.
+
+Source: crates/pyxel-core/src/canvas.rs @ v2.9.5
+Source: crates/pyxel-core/src/image.rs @ v2.9.5
+Source: python/pyxel/__init__.pyi @ v2.9.5
+
+_Researched against kitao/pyxel v2.9.5 (2026-05-03)._
 
 ## Input extensions (M8 reference)
 
