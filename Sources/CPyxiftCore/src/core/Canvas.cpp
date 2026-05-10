@@ -54,6 +54,19 @@ Canvas::Canvas(int32_t width, int32_t height)
     for (int i = 0; i < 16; ++i) palette_[i] = static_cast<uint8_t>(i);
 }
 
+void Canvas::resize(int32_t width, int32_t height) {
+    if (width <= 0 || height <= 0) return;
+    width_ = width;
+    height_ = height;
+    pixels_.assign(static_cast<size_t>(width) * height, 0);
+    clip_x1_ = 0;
+    clip_y1_ = 0;
+    clip_x2_ = width - 1;
+    clip_y2_ = height - 1;
+    camera_x_ = 0;
+    camera_y_ = 0;
+}
+
 void Canvas::set_clip(int32_t x, int32_t y, int32_t w, int32_t h) {
     if (w <= 0 || h <= 0) {
         // Match upstream: an empty rect collapses to a "draws nothing" state (x2 < x1).
@@ -100,6 +113,19 @@ void Canvas::set_pal(uint8_t from, uint8_t to) {
 
 void Canvas::reset_pal() {
     for (int i = 0; i < 16; ++i) palette_[i] = static_cast<uint8_t>(i);
+}
+
+Canvas::State Canvas::save_state() const {
+    return State{clip_x1_, clip_y1_, clip_x2_, clip_y2_,
+                 camera_x_, camera_y_, palette_, dither_alpha_};
+}
+
+void Canvas::restore_state(const State &s) {
+    clip_x1_ = s.clip_x1; clip_y1_ = s.clip_y1;
+    clip_x2_ = s.clip_x2; clip_y2_ = s.clip_y2;
+    camera_x_ = s.camera_x; camera_y_ = s.camera_y;
+    palette_ = s.palette;
+    dither_alpha_ = s.dither_alpha;
 }
 
 void Canvas::set_dither(double alpha) {

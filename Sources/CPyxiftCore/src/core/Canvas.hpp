@@ -18,6 +18,8 @@ public:
     int32_t height() const { return height_; }
     const uint8_t *pixels() const { return pixels_.data(); }
 
+    void resize(int32_t width, int32_t height);
+
     void cls(uint8_t color);
     void pset(int32_t x, int32_t y, uint8_t color);
     uint8_t pget(int32_t x, int32_t y) const;
@@ -50,6 +52,15 @@ public:
     void set_pal(uint8_t from, uint8_t to);
     void reset_pal();
     void set_dither(double alpha);
+
+    struct State {
+        int32_t clip_x1, clip_y1, clip_x2, clip_y2;
+        int32_t camera_x, camera_y;
+        std::array<uint8_t, 16> palette;
+        double dither_alpha;
+    };
+    State save_state() const;
+    void restore_state(const State &s);
 
 private:
     int32_t width_;
