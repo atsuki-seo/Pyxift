@@ -123,6 +123,10 @@ Rationale: Swift already ships with Foundation's `sin` / `cos` / `sqrt`, `Int.ra
 
 This is the explicit "Swift side" branch of the principle: "user-facing ergonomics follow Swift idioms; everything else follows Pyxel."
 
+### `screen_mode` semantics: SDL texture-filter stub, not GLSL shaders
+
+Upstream Pyxel implements `screen_mode` via a GLSL shader pipeline (`crisp` / `smooth` / `retro`). Pyxift's renderer is `SDL_Renderer` + a streaming texture without a shader stage, so `Pyx.screenMode` instead toggles `SDL_SetTextureScaleMode` between `NEAREST` (crisp, mode 0) and `LINEAR` (smooth and retro, modes 1 & 2). The three-mode API surface is preserved for source compatibility, but modes 1 and 2 currently render identically. Reintroducing a true shader path is recorded under `status.md` → "Future considerations" and would land alongside any future renderer migration; until then this stub is the intentional v0.7.0 behavior.
+
 ### Full coverage of key-code constants
 
 Upstream defines 215 `KEY_*` constants. Pyxift's `enum Key` covers SDL3's `SDL_Keycode` (`SDLK_*`) one-to-one. Naming follows Swift conventions in lowerCamelCase, e.g. `case escape` / `case leftArrow`. Raw SDL3 keycode access remains available through `Key(rawValue:)`.

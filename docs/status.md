@@ -5,7 +5,7 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 ## Open tasks
 
 - (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — was out of v0.2.0 scope
-- (M10, target v0.7.0) Window/system APIs: `fullscreen`, `resize`, `screen_mode`, `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `screencast`/`reset_screencast`, `Pyx.reset`, `show`, `flip`, and a public `VERSION` constant.
+- (deferred past v0.7.0) `screencast` / `reset_screencast`, `Pyx.reset`, `flip`, and shader-based `screen_mode` filters (smooth / retro). M10 ships an API stub for `screen_mode` via `SDL_SetTextureScaleMode` (NEAREST / LINEAR) since the SDL_Renderer backend has no GLSL pipeline; the upstream-equivalent CRT/blur shaders are out of scope. See "Future considerations".
 - (M11, target v1.0.0) Object-style resource and audio API surface — promote `Image` / `Tilemap` (and accompanying `Sound` / `Music` / `Channel` / `Tone`) to public types with per-instance methods, replacing the current fixed-bank API (`Pyx.imagePset(bank:...)`, `Pyx.tilemapSetCell(tilemap:...)`, etc.). This is a breaking change to Pyxift's public Swift surface and per `decisions.md` → "Versioning policy" cuts v1.0.0. Resolves the two Open questions about resource/audio object APIs that previously sat in this file.
 - (M12, target v1.0.0) Distribution packaging: `pyxift-package` CLI that emits `dist/<os>/` trees for macOS / Windows / Linux, Windows native CI build on `windows-latest`, SDL3 VC prebuilt fetch for Windows, `.app` template for macOS, and `LD_LIBRARY_PATH` launcher script for Linux. Scope and policy are settled in `decisions.md` → "Distribution packaging". Paired with M11 as the second v1.0.0 driver — together they form the "minimum-viable game development and cross-OS distribution" checkpoint that anchors v1.0.0.
 - (M13, target v1.1.0) Custom font support: `Font(filename:font_size:)`, `Font.text_width`, a `font` parameter on `Pyx.text`, and public `FONT_WIDTH`/`FONT_HEIGHT` constants. Deferred past v1.0.0 because the built-in bitmap font is sufficient for minimum-viable game development.
@@ -20,7 +20,6 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 ## Roadmap from v0.7 onward
 
-- v0.7.0: window/system — `fullscreen`, `resize`, `screen_mode`, `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `screencast`, `reset_screencast`, `Pyx.reset`, `show`, `flip`, `VERSION` (M10)
 - v1.0.0: object-style resource/audio API surface (M11) and distribution packaging (M12) — the minimum-viable game development and cross-OS distribution checkpoint. M11 is the breaking change that triggers v1.0.0 per the versioning policy; M12 is the functional checkpoint that justifies cutting v1.0.0 here rather than later.
 - v1.1.0: custom font support — `Font(filename:font_size:)`, `Font.text_width`, `text(font:)`, expose `FONT_WIDTH`/`FONT_HEIGHT` (M13)
 - v1.2.0: 3D blit — `blt3d`, `bltm3d` (M14)
@@ -51,6 +50,15 @@ During v0.1 development, Pyxift's API signatures are still in flux, so a bidirec
 - A script that extracts the Swift public-API signatures
 - Mechanical cross-check against Pyxel's `__init__.pyi`
 - Either integrate into `/pyxel-sync` or split into an independent hook
+
+### M10 deferred surfaces: screencast, Pyx.reset, flip, shader-based screen_mode
+
+M10 (v0.7.0) ships `fullscreen`, `resize`, `screen_mode` (NEAREST / LINEAR stub), `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `show`, and the public `VERSION` constant. The following items from the original M10 scope were intentionally deferred:
+
+- **`screencast` / `reset_screencast`**: GIF-encoder integration (frame ring buffer, palette-aware GIF writer). Decoupled from the screenshot path because the encoder pulls in a separate dependency surface.
+- **`Pyx.reset`**: a fresh-engine reset path. Touches every subsystem (canvas / audio / input / window) and warrants its own design pass once the v1.0.0 object-style API (M11) is settled, because reset semantics differ between the global API and per-instance resources.
+- **`flip`**: synchronous one-shot draw + present (advance one frame from outside the run loop). Requires re-entrancy into the engine loop; deferred until a use case forces the design.
+- **Shader-based `screen_mode` filters (smooth / retro)**: the upstream Pyxel GLSL pipeline. Pyxift's SDL_Renderer backend cannot run shaders today; revisit if/when the renderer migrates to a GPU-shader path.
 
 ### Steamworks VDF template generation
 
