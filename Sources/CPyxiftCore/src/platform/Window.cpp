@@ -1,5 +1,6 @@
 #include "Window.hpp"
 
+#include <cstring>
 #include <vector>
 
 namespace pyxift::platform {
@@ -37,10 +38,7 @@ Window::Window(int32_t logical_width, int32_t logical_height, const std::string 
     if (renderer_ == nullptr) return;
 
     SDL_SetRenderVSync(renderer_, 1);
-    SDL_SetRenderLogicalPresentation(renderer_,
-                                     logical_width,
-                                     logical_height,
-                                     SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
+    apply_logical_presentation();
 
     texture_ = SDL_CreateTexture(renderer_,
                                  SDL_PIXELFORMAT_RGBA32,
@@ -72,6 +70,77 @@ void Window::set_cursor_visible(bool visible) {
 void Window::set_title(const std::string &title) {
     if (window_ == nullptr) return;
     SDL_SetWindowTitle(window_, title.c_str());
+}
+
+void Window::apply_logical_presentation() {
+    if (renderer_ == nullptr) return;
+    SDL_SetRenderLogicalPresentation(renderer_,
+                                     width_,
+                                     height_,
+                                     integer_scale_
+                                         ? SDL_LOGICAL_PRESENTATION_INTEGER_SCALE
+                                         : SDL_LOGICAL_PRESENTATION_LETTERBOX);
+}
+
+void Window::set_fullscreen(bool enabled) {
+    if (window_ == nullptr) return;
+    if (SDL_SetWindowFullscreen(window_, enabled)) {
+        fullscreen_ = enabled;
+    }
+}
+
+void Window::resize_logical(int32_t logical_width, int32_t logical_height) {
+    if (logical_width <= 0 || logical_height <= 0) return;
+    width_ = logical_width;
+    height_ = logical_height;
+
+    if (texture_ != nullptr) {
+        SDL_DestroyTexture(texture_);
+        texture_ = nullptr;
+    }
+    if (renderer_ != nullptr) {
+        texture_ = SDL_CreateTexture(renderer_,
+                                     SDL_PIXELFORMAT_RGBA32,
+                                     SDL_TEXTUREACCESS_STREAMING,
+                                     logical_width,
+                                     logical_height);
+        if (texture_ != nullptr) {
+            SDL_SetTextureScaleMode(texture_, SDL_SCALEMODE_NEAREST);
+        }
+        apply_logical_presentation();
+    }
+
+    if (window_ != nullptr && !fullscreen_) {
+        const int32_t scale = initial_scale(logical_width, logical_height);
+        SDL_SetWindowSize(window_, logical_width * scale, logical_height * scale);
+    }
+}
+
+void Window::set_integer_scale(bool enabled) {
+    if (integer_scale_ == enabled) return;
+    integer_scale_ = enabled;
+    apply_logical_presentation();
+}
+
+void Window::set_linear_filtering(bool enabled) {
+    if (texture_ == nullptr) return;
+    SDL_SetTextureScaleMode(texture_,
+                            enabled ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+}
+
+void Window::set_icon(const uint8_t *rgba, int32_t w, int32_t h) {
+    if (window_ == nullptr || rgba == nullptr || w <= 0 || h <= 0) return;
+    SDL_Surface *surface = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
+    if (surface == nullptr) return;
+    const size_t row_bytes = static_cast<size_t>(w) * 4;
+    auto *dst = static_cast<uint8_t *>(surface->pixels);
+    for (int32_t y = 0; y < h; ++y) {
+        std::memcpy(dst + static_cast<size_t>(y) * surface->pitch,
+                    rgba + static_cast<size_t>(y) * row_bytes,
+                    row_bytes);
+    }
+    SDL_SetWindowIcon(window_, surface);
+    SDL_DestroySurface(surface);
 }
 
 void Window::warp_mouse(int32_t logical_x, int32_t logical_y) {

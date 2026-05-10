@@ -24,6 +24,18 @@ public:
 
     void present(const uint8_t *index_buffer, const uint32_t *palette);
 
+    void set_fullscreen(bool enabled);
+    bool fullscreen() const { return fullscreen_; }
+
+    void resize_logical(int32_t logical_width, int32_t logical_height);
+
+    void set_integer_scale(bool enabled);
+    bool integer_scale() const { return integer_scale_; }
+
+    void set_linear_filtering(bool enabled);
+
+    void set_icon(const uint8_t *rgba, int32_t w, int32_t h);
+
     SDL_Renderer *renderer() { return renderer_; }
     SDL_Window *sdl_window() { return window_; }
 
@@ -35,6 +47,10 @@ private:
     SDL_Window *window_ = nullptr;
     SDL_Renderer *renderer_ = nullptr;
     SDL_Texture *texture_ = nullptr;
+    bool fullscreen_ = false;
+    bool integer_scale_ = true;
+
+    void apply_logical_presentation();
 };
 
 } // namespace pyxift::platform
