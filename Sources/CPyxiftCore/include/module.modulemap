@@ -3,5 +3,6 @@ module CPyxiftCore {
     header "pyxift_input_test_c.h"
     header "pyxift_font_test_c.h"
     header "pyxift_audio_test_c.h"
+    header "pyxift_canvas_test_c.h"
     export *
 }
