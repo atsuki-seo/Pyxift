@@ -237,6 +237,134 @@ Source: python/pyxel/__init__.pyi @ v2.9.5
 
 _Researched against kitao/pyxel v2.9.5 (2026-05-03) via /pyxel-research._
 
+## Object-style resource API (M11 reference)
+
+Upstream specs for the public resource and audio classes that Pyxift M11 (target v1.0.0) lifts from index-based access to object-style access. Facts below are extracted from `python/pyxel/__init__.pyi` and `crates/pyxel-binding/src/*_wrapper.rs` plus the corresponding `crates/pyxel-core/src/*.rs` files at the synced tag.
+
+### Module-level instance lists
+
+[confirmed] Six module-level lists are exposed via Python's `__getattr__`: `pyxel.images`, `pyxel.tilemaps`, `pyxel.channels`, `pyxel.tones`, `pyxel.sounds`, `pyxel.musics`. Each is a length-fixed sequence of `Rc<UnsafeCell<T>>` slots populated at `pyxel.init` (`crates/pyxel-binding/src/variable_wrapper.rs`, `crates/pyxel-core/src/pyxel.rs::init_*`).
+
+[confirmed] Slot counts match the constants in the "Constraint values" table above: 3 images, 8 tilemaps, 4 channels, 4 tones, 64 sounds, 8 musics.
+
+[confirmed] Slot assignment is supported (`pyxel.images[0] = new_image`): the binding's `wrap_ptr_vec_as_python_object_sequence!` macro replaces the underlying `Rc` in the vector. This is reference-swap semantics, not a deep copy — any object holding a reference to the previous slot keeps the previous instance live.
+
+[confirmed] In addition, `pyxel.screen`, `pyxel.cursor`, `pyxel.font` are individual `Image` references (not lists). They are assignment targets only via the global state, not via subscription.
+
+### Storage model
+
+[confirmed] Each resource is stored in core as `Rc<UnsafeCell<T>>` (alias `RcImage` / `RcTilemap` / `RcSound` / `RcMusic` / `RcChannel` / `RcTone`; defined via `define_rc_type!` in `crates/pyxel-core/src/utils.rs`). The wrapper holds the same `Rc` — there is no copy-on-set, so multiple Python references to the same slot mutate the same underlying instance.
+
+[inferred] On the Pyxift side this maps cleanly to a Swift `class` (reference type) per resource. Reference identity is the upstream-equivalent property — two `Image` references obtained from the same `Pyx.images[0]` slot must refer to the same buffer, just like upstream.
+
+### `Image`
+
+[confirmed] Properties: `width: u32` (getter), `height: u32` (getter). Both are read-only.
+
+[confirmed] Constructors:
+- `Image(width, height)` — fresh empty image of the given size.
+- `Image.from_image(filename: str, include_colors: bool = False) -> Image` — load from a PNG/GIF/JPEG. `include_colors=True` overwrites the global palette with the file's palette.
+- A `incl_colors=` alias is accepted but warns "deprecated. Use include_colors instead."
+
+[confirmed] Data operations:
+- `data_ptr() -> ctypes.c_uint8 array` — exposes the raw `width*height` byte buffer to Python. Pyxift's analogue would be a `withUnsafeMutableBufferPointer` style accessor.
+- `set(x, y, data: list[str])` — bulk-write hex digits ("0123" etc.).
+- `load(x, y, filename, include_colors=False)` — load file at offset.
+- `save(filename, scale)` — write a scaled PNG.
+
+[confirmed] Canvas operations (per-image, identical to module-level `pyxel.*`): `clip` (0 or 4 args), `camera` (0 or 2 args), `pal` (0 or 2 args), `dither(alpha)`, `cls(col)`, `pget(x,y)`, `pset(x,y,col)`, `line`, `rect`, `rectb`, `circ`, `circb`, `elli`, `ellib`, `tri`, `trib`, `fill`, `blt`, `bltm`, `text`. The same `Image.blt(...)` and `Image.bltm(...)` accept `int | Image` / `int | Tilemap` for the source argument (polymorphic).
+
+[confirmed] `blt3d` / `bltm3d` are also methods on `Image` — these belong to M14 and remain out of scope for M11.
+
+### `Tilemap`
+
+[confirmed] Properties: `width: u32`, `height: u32` (read-only), `imgsrc: int | Image` (read-write). Setting `imgsrc` accepts either an image-bank index or an `Image` instance and is stored as `pyxel::ImageSource::{Index(u32), Image(RcImage)}` (`crates/pyxel-core/src/tilemap.rs`).
+
+[confirmed] Constructors:
+- `Tilemap(width, height, img: int | Image)` — fresh empty tilemap.
+- `Tilemap.from_tmx(filename, layer) -> Tilemap` — load from a TMX (Tiled) file. Out of M11 scope; tracking only.
+
+[confirmed] Data operations: `data_ptr() -> ctypes.c_uint16 array` (4 bytes per tile: `image_tx`, `image_ty`), `set(x, y, data: list[str])` (4-digit hex per tile), `load(x, y, filename, layer)` for TMX import.
+
+[confirmed] Canvas operations are tile-valued analogues of `Image`'s pixel-valued ones: `clip`, `camera`, `cls(tile)`, `pget(x,y) -> (tx, ty)`, `pset(x,y,tile)`, `line`, `rect`, `rectb`, `circ`, `circb`, `elli`, `ellib`, `tri`, `trib`, `fill` — each takes a `tile: tuple[int, int]` instead of `col: int`. Plus `blt(x, y, tm: int | Tilemap, u, v, w, h, tilekey=None, rotate=0, scale=1)` for tile-domain blits.
+
+[confirmed] `Tilemap.collide(x, y, w, h, dx, dy, walls: list[(int, int)]) -> (dx, dy)` — pixel-space movement clamped against tile-coordinate walls. New since M9; relevance to M11 is "include in the public class" but the implementation can ride on existing tilemap data.
+
+### `Channel`
+
+[confirmed] Properties: `gain: f32` (default 0.125), `detune: i32` cents (default 0). Both read-write.
+
+[confirmed] Constructor: `Channel()` — fresh channel.
+
+[confirmed] Methods:
+- `play(snd, sec=0, loop=False, resume=False)` — `snd` is a sum type: `int` (sound index), `list[int]`, `Sound`, `list[Sound]`, or `str` (MML). Index-form looks up `pyxel.sounds[idx]`. The deprecated `tick=` alias is converted to `sec = tick / 120`.
+- `stop()` — stop playback.
+- `play_pos() -> (sound_index, sec) | None`.
+
+[confirmed] All audio-mutating calls take `pyxel::AudioLock::lock()` for the duration of the call. The Pyxift-side mixer mutex must wrap the equivalent operations.
+
+### `Tone`
+
+[confirmed] Properties: `mode: u32` (0=Wavetable, 1=ShortPeriodNoise, 2=LongPeriodNoise), `sample_bits: u32` (default 4), `wavetable: list[int]` (each value in `0..(2^sample_bits)`), `gain: f32` (default 1.0). All read-write. `wavetable` is exposed via a sequence wrapper that supports both element access and bulk replace.
+
+[confirmed] Constructor: `Tone()` — fresh tone with defaults.
+
+[confirmed] Deprecated aliases (warn-only, kept for source compatibility): `noise` ↔ `mode`, `waveform` ↔ `wavetable`. Pyxift can omit these per the existing "do not adopt deprecated upstream names" pattern; flag for explicit decision in `decisions.md`.
+
+### `Sound`
+
+[confirmed] Properties: `notes: list[u32]` (range 0–59, rests = -1; element type is `pyxel::SoundNote`), `tones: list[u32]` (`SoundTone`), `volumes: list[u32]` (0–7, `SoundVolume`), `effects: list[u32]` (0–5, `SoundEffect`), `speed: u32` (`SoundSpeed`, larger = slower; 120 ⇒ 1 sec/note). All four list properties are exposed via the same sequence-wrapper macro as `Tone.wavetable` — element access, slice access, and full replacement all work.
+
+[confirmed] Constructor: `Sound()` — fresh empty sound.
+
+[confirmed] Methods:
+- `set(notes: str, tones: str, volumes: str, effects: str, speed: int)` — bulk parse from short strings (e.g. `"g2b-2d3"`, `"ttss"`, `"7777 7531"`, `"nfnf"`).
+- `set_notes(s)`, `set_tones(s)`, `set_volumes(s)`, `set_effects(s)` — individual setters with the same string grammar.
+- `mml(code: str | None = None)` — switch to MML mode; `mml(None)` clears MML mode and returns to the parametric mode. Old MML syntax (`x` / `X` / `~` characters) is auto-detected and routed to a deprecated parser with a warning.
+- `pcm(filename: str | None = None)` — load a WAV/OGG file as PCM playback; `pcm(None)` clears PCM mode.
+- `save(filename, sec, ffmpeg=False)` — render to WAV (and optionally MP4 via FFmpeg).
+- `total_sec() -> f32 | None` — playback duration; `None` means infinite-loop.
+
+### `Music`
+
+[confirmed] Property: `seqs: list[list[u32]]` — a 2-D list, outer = channels, inner = sound indices. Exposed via a hand-written `Seqs` wrapper (`music_wrapper.rs`) that yields `Seq` element wrappers per channel; supports slice get/set and 2-D mutation.
+
+[confirmed] Constructor: `Music()` — fresh empty music.
+
+[confirmed] Methods:
+- `set(*seqs: list[int])` — variadic; one list per channel. Empty list = unused channel.
+- `save(filename, sec, ffmpeg=False)` — same shape as `Sound.save`.
+
+[confirmed] Deprecated alias: `snds_list` (warn-only, redirects to `seqs`).
+
+### `Font` (out of M11 scope)
+
+[confirmed] `Font(filename, font_size=10.0)` and `Font.text_width(s)`. Already deferred to M13 in `status.md`; included here only so the reader sees the full set of resource classes upstream exposes.
+
+### Mapping considerations for Pyxift's Swift API
+
+[todo] Decide the Swift surface for the six module-level lists. Candidates: `Pyx.images`, `Pyx.tilemaps`, `Pyx.channels`, `Pyx.tones`, `Pyx.sounds`, `Pyx.musics` as `[Image]` / `[Tilemap]` / etc. computed properties returning a wrapper that allows subscript-set. Reference semantics imply Swift `class` types.
+
+[todo] Decide whether `Pyx.images[i] = newImage` slot-replacement is supported in v1.0.0, or whether the public API exposes only mutation through the existing slot. Slot replacement adds binding complexity but matches upstream's "you can swap an instance in" capability. The pre-M11 `Pyx.imagePset(bank:...)` / `Pyx.tilemapSetCell(tilemap:...)` / `Pyx.tilemapSetImageBank(tilemap:...)` shorthands are removed by M11 (per `status.md` Open tasks).
+
+[todo] Decide whether `Pyx.screen`, `Pyx.cursor`, `Pyx.font` are exposed as Pyxift properties. `Pyx.screen` is the most likely candidate for direct off-screen drawing; `Pyx.cursor` and `Pyx.font` are Pyxel-internal painters.
+
+[todo] Decide naming for `Tilemap.imgsrc`. Upstream's name is short but cryptic; Pyxift could rename to `imageSource` (matching the Rust enum `ImageSource`).
+
+[todo] Decide whether Pyxift's `Sound` adopts `mml()` and `pcm()` modes for v1.0.0 or defers them. `mml()` was already on `status.md` as "deferred to a later v0.x"; M11's class-API roll-up is the natural place to land it. `pcm()` brings WAV/OGG decoding; weigh against scope.
+
+[todo] Decide whether `Sound.save` / `Music.save` (WAV / FFmpeg-MP4 export) are in M11 scope or split off. They are non-essential for "minimum-viable game development".
+
+[todo] Decide whether `Tilemap.collide` and `Tilemap.from_tmx` are in M11 scope. `collide` is small and useful; `from_tmx` pulls in TMX/XML parsing.
+
+[todo] Decide whether deprecated upstream aliases (`Tone.noise`, `Tone.waveform`, `Music.snds_list`, `incl_colors`) are surfaced in Pyxift. Default position by precedent: do not adopt deprecated upstream names.
+
+Source: python/pyxel/__init__.pyi @ v2.9.5
+Source: crates/pyxel-binding/src/{image,tilemap,channel,tone,sound,music,variable}_wrapper.rs @ v2.9.5
+Source: crates/pyxel-core/src/{image,tilemap,channel,tone,sound,music,pyxel,utils}.rs @ v2.9.5
+
+_Researched against kitao/pyxel v2.9.5 (2026-05-03) via /pyxel-research._
+
 ## Items not adopted
 
 - Icon data (`ICON_DATA`) — Pyxift will ship its own icon

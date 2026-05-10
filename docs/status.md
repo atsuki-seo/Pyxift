@@ -17,6 +17,14 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 - noise (Perlin) API: not provided in v0.1; revisit when actually needed. See the math / RNG API section of `decisions.md` for details.
 - macOS `Info.plist` minimum key set for `pyxift-package`'s `.app` template: which keys Pyxift fills in by default (`CFBundlePackageType`, `LSMinimumSystemVersion`, ...) and which the user must supply (`CFBundleIdentifier`, version strings, ...). Defer to implementation time when the `.app` can actually be launched and tested.
+- (M11) Swift surface for the six module-level resource lists (`Pyx.images`, `Pyx.tilemaps`, `Pyx.channels`, `Pyx.tones`, `Pyx.sounds`, `Pyx.musics`): wrapper-property shape, subscript semantics, and reference-type backing. Defer to implementation time. See "Object-style resource API (M11 reference)" in `pyxel-reference.md`.
+- (M11) Slot replacement (`Pyx.images[i] = newImage`) — adopt upstream's reference-swap semantics for v1.0.0, or expose only in-place mutation through the existing slot. Affects how the wrapper subscript is implemented.
+- (M11) Whether `Pyx.screen`, `Pyx.cursor`, `Pyx.font` are exposed on the Pyxift surface. `Pyx.screen` is the most likely candidate; the other two are Pyxel-internal.
+- (M11) Naming for `Tilemap.imgsrc`. Upstream is short but cryptic; Pyxift could rename to `imageSource` to match the underlying Rust enum `ImageSource`.
+- (M11) Whether `Sound.mml(_:)` and `Sound.pcm(_:)` modes are part of the v1.0.0 class-API surface. `mml(_:)` was previously deferred as a separate Open task; M11's class-API roll-up subsumes that entry. `pcm(_:)` brings WAV/OGG decoding cost.
+- (M11) Whether `Sound.save` / `Music.save` (WAV / FFmpeg-MP4 export) are in M11 scope. Non-essential for minimum-viable game development; candidate to split off.
+- (M11) Whether `Tilemap.collide(...)` and `Tilemap.from_tmx(...)` are in M11 scope. `collide` is small and useful; `from_tmx` pulls in TMX/XML parsing.
+- (M11) Whether deprecated upstream aliases (`Tone.noise`, `Tone.waveform`, `Music.snds_list`, `incl_colors`) are surfaced in Pyxift. Default position by precedent: do not adopt deprecated upstream names.
 
 ## Roadmap from v0.7 onward
 
