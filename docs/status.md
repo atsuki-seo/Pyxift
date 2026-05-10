@@ -5,7 +5,6 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 ## Open tasks
 
 - (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — was out of v0.2.0 scope
-- (M9, target v0.6.0) Drawing extensions: `blt`/`bltm` `rotate`/`scale` parameters, `elli`/`ellib` (filled/border ellipse), `fill` (flood fill), and `dither(alpha)` (Bayer ordered dithering). Implementation lives on `main`; entry remains until the release-tagging M-commit lands.
 - (M10, target v0.7.0) Window/system APIs: `fullscreen`, `resize`, `screen_mode`, `integer_scale`, `icon`, `perf_monitor`, `screenshot`, `screencast`/`reset_screencast`, `Pyx.reset`, `show`, `flip`, and a public `VERSION` constant.
 - (M13, target v0.8.0) Custom font support: `Font(filename:font_size:)`, `Font.text_width`, a `font` parameter on `Pyx.text`, and public `FONT_WIDTH`/`FONT_HEIGHT` constants.
 - (M14, target v0.9.0) 3D blit: `blt3d` and `bltm3d`. Spec details (perspective parameters) to be captured by `/pyxel-research`.
