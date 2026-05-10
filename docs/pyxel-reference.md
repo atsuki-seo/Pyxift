@@ -343,21 +343,19 @@ Upstream specs for the public resource and audio classes that Pyxift M11 (target
 
 ### Mapping considerations for Pyxift's Swift API
 
-[todo] Decide the Swift surface for the six module-level lists. Candidates: `Pyx.images`, `Pyx.tilemaps`, `Pyx.channels`, `Pyx.tones`, `Pyx.sounds`, `Pyx.musics` as `[Image]` / `[Tilemap]` / etc. computed properties returning a wrapper that allows subscript-set. Reference semantics imply Swift `class` types.
+[decided] The six module-level lists are exposed as dedicated wrapper types `ImageBank` / `TilemapBank` / `ChannelBank` / `ToneBank` / `SoundBank` / `MusicBank` (Collection-conforming, fixed-length, `subscript(Int) { get set }`). Resource types are Swift `class` (reference type). See `decisions.md` → "Object-style resource API (M11)".
 
-[todo] Decide whether `Pyx.images[i] = newImage` slot-replacement is supported in v1.0.0, or whether the public API exposes only mutation through the existing slot. Slot replacement adds binding complexity but matches upstream's "you can swap an instance in" capability. The pre-M11 `Pyx.imagePset(bank:...)` / `Pyx.tilemapSetCell(tilemap:...)` / `Pyx.tilemapSetImageBank(tilemap:...)` shorthands are removed by M11 (per `status.md` Open tasks).
+[decided] Slot replacement (`Pyx.images[i] = newImage` etc.) is supported in v1.0.0 with reference-swap semantics. The pre-M11 `Pyx.imagePset(bank:...)`, `Pyx.tilemapSetCell(tilemap:...)`, and `Pyx.tilemapSetImageBank(tilemap:...)` shorthands are removed by M11.
 
-[todo] Decide whether `Pyx.screen`, `Pyx.cursor`, `Pyx.font` are exposed as Pyxift properties. `Pyx.screen` is the most likely candidate for direct off-screen drawing; `Pyx.cursor` and `Pyx.font` are Pyxel-internal painters.
+[decided] Of the three single-`Image` references upstream exposes, only `Pyx.screen` is public on Pyxift's surface (settable for draw-target switching). `Pyx.cursor` and `Pyx.font` are not exposed.
 
-[todo] Decide naming for `Tilemap.imgsrc`. Upstream's name is short but cryptic; Pyxift could rename to `imageSource` (matching the Rust enum `ImageSource`).
+[decided] `Tilemap.imgsrc` is renamed to `imageSource` on the Pyxift surface, backed by `enum TilemapImageSource { case bank(Int), image(Image) }`.
 
-[todo] Decide whether Pyxift's `Sound` adopts `mml()` and `pcm()` modes for v1.0.0 or defers them. `mml()` was already on `status.md` as "deferred to a later v0.x"; M11's class-API roll-up is the natural place to land it. `pcm()` brings WAV/OGG decoding; weigh against scope.
+[decided] `Sound.mml(_:)` is adopted in M11c (new MML grammar only; no legacy auto-detect). `Sound.pcm(_:)` is deferred to M13 (target v1.2.0).
 
-[todo] Decide whether `Sound.save` / `Music.save` (WAV / FFmpeg-MP4 export) are in M11 scope or split off. They are non-essential for "minimum-viable game development".
+[decided] `Sound.save` and `Music.save` are deferred to M13 (target v1.2.0). `Tilemap.collide` is adopted in M11b; `Tilemap.from_tmx` is deferred to M13.
 
-[todo] Decide whether `Tilemap.collide` and `Tilemap.from_tmx` are in M11 scope. `collide` is small and useful; `from_tmx` pulls in TMX/XML parsing.
-
-[todo] Decide whether deprecated upstream aliases (`Tone.noise`, `Tone.waveform`, `Music.snds_list`, `incl_colors`) are surfaced in Pyxift. Default position by precedent: do not adopt deprecated upstream names.
+[decided] Deprecated upstream aliases (`Tone.noise`, `Tone.waveform`, `Music.snds_list`, `Image.from_image(incl_colors=)`) are not surfaced. See `decisions.md` → "Public API surface vs. upstream".
 
 Source: python/pyxel/__init__.pyi @ v2.9.5
 Source: crates/pyxel-binding/src/{image,tilemap,channel,tone,sound,music,variable}_wrapper.rs @ v2.9.5

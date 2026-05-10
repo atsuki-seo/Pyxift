@@ -110,10 +110,13 @@ The upstream repository's location, key files, and out-of-scope directories are 
 Functions present in upstream Pyxel that Pyxift renames:
 
 - `Pyx.mouseCursor(visible: Bool)` ← upstream `mouse(visible:)` (renamed to avoid a function-name collision)
+- `Tilemap.imageSource` ← upstream `Tilemap.imgsrc` (expanded for readability; matches the underlying Rust enum `ImageSource`)
 
 Editor-integration features will never be adopted.
 
 Watch/reload-related environment-variable constants (`BASE_DIR`, `WINDOW_STATE_ENV`, `WATCH_STATE_FILE_ENV`, `WATCH_RESET_EXIT_CODE`) are not provided. Consistent with the "Hot reload — not supported" decision, the surrounding watch/reload mechanism that gives these constants meaning is out of scope.
+
+Deprecated upstream aliases are not surfaced. Upstream maintains warn-only aliases (`Tone.noise` ↔ `Tone.mode`, `Tone.waveform` ↔ `Tone.wavetable`, `Music.snds_list` ↔ `Music.seqs`, and `Image.from_image(incl_colors=)` ↔ `include_colors=`) for source compatibility with older Pyxel versions. Pyxift exposes only the canonical names. Code being ported from upstream that uses a deprecated alias must be updated to the canonical name; Pyxift does not emit a "deprecated" warning because the alias is simply absent.
 
 ### Math and RNG APIs: prefer Swift idioms over Pyxel's spec
 
@@ -131,6 +134,32 @@ Upstream Pyxel implements `screen_mode` via a GLSL shader pipeline (`crisp` / `s
 
 Upstream defines 215 `KEY_*` constants. Pyxift's `enum Key` covers SDL3's `SDL_Keycode` (`SDLK_*`) one-to-one. Naming follows Swift conventions in lowerCamelCase, e.g. `case escape` / `case leftArrow`. Raw SDL3 keycode access remains available through `Key(rawValue:)`.
 
+## Object-style resource API (M11)
+
+Decided during the `grill-me` session on 2026-05-10. M11 promotes Pyxift's resource and audio surface from the index-based shorthands shipped through M10 (`Pyx.imagePset(bank:...)`, `Pyx.tilemapSetCell(tilemap:...)`, etc.) to upstream-equivalent object-style classes. The full upstream reference for the affected types lives in the "Object-style resource API (M11 reference)" section of `pyxel-reference.md`; this section captures only Pyxift-specific design decisions.
+
+### Module-level resource lists
+
+The six fixed-length module-level sequences (`Pyx.images`, `Pyx.tilemaps`, `Pyx.channels`, `Pyx.tones`, `Pyx.sounds`, `Pyx.musics`) are exposed as dedicated wrapper types `ImageBank`, `TilemapBank`, `ChannelBank`, `ToneBank`, `SoundBank`, `MusicBank`. Each conforms to `Collection`, has a fixed length matching the constraint values in `pyxel-reference.md`, and exposes `subscript(Int) { get set }` whose elements are reference types (Swift `class`).
+
+`Array<Image>` etc. are deliberately not used: the upstream lists are not append-extensible, and a thin wrapper keeps the API contract honest while letting `for img in Pyx.images` and `Pyx.images.count` work naturally.
+
+### Slot replacement
+
+`Pyx.images[i] = newImage` (and the equivalents on the other five banks) is supported in v1.0.0 with reference-swap semantics. Replacing a slot does not retroactively mutate previously-obtained references — old handles keep pointing at the previous instance, matching upstream's `Rc<UnsafeCell<T>>` behavior.
+
+### Individual `Image` references
+
+Of upstream's three module-level `Image` references (`pyxel.screen` / `pyxel.cursor` / `pyxel.font`), only `Pyx.screen` is exposed as a public Pyxift property. It is a settable target — assigning to `Pyx.screen` switches the active draw target, enabling off-screen composition. `Pyx.cursor` and `Pyx.font` are upstream internals (the cursor image is not used by Pyxift's `mouseCursor(visible:)` path, and the built-in font surface is owned by M14 / v1.3.0 custom-font work — see Roadmap in `status.md`).
+
+### `Sound` modes
+
+`Sound.mml(_:)` is adopted in M11c (target v1.0.0), accepting only the modern MML grammar. Upstream's auto-detect of the legacy `x` / `X` / `~` syntax is not adopted; Pyxift treats those characters as syntax errors. `Sound.pcm(_:)` (WAV/OGG playback) brings external decoder dependencies and is deferred to M13 / v1.2.0.
+
+### C-API for resource handles
+
+Resource handles in the C bridge follow the existing `pyxift_<subsystem>_<verb>` naming. Six opaque handle types are added: `PyxiftImageHandle`, `PyxiftTilemapHandle`, `PyxiftSoundHandle`, `PyxiftMusicHandle`, `PyxiftChannelHandle`, `PyxiftToneHandle`. The C++ core stores resources as `std::shared_ptr<T>`; each handle owns one shared_ptr; bank slot replacement swaps the shared_ptr in the bank vector while existing handles keep their previous instance live. Swift wrapper classes call `pyxift_<resource>_destroy` from `deinit`. The current `pyxift_c.h` is split into per-subsystem headers (`pyxift_canvas_c.h`, `pyxift_image_c.h`, `pyxift_tilemap_c.h`, `pyxift_audio_c.h`, ...) at the start of M11a.
+
 ## Versioning policy
 
 Pyxift versioning follows SemVer with one project-specific deviation about when `v1.0.0` is cut.
@@ -144,3 +173,5 @@ Pyxift versioning follows SemVer with one project-specific deviation about when 
 Implication for `v0.x`: a breaking change does not get folded into a minor bump to preserve `v0.y` semantics. If a breaking change is needed before the functional checkpoint, `v1.0.0` is cut early; the major number is not held back artificially.
 
 The decision of which bump applies to a given milestone is made by `/next-milestone` (proposes a tentative version with each candidate) and confirmed by `/milestone-update` (records the chosen version onto the Roadmap) before the release-tagging `M<n>: vX.Y.Z ...` commit per `CLAUDE.md`'s Milestone Conventions.
+
+M11 is the concrete first application of this policy: M11c removes the pre-M11 shorthands (`Pyx.imagePset(bank:...)`, `Pyx.tilemapSetCell(tilemap:...)`, `Pyx.tilemapSetImageBank(tilemap:...)`) and exposes the new class-based surface, which is a breaking change. Per bullet (1), v1.0.0 is cut at M11c rather than waiting for the original "M11 + M12 = minimum-viable game development and cross-OS distribution" checkpoint. Distribution packaging (M12) is shifted to v1.1.0.

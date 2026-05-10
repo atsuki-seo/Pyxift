@@ -4,34 +4,30 @@ Tracks open tasks and open questions. Completed items are visible via `git log -
 
 ## Open tasks
 
-- (deferred to a later v0.x) MML string mode (`Sound.mml(...)`) — was out of v0.2.0 scope
 - (deferred past v0.7.0) `screencast` / `reset_screencast`, `Pyx.reset`, `flip`, and shader-based `screen_mode` filters (smooth / retro). M10 ships an API stub for `screen_mode` via `SDL_SetTextureScaleMode` (NEAREST / LINEAR) since the SDL_Renderer backend has no GLSL pipeline; the upstream-equivalent CRT/blur shaders are out of scope. See "Future considerations".
-- (M11, target v1.0.0) Object-style resource and audio API surface — promote `Image` / `Tilemap` (and accompanying `Sound` / `Music` / `Channel` / `Tone`) to public types with per-instance methods, replacing the current fixed-bank API (`Pyx.imagePset(bank:...)`, `Pyx.tilemapSetCell(tilemap:...)`, etc.). This is a breaking change to Pyxift's public Swift surface and per `decisions.md` → "Versioning policy" cuts v1.0.0. Resolves the two Open questions about resource/audio object APIs that previously sat in this file.
-- (M12, target v1.0.0) Distribution packaging: `pyxift-package` CLI that emits `dist/<os>/` trees for macOS / Windows / Linux, Windows native CI build on `windows-latest`, SDL3 VC prebuilt fetch for Windows, `.app` template for macOS, and `LD_LIBRARY_PATH` launcher script for Linux. Scope and policy are settled in `decisions.md` → "Distribution packaging". Paired with M11 as the second v1.0.0 driver — together they form the "minimum-viable game development and cross-OS distribution" checkpoint that anchors v1.0.0.
-- (M13, target v1.1.0) Custom font support: `Font(filename:font_size:)`, `Font.text_width`, a `font` parameter on `Pyx.text`, and public `FONT_WIDTH`/`FONT_HEIGHT` constants. Deferred past v1.0.0 because the built-in bitmap font is sufficient for minimum-viable game development.
-- (M14, target v1.2.0) 3D blit: `blt3d` and `bltm3d`. Spec details (perspective parameters) to be captured by `/pyxel-research`. Deferred past v1.0.0 as a niche extension.
-- (M15, target TBD) Headless / test-injection hooks: `headless` startup option, `set_btn`, `set_btnv`, `set_input_text`, `set_dropped_files`, `user_data_dir`. Version not yet assigned — depends on whether Pyxift adopts an automated test-harness path. Deferred past v1.0.0 because this targets Pyxift's own testing rather than user-facing game development.
-- (M16, target TBD, v1.x) Bidirectional Pyxel API cross-check (beta) — see "Future considerations" for the original sketch. Deferred past v1.0.0 as an internal maintenance tool.
+- (M11a, intermediate, stays in v0.7.x) Image class promotion — promote `Image` to a public Swift class with constructors (`Image(width:height:)`, `Image.fromImage(filename:includeColors:)`), per-instance canvas methods (clip / camera / pal / dither / cls / pget / pset / line / rect / rectb / circ / circb / elli / ellib / tri / trib / fill / blt / bltm / text), `data_ptr`-equivalent accessor, and bank slot replacement via `Pyx.images[i] = newImage`. Removes the pre-M11 shorthand `Pyx.imagePset(bank:...)`. Splits `pyxift_c.h` into per-subsystem headers at the start of this milestone. See `decisions.md` → "Object-style resource API (M11)".
+- (M11b, intermediate, stays in v0.7.x) Tilemap class promotion — promote `Tilemap` to a public Swift class with constructors, `imageSource: TilemapImageSource` property (renamed from upstream `imgsrc`), per-instance tile-domain canvas methods, `Tilemap.collide(...)`, and bank slot replacement. Removes the pre-M11 shorthands `Pyx.tilemapSetCell(tilemap:...)` and `Pyx.tilemapSetImageBank(tilemap:...)`.
+- (M11c, target v1.0.0) Audio class promotion — promote `Channel`, `Tone`, `Sound`, `Music` to public Swift classes with the upstream method shapes, the four bank wrappers (`ChannelBank`, `ToneBank`, `SoundBank`, `MusicBank`), `Sound.mml(_:)` (new grammar only — no legacy `x` / `X` / `~` auto-detect), and `Pyx.screen` exposure as a settable draw target. This is the breaking-change milestone that triggers `v1.0.0` per `decisions.md` → "Versioning policy".
+- (M12, target v1.1.0) Distribution packaging: `pyxift-package` CLI that emits `dist/<os>/` trees for macOS / Windows / Linux, Windows native CI build on `windows-latest`, SDL3 VC prebuilt fetch for Windows, `.app` template for macOS, and `LD_LIBRARY_PATH` launcher script for Linux. Scope and policy are settled in `decisions.md` → "Distribution packaging". Originally framed as a v1.0.0 co-driver alongside M11; shifted to v1.1.0 because M11c's breaking change cuts v1.0.0 first per the versioning policy.
+- (M13, target v1.2.0) Resource I/O extensions — bundles the items deferred from M11: `Sound.pcm(_:)` (WAV/OGG playback), `Sound.save` and `Music.save` (WAV / FFmpeg-MP4 export), and `Tilemap.from_tmx(...)` (TMX/XML import). Grouped because they all add external-dependency surface (decoder libraries, FFmpeg invocation, XML parsing) that does not fit the v1.0.0 "minimum-viable" scope.
+- (M14, target v1.3.0) Custom font support: `Font(filename:font_size:)`, `Font.text_width`, a `font` parameter on `Pyx.text`, and public `FONT_WIDTH`/`FONT_HEIGHT` constants. Deferred past v1.0.0 because the built-in bitmap font is sufficient for minimum-viable game development.
+- (M15, target v1.4.0) 3D blit: `blt3d` and `bltm3d`. Spec details (perspective parameters) to be captured by `/pyxel-research`. Deferred past v1.0.0 as a niche extension.
+- (M16, target TBD) Headless / test-injection hooks: `headless` startup option, `set_btn`, `set_btnv`, `set_input_text`, `set_dropped_files`, `user_data_dir`. Version not yet assigned — depends on whether Pyxift adopts an automated test-harness path. Deferred past v1.0.0 because this targets Pyxift's own testing rather than user-facing game development.
+- (M17, target TBD, v1.x) Bidirectional Pyxel API cross-check (beta) — see "Future considerations" for the original sketch. Deferred past v1.0.0 as an internal maintenance tool.
 
 ## Open questions
 
 - noise (Perlin) API: not provided in v0.1; revisit when actually needed. See the math / RNG API section of `decisions.md` for details.
 - macOS `Info.plist` minimum key set for `pyxift-package`'s `.app` template: which keys Pyxift fills in by default (`CFBundlePackageType`, `LSMinimumSystemVersion`, ...) and which the user must supply (`CFBundleIdentifier`, version strings, ...). Defer to implementation time when the `.app` can actually be launched and tested.
-- (M11) Swift surface for the six module-level resource lists (`Pyx.images`, `Pyx.tilemaps`, `Pyx.channels`, `Pyx.tones`, `Pyx.sounds`, `Pyx.musics`): wrapper-property shape, subscript semantics, and reference-type backing. Defer to implementation time. See "Object-style resource API (M11 reference)" in `pyxel-reference.md`.
-- (M11) Slot replacement (`Pyx.images[i] = newImage`) — adopt upstream's reference-swap semantics for v1.0.0, or expose only in-place mutation through the existing slot. Affects how the wrapper subscript is implemented.
-- (M11) Whether `Pyx.screen`, `Pyx.cursor`, `Pyx.font` are exposed on the Pyxift surface. `Pyx.screen` is the most likely candidate; the other two are Pyxel-internal.
-- (M11) Naming for `Tilemap.imgsrc`. Upstream is short but cryptic; Pyxift could rename to `imageSource` to match the underlying Rust enum `ImageSource`.
-- (M11) Whether `Sound.mml(_:)` and `Sound.pcm(_:)` modes are part of the v1.0.0 class-API surface. `mml(_:)` was previously deferred as a separate Open task; M11's class-API roll-up subsumes that entry. `pcm(_:)` brings WAV/OGG decoding cost.
-- (M11) Whether `Sound.save` / `Music.save` (WAV / FFmpeg-MP4 export) are in M11 scope. Non-essential for minimum-viable game development; candidate to split off.
-- (M11) Whether `Tilemap.collide(...)` and `Tilemap.from_tmx(...)` are in M11 scope. `collide` is small and useful; `from_tmx` pulls in TMX/XML parsing.
-- (M11) Whether deprecated upstream aliases (`Tone.noise`, `Tone.waveform`, `Music.snds_list`, `incl_colors`) are surfaced in Pyxift. Default position by precedent: do not adopt deprecated upstream names.
 
 ## Roadmap from v0.7 onward
 
-- v1.0.0: object-style resource/audio API surface (M11) and distribution packaging (M12) — the minimum-viable game development and cross-OS distribution checkpoint. M11 is the breaking change that triggers v1.0.0 per the versioning policy; M12 is the functional checkpoint that justifies cutting v1.0.0 here rather than later.
-- v1.1.0: custom font support — `Font(filename:font_size:)`, `Font.text_width`, `text(font:)`, expose `FONT_WIDTH`/`FONT_HEIGHT` (M13)
-- v1.2.0: 3D blit — `blt3d`, `bltm3d` (M14)
-- v1.x (target TBD): bidirectional Pyxel API cross-check (beta) — extract Swift public-API signatures and mechanically compare against `__init__.pyi` (M16; see Future considerations)
+- v1.0.0: object-style resource and audio API surface — `Image`, `Tilemap`, `Channel`, `Tone`, `Sound`, `Music` promoted to public Swift classes; the pre-M11 index-based shorthands are removed (M11a → M11b → M11c, with M11a/b as intermediate milestones and M11c cutting the tag). Cut here per the breaking-change branch of `decisions.md` → "Versioning policy"; the original "M11 + M12 = minimum-viable game development and cross-OS distribution" framing is overturned.
+- v1.1.0: distribution packaging — `pyxift-package` CLI emitting per-OS `dist/<os>/` trees (M12)
+- v1.2.0: resource I/O extensions — `Sound.pcm`, `Sound.save`, `Music.save`, `Tilemap.from_tmx` (M13)
+- v1.3.0: custom font support — `Font(filename:font_size:)`, `Font.text_width`, `text(font:)`, expose `FONT_WIDTH`/`FONT_HEIGHT` (M14)
+- v1.4.0: 3D blit — `blt3d`, `bltm3d` (M15)
+- v1.x (target TBD): bidirectional Pyxel API cross-check (beta) — extract Swift public-API signatures and mechanically compare against `__init__.pyi` (M17; see Future considerations)
 
 ## Pre-release-tag checklist
 
